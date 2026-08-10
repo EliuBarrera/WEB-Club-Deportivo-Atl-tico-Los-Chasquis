@@ -1,0 +1,384 @@
+// ==========================================
+// Club Los Chasquis - Modelo de datos
+// PostgreSQL + Prisma
+// ==========================================
+
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum EstadoEvento {
+  ABIERTO
+  CERRADO
+  BORRADOR
+}
+
+enum Genero {
+  MASCULINO
+  FEMENINO
+}
+
+enum TipoDocumento {
+  RC
+  TI
+  CC
+  CE
+  PA
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+  DECLINADO
+  ERROR
+}
+
+enum RolUsuario {
+  ADMIN
+  EDITOR
+}
+
+// ==========================================
+// USUARIOS DEL PANEL ADMIN
+// ==========================================
+
+model Usuario {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  nombre       String
+  rol          RolUsuario @default(EDITOR)
+  createdAt    DateTime   @default(now())
+}
+
+// ==========================================
+// CATÁLOGO GLOBAL DE PRUEBAS
+// (equivalente a PRUEBAS_CATALOGO en CalendarEvents.js)
+// ==========================================
+
+model PruebaCatalogo {
+  id          String   @id @default(cuid())
+  key         String   @unique // ej: "100_m", "salto_largo"
+  nombre      String   // ej: "100 m planos"
+  icon        String?  // emoji o nombre de icono
+  genero      Genero?  // null = aplica a ambos
+
+  categorias  CategoriaPrueba[]
+}
+
+// ==========================================
+// EVENTO (tabla central)
+// ==========================================
+
+model Evento {
+  id                String       @id @default(cuid())
+  titulo            String
+  subtitulo         String?
+  lema              String?
+  precio            Int
+  descuento         Int          @default(0)
+  descuentoLabel    String?      // ej: "Pagando antes del 20 de febrero"
+  fechaLimiteDescuento DateTime?
+  estado            EstadoEvento @default(BORRADOR)
+  fecha             DateTime
+  horario           String?      // texto libre, ej: "7:00 AM - 5:00 PM"
+  ubicacion         String
+  mapUrl            String?
+  descripcion       String?      @db.Text
+  imagenUrl         String?
+  resultadosUrl     String?
+  terminosUrl       String?
+  cierreInscripciones String?    // texto libre, ej: "10 de abril de 2026"
+  aval              String?
+  organizador       String?
+  lemaInstitucional String?
+
+  // Relaciones 1:1
+  recorrido         Recorrido?
+  premios           Premios?
+  reglamento        Reglamento?
+  logistica         Logistica?
+
+  // Relaciones 1:N
+  categorias        Categoria[]
+  noticias          Noticia[]
+  objetivos         Objetivo[]
+  convocatoria      ConvocatoriaItem[]
+  costos            Costo[]
+  inscripciones     Inscripcion[]
+
+  // Integración pagos / e-commerce (si se mantiene puente con WooCommerce en transición)
+  wompiProductRef   String?
+
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+
+  @@index([fecha])
+  @@index([estado])
+}
+
+// ==========================================
+// CATEGORÍAS Y PRUEBAS POR CATEGORÍA
+// ==========================================
+
+model Categoria {
+  id         String @id @default(cuid())
+  eventoId   String
+  evento     Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  nombre     String // ej: "SUB 14", "MAYORES"
+  edad       String // ej: "12-13 años"
+  nacimiento String // ej: "2014-2013"
+  rama       String @default("MASCULINA Y FEMENINA")
+  orden      Int    @default(0)
+
+  pruebas         CategoriaPrueba[]
+  inscripciones   Inscripcion[]
+
+  @@index([eventoId])
+}
+
+// Tabla puente: qué pruebas del catálogo aplican a cada categoría de cada evento
+model CategoriaPrueba {
+  id            String         @id @default(cuid())
+  categoriaId   String
+  categoria     Categoria      @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  pruebaId      String
+  prueba        PruebaCatalogo @relation(fields: [pruebaId], references: [id])
+
+  @@unique([categoriaId, pruebaId])
+}
+
+// ==========================================
+// RECORRIDO
+// ==========================================
+
+model Recorrido {
+  id             String   @id @default(cuid())
+  eventoId       String   @unique
+  evento         Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  mapaUrl        String?
+  distancia      String?  // ej: "6 kilómetros"
+  desnivel       String?  // ej: "+250 metros"
+  salida         String?
+  meta           String?
+  modalidad      String?
+  terreno        String?
+
+  programacion   ImagenProgramacion[]
+}
+
+model ImagenProgramacion {
+  id          String    @id @default(cuid())
+  recorridoId String
+  recorrido   Recorrido @relation(fields: [recorridoId], references: [id], onDelete: Cascade)
+  url         String
+  alt         String
+  orden       Int       @default(0)
+}
+
+// ==========================================
+// PREMIOS
+// ==========================================
+
+model Premios {
+  id             String   @id @default(cuid())
+  eventoId       String   @unique
+  evento         Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  efectivoUrl    String?  // imagen de tabla de premiación en efectivo
+  ceremoniaHora  String?
+  ceremoniaLugar String?
+
+  condiciones    CondicionPremio[]
+}
+
+model CondicionPremio {
+  id        String  @id @default(cuid())
+  premiosId String
+  premios   Premios @relation(fields: [premiosId], references: [id], onDelete: Cascade)
+  texto     String
+  orden     Int     @default(0)
+}
+
+// ==========================================
+// REGLAMENTO
+// ==========================================
+
+model Reglamento {
+  id       String @id @default(cuid())
+  eventoId String @unique
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  competencia ReglaCompetencia[]
+  seguridad   NormaSeguridad[]
+  controles   ControlItem[]
+}
+
+model ReglaCompetencia {
+  id           String     @id @default(cuid())
+  reglamentoId String
+  reglamento   Reglamento @relation(fields: [reglamentoId], references: [id], onDelete: Cascade)
+  texto        String
+  orden        Int        @default(0)
+}
+
+model NormaSeguridad {
+  id           String     @id @default(cuid())
+  reglamentoId String
+  reglamento   Reglamento @relation(fields: [reglamentoId], references: [id], onDelete: Cascade)
+  texto        String
+  orden        Int        @default(0)
+}
+
+model ControlItem {
+  id           String     @id @default(cuid())
+  reglamentoId String
+  reglamento   Reglamento @relation(fields: [reglamentoId], references: [id], onDelete: Cascade)
+  texto        String
+  orden        Int        @default(0)
+}
+
+// ==========================================
+// LOGÍSTICA
+// ==========================================
+
+model Logistica {
+  id       String @id @default(cuid())
+  eventoId String @unique
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+
+  servicios       ServicioItem[]
+  recomendaciones RecomendacionItem[]
+  kit             KitItem[]
+}
+
+model ServicioItem {
+  id          String    @id @default(cuid())
+  logisticaId String
+  logistica   Logistica @relation(fields: [logisticaId], references: [id], onDelete: Cascade)
+  texto       String
+  orden       Int       @default(0)
+}
+
+model RecomendacionItem {
+  id          String    @id @default(cuid())
+  logisticaId String
+  logistica   Logistica @relation(fields: [logisticaId], references: [id], onDelete: Cascade)
+  texto       String
+  orden       Int       @default(0)
+}
+
+model KitItem {
+  id          String    @id @default(cuid())
+  logisticaId String
+  logistica   Logistica @relation(fields: [logisticaId], references: [id], onDelete: Cascade)
+  texto       String
+  orden       Int       @default(0)
+}
+
+// ==========================================
+// NOTICIAS, OBJETIVOS, CONVOCATORIA, COSTOS
+// ==========================================
+
+model Noticia {
+  id        String   @id @default(cuid())
+  eventoId  String
+  evento    Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  titulo    String
+  fecha     String   // texto libre, ej: "15 de enero, 2026"
+  contenido String   @db.Text
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model Objetivo {
+  id       String @id @default(cuid())
+  eventoId String
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  texto    String
+  orden    Int    @default(0)
+}
+
+model ConvocatoriaItem {
+  id       String @id @default(cuid())
+  eventoId String
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  texto    String
+  orden    Int    @default(0)
+}
+
+model Costo {
+  id       String @id @default(cuid())
+  eventoId String
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  tipo     String // ej: "adultos", "ninos"
+  valor    Int
+}
+
+// ==========================================
+// INSCRIPCIONES (reemplaza WooCommerce + Google Sheets)
+// ==========================================
+
+model Inscripcion {
+  id                  String        @id @default(cuid())
+  eventoId            String
+  evento              Evento        @relation(fields: [eventoId], references: [id])
+  categoriaId         String
+  categoria           Categoria     @relation(fields: [categoriaId], references: [id])
+
+  // Atleta
+  nombres             String
+  apellidos           String
+  tipoDocumento       TipoDocumento
+  numeroDocumento     String
+  fechaNacimiento     DateTime
+  edad                Int
+  genero              Genero
+
+  // Pruebas seleccionadas (máx. 2) — se guardan como keys de PruebaCatalogo
+  pruebasIds          String[]
+
+  // Contacto
+  celular             String
+  email               String
+  ciudad              String
+  departamento        String
+  club                String?
+
+  // Adicional
+  condicionesMedicas  String?
+
+  // Acudiente (si es menor de edad)
+  nombresAcudiente    String?
+  apellidosAcudiente  String?
+  documentoAcudiente  String?
+  celularAcudiente    String?
+
+  // Legal
+  aceptaTerminos      Boolean       @default(false)
+  aceptaImagenes      Boolean       @default(false)
+
+  // Pago
+  totalPago           Int
+  estadoPago          EstadoPago    @default(PENDIENTE)
+  wompiTransactionId  String?
+  wompiReference      String?       @unique
+
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([eventoId])
+  @@index([numeroDocumento])
+  @@index([estadoPago])
+}
