@@ -2,8 +2,8 @@
 
 ## Contexto
 
-Club Deportivo Atlético Los Chasquis (Tunja, Boyacá) organiza
-**Eventos Atléticos**: carreras de calle y eventos de pista y campo en
+Club Deportivo Atlético Los Chasquis (Tunja, Boyacá) organiza el circuito
+**Pasaporte Runner Boyacá**: carreras de calle y eventos de pista y campo en
 la región. Actualmente el sitio corre en WordPress (`clubloschasquis.com`),
 lento y limitado. Este proyecto lo reemplaza por una aplicación propia.
 
@@ -73,7 +73,7 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
 
 ### Fase 1 — Capa de datos
 - [ ] Cliente Prisma singleton (`src/lib/prisma.ts`)
-- [ ] Script `prisma/seed.ts` que carga los eventos existentes
+- [ ] Script `prisma/seed.ts` que carga los 4 eventos de `Festivales`
 - [ ] Comando `npm run seed` funcionando
 
 ### Fase 2 — Sitio público: listado de eventos y vista de detalle
@@ -113,24 +113,77 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
 - [ ] Formulario con los mismos campos del actual (datos del atleta,
       contacto, sección de acudiente si es menor de edad, selección de
       hasta 2 pruebas según categoría/género elegidos)
-- [ ] Validaciones en servidor (no solo en cliente)
+- [ ] Validaciones en servidor con Zod (no confiar solo en las
+      validaciones del navegador) — nunca aceptar el precio/total desde
+      el cliente, se recalcula siempre en servidor a partir del evento
+- [ ] CAPTCHA (ej. Cloudflare Turnstile) antes de enviar el formulario,
+      para evitar inscripciones automatizadas/spam
+- [ ] Rate limiting por IP en el endpoint de inscripción
 - [ ] Al enviar, crear registro `Inscripcion` en estado `PENDIENTE`
 
 ### Fase 5 — Pagos con Wompi
-- [ ] Integrar Widget/Checkout de Wompi con el monto calculado
-      (precio − descuento si aplica según fecha límite)
-- [ ] Webhook de confirmación de Wompi que actualiza `estadoPago` a
-      `APROBADO`/`RECHAZADO` y guarda `wompiTransactionId`
+- [ ] Integrar Widget/Checkout de Wompi con el monto calculado en
+      **servidor** (precio − descuento si aplica según fecha límite) —
+      nunca confiar en un monto enviado desde el navegador
+- [ ] Webhook de confirmación de Wompi: **verificar la firma/checksum del
+      evento** con el secreto de eventos de Wompi antes de procesar
+      cualquier cambio de estado (evita que alguien falsifique un pago
+      aprobado llamando directamente al endpoint)
+- [ ] El webhook actualiza `estadoPago` a `APROBADO`/`RECHAZADO` y guarda
+      `wompiTransactionId`; el endpoint debe ser idempotente (si Wompi
+      reenvía el mismo evento, no debe duplicar ni romper nada)
 - [ ] Página de confirmación para el atleta
 
 ### Fase 6 — Panel de administrador
-- [ ] Login simple (NextAuth o similar) protegiendo `/admin`
+- [ ] Login con NextAuth (o similar), contraseñas con hash `bcrypt`,
+      nunca almacenar contraseñas en texto plano
+- [ ] Middleware que protege **todas** las rutas `/admin/*` y sus
+      Server Actions/API routes — la protección no puede depender solo
+      de ocultar el link en el menú
+- [ ] Verificar el rol (`ADMIN`/`EDITOR`) en cada acción sensible, no
+      solo al hacer login
 - [ ] CRUD de eventos: crear, editar, cambiar estado (abierto/cerrado)
 - [ ] Gestión de categorías y pruebas por categoría desde formularios
 - [ ] Listado de inscripciones por evento, con filtro y exportar a CSV
-- [ ] Editor de noticias por evento
+      (el CSV incluye datos personales de menores — restringir su
+      descarga solo a usuarios autenticados con rol `ADMIN`)
+- [ ] Editor de noticias por evento — si se permite pegar HTML/rich
+      text, sanitizarlo (ej. con `DOMPurify`) antes de guardarlo o
+      mostrarlo, para evitar XSS
 
-### Fase 7 — Despliegue y QA
+### Fase 7 — Seguridad (transversal, revisar antes de producción)
+
+- [ ] **Secretos y variables de entorno**: `DATABASE_URL`, credenciales
+      de Wompi, secreto de NextAuth, etc. solo en variables de entorno
+      de Vercel — nunca en el código ni commiteados en `.env` al repo
+      (agregar `.env` a `.gitignore` desde el inicio)
+- [ ] **Prisma solo en servidor**: el cliente de Prisma nunca se importa
+      en componentes cliente (`"use client"`); todo acceso a datos pasa
+      por Server Components, Server Actions o API routes
+- [ ] **Validación de entradas**: todo dato que llega del usuario
+      (formulario de inscripción, login admin, creación de eventos) se
+      valida con Zod en el servidor antes de tocar la base de datos
+- [ ] **Cabeceras de seguridad HTTP** en `next.config.ts` o middleware:
+      `Content-Security-Policy`, `X-Frame-Options: DENY`,
+      `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`
+- [ ] **HTTPS**: Vercel lo da automático; si se usa dominio propio
+      (`clubloschasquis.com`), confirmar el certificado SSL activo antes
+      de apagar WordPress
+- [ ] **Protección de datos personales (Ley 1581 de 2012 – Colombia)**:
+      el formulario ya tiene checkbox de autorización de datos e
+      imágenes; agregar una página de "Política de tratamiento de
+      datos personales" enlazada desde ahí, y un correo/proceso para que
+      alguien pueda pedir que se eliminen sus datos
+- [ ] **No exponer errores internos**: las páginas de error no deben
+      mostrar stacks de Prisma ni mensajes técnicos al usuario final;
+      loguear el detalle solo del lado del servidor (sin datos sensibles
+      como número de documento en logs de producción)
+- [ ] **Dependencias**: correr `npm audit` antes del primer despliegue y
+      periódicamente después; mantener Next.js y Prisma actualizados
+- [ ] **Backups**: confirmar que el plan de Neon usado tenga backups /
+      point-in-time recovery activo para la base de datos de producción
+
+### Fase 8 — Despliegue y QA
 - [ ] Variables de entorno en Vercel (`DATABASE_URL`, credenciales Wompi)
 - [ ] Prueba de flujo completo: ver evento → inscribirse → pagar → admin
       ve la inscripción
@@ -143,6 +196,42 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
   antiguas) — solo los eventos activos/futuros
 - No construir app móvil nativa
 - No tocar el WordPress actual hasta que la nueva plataforma esté probada
+
+## Cómo verificar que cada tarea quedó realmente hecha
+
+No basta con que Claude Code diga "listo, ya quedó implementado" —
+pídele siempre evidencia concreta: el comando que corrió y su salida
+real, o que abra el archivo modificado y muestre el fragmento. Reglas
+generales para trabajar con Claude Code en este proyecto:
+
+- Después de cada tarea del checklist, pídele que corra `npm run build`
+  y pegue la salida completa — si hay un error, no está terminada.
+- Pídele `git diff` o `git status` antes de dar por buena una tarea, para
+  ver exactamente qué archivos tocó (a veces "arregla" algo sin cambiar
+  nada, o cambia más de lo pedido).
+- Un commit por tarea del checklist (no un solo commit gigante al final)
+  — así puedes revisar el historial y revertir algo puntual si falla.
+- Para lo de seguridad en particular, esto NO se verifica leyendo el
+  código, se verifica probándolo. Pídele a Claude Code que ejecute estas
+  pruebas y te muestre el resultado real:
+
+| Qué se agregó | Cómo comprobar que sí funciona |
+|---|---|
+| `.env` no se sube al repo | `git ls-files \| grep .env` → no debe aparecer nada |
+| Cabeceras de seguridad HTTP | `curl -I http://localhost:3000` (o la URL de producción) → deben verse `X-Frame-Options`, `Strict-Transport-Security`, etc. |
+| `/admin` protegido | `curl -I http://localhost:3000/admin` sin sesión iniciada → debe responder `302` (redirección a login), no `200` |
+| Contraseñas con hash | Abrir `npx prisma studio`, tabla `Usuario`, columna `passwordHash` → debe verse un hash largo tipo `$2b$...`, nunca la contraseña en texto plano |
+| Webhook de Wompi valida firma | Simular una petición POST al endpoint del webhook con una firma inventada → debe responder `401`/`403`, no procesar el pago |
+| Monto no viene del cliente | Revisar el código del endpoint de inscripción/pago: el precio debe calcularse consultando el evento en la base de datos, no leerse del `body` de la petición |
+| Validación con Zod en servidor | Probar enviar el formulario de inscripción con un campo inválido usando `curl` o Postman directo al endpoint (sin pasar por el formulario) → debe rechazarlo igual |
+| `npm audit` sin vulnerabilidades altas/críticas | `npm audit` → pegar la salida completa |
+
+- Para las partes más críticas (login admin, webhook de pagos, cálculo
+  de montos), vale la pena pedirle a Claude Code que escriba **pruebas
+  automatizadas** (Vitest para lógica de validación/cálculo, Playwright
+  para el flujo de inscripción de punta a punta) que corran con
+  `npm test` — así cada cambio futuro se revalida solo, no depende de
+  que alguien se acuerde de probar a mano.
 
 ## Convenciones de trabajo
 
