@@ -72,9 +72,12 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
 ## Fases de desarrollo
 
 ### Fase 1 — Capa de datos
-- [ ] Cliente Prisma singleton (`src/lib/prisma.ts`)
-- [ ] Script `prisma/seed.ts` que carga los 4 eventos de `Festivales`
-- [ ] Comando `npm run seed` funcionando
+- [x] Cliente Prisma singleton (`lib/prisma.ts` — no `src/lib/`, ya que
+      `app/` vive en la raíz del repo, no en `src/app/`)
+- [x] Script `prisma/seed.ts` que carga los eventos existentes. La
+      fuente real (`CalendarEvents.js`) tenía 6 eventos, no 4 como
+      decía este documento — se migraron los 6.
+- [x] Comando `npm run seed` funcionando (`prisma db seed`, idempotente)
 
 ### Fase 2 — Sitio público: listado de eventos y vista de detalle
 - [ ] Página `/eventos` con un **listado tipo carrusel horizontal** de
