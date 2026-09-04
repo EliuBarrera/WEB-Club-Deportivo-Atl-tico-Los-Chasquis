@@ -5,8 +5,16 @@
 // ==========================================
 
 import "dotenv/config";
+import dns from "node:dns";
+import net from "node:net";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { EstadoEvento, Genero, PrismaClient } from "@prisma/client";
+
+// Ver nota en lib/prisma.ts: se evita que Node abra conexiones IPv4/IPv6
+// en paralelo ("Happy Eyeballs"), que en algunas redes hace que el
+// router bloquee las conexiones siguientes.
+dns.setDefaultResultOrder("ipv4first");
+net.setDefaultAutoSelectFamily(false);
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
