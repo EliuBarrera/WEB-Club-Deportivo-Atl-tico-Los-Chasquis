@@ -150,6 +150,17 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
 - [ ] Listado de inscripciones por evento, con filtro y exportar a CSV
       (el CSV incluye datos personales de menores — restringir su
       descarga solo a usuarios autenticados con rol `ADMIN`)
+- [ ] **Carga de imágenes**: usar **Vercel Blob** para que el admin suba
+      imágenes desde el formulario (portada del evento, imágenes de
+      programación/recorrido, tabla de premios en efectivo) en vez de
+      pegar links de ibb.co a mano. El upload se hace desde una Server
+      Action que devuelve la URL de Vercel Blob, y esa URL se guarda tal
+      cual en los campos que ya existen (`imagenUrl`,
+      `ImagenProgramacion.url`, `Premios.efectivoUrl`) — no requiere
+      cambiar el modelo de datos
+  - [ ] Validar en servidor el tipo de archivo (solo `image/jpeg`,
+        `image/png`, `image/webp`) y un tamaño máximo (ej. 5 MB) antes
+        de subir, para no permitir subir cualquier archivo
 - [ ] Editor de noticias por evento — si se permite pegar HTML/rich
       text, sanitizarlo (ej. con `DOMPurify`) antes de guardarlo o
       mostrarlo, para evitar XSS
