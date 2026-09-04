@@ -80,12 +80,12 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
 - [x] Comando `npm run seed` funcionando (`prisma db seed`, idempotente)
 
 ### Fase 2 — Sitio público: listado de eventos y vista de detalle
-- [ ] Página `/eventos` con un **listado tipo carrusel horizontal** de
+- [x] Página `/eventos` con un **listado tipo carrusel horizontal** de
       tarjetas de evento (flechas `<` `>` para navegar), leído desde la DB.
       Cada tarjeta muestra: imagen, fecha (badge naranja), título,
       ubicación, precio, categoría/badge destacado, lema en cursiva y
       botón **"Inscríbete aquí"**. (Ver referencia visual: imagen 1)
-- [ ] Al hacer clic en "Inscríbete aquí" de una tarjeta:
+- [x] Al hacer clic en "Inscríbete aquí" de una tarjeta:
       - Ocultar las demás tarjetas del carrusel.
       - Pasar a un layout de dos columnas (Ver referencia visual: imagen 2):
         - **Columna izquierda**: tarjeta resumida del evento elegido
@@ -98,10 +98,12 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
           con título, fecha/hora, ubicación y descripción del evento
           precargados) — no requiere login ni API de Google, es solo un
           link.
-        - **Columna derecha**: panel con tabs (ver Fase 3).
+        - **Columna derecha**: panel con tabs (ver Fase 3). Por ahora es
+          un placeholder: los tabs existen y cambian, pero solo
+          "Información" muestra datos reales de la DB.
       - Debe existir una forma de volver al listado completo (ej. botón
         "Volver" o cerrar el panel de detalle).
-- [ ] Ya NO se construye un calendario mensual interactivo tipo
+- [x] Ya NO se construye un calendario mensual interactivo tipo
       `CalendarEvents.js` actual (sin selección de día por mes, sin
       indicadores de mes) — esa lógica queda descartada para esta fase.
 
