@@ -30,7 +30,7 @@ export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
             key={tab}
             type="button"
             onClick={() => setTabActiva(tab)}
-            className={`rounded-t-lg px-4 py-2 font-display font-bold ${
+            className={`rounded-t-lg px-4 py-2 font-display text-lg font-bold ${
               tab === tabActiva
                 ? "bg-crema text-casi-negro"
                 : "bg-casi-negro/10 text-gris-oscuro"
@@ -44,43 +44,43 @@ export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
       <div className="min-h-[280px] rounded-b-2xl rounded-tr-2xl bg-crema p-5">
         {tabActiva === "Información" ? (
           <div className="flex flex-col gap-4">
-            <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-bold uppercase text-gris-oscuro">
+                <dt className="text-base font-bold uppercase text-gris-oscuro">
                   Fecha
                 </dt>
-                <dd>{formatFechaBadge(evento.fecha)}</dd>
+                <dd className="text-xl">{formatFechaBadge(evento.fecha)}</dd>
               </div>
               {evento.horario ? (
                 <div>
-                  <dt className="text-xs font-bold uppercase text-gris-oscuro">
+                  <dt className="text-base font-bold uppercase text-gris-oscuro">
                     Horario
                   </dt>
-                  <dd>{evento.horario}</dd>
+                  <dd className="text-xl">{evento.horario}</dd>
                 </div>
               ) : null}
               <div>
-                <dt className="text-xs font-bold uppercase text-gris-oscuro">
+                <dt className="text-base font-bold uppercase text-gris-oscuro">
                   Ubicación
                 </dt>
-                <dd>{evento.ubicacion}</dd>
+                <dd className="text-xl">{evento.ubicacion}</dd>
               </div>
               {evento.cierreInscripciones ? (
                 <div>
-                  <dt className="text-xs font-bold uppercase text-gris-oscuro">
+                  <dt className="text-base font-bold uppercase text-gris-oscuro">
                     Cierre inscripciones
                   </dt>
-                  <dd>{evento.cierreInscripciones}</dd>
+                  <dd className="text-xl">{evento.cierreInscripciones}</dd>
                 </div>
               ) : null}
             </dl>
 
             {evento.descripcion ? (
               <div>
-                <h4 className="mb-1 font-display font-bold uppercase">
+                <h4 className="mb-1 font-display text-xl font-bold uppercase">
                   Sobre el evento
                 </h4>
-                <p className="text-sm leading-relaxed">
+                <p className="text-lg leading-relaxed">
                   {evento.descripcion}
                 </p>
               </div>
@@ -88,15 +88,15 @@ export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
 
             {evento.aval ? (
               <div>
-                <h4 className="mb-1 font-display font-bold uppercase">
+                <h4 className="mb-1 font-display text-xl font-bold uppercase">
                   Aval
                 </h4>
-                <p className="text-sm leading-relaxed">{evento.aval}</p>
+                <p className="text-lg leading-relaxed">{evento.aval}</p>
               </div>
             ) : null}
           </div>
         ) : (
-          <p className="text-sm italic text-gris-oscuro">
+          <p className="text-lg italic text-gris-oscuro">
             Esta sección se completa en la Fase 3 (panel de detalle del
             evento).
           </p>

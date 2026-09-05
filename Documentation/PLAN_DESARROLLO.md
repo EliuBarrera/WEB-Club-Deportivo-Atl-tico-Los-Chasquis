@@ -79,6 +79,11 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
       decía este documento — se migraron los 6.
 - [x] Comando `npm run seed` funcionando (`prisma db seed`, idempotente)
 
+**Implementado:** cliente Prisma singleton en `lib/prisma.ts` (adapter
+`@prisma/adapter-pg`, fuerza IPv4 para evitar timeouts de conexión).
+`prisma/seed.ts` carga los 6 eventos reales tomados de `CalendarEvents.js`
+y se ejecuta con `npm run seed`.
+
 ### Fase 2 — Sitio público: listado de eventos y vista de detalle
 - [x] Página `/eventos` con un **listado tipo carrusel horizontal** de
       tarjetas de evento (flechas `<` `>` para navegar), leído desde la DB.
@@ -106,6 +111,14 @@ como componentes de Next.js — no reutilizar el JS de WordPress tal cual.
 - [x] Ya NO se construye un calendario mensual interactivo tipo
       `CalendarEvents.js` actual (sin selección de día por mes, sin
       indicadores de mes) — esa lógica queda descartada para esta fase.
+
+**Implementado:** `lib/eventos.ts` (`getEventosPublicados`) trae de la DB
+los eventos en estado ABIERTO/CERRADO; `app/eventos/page.tsx` los pasa a
+`components/eventos/EventosExplorer.tsx`, que alterna entre
+`CarruselEventos.tsx` (listado con flechas) y `VistaInscripcion.tsx`
+(tarjeta resumida + `MiniCalendario.tsx` + `PanelDetalleTabs.tsx` como
+placeholder de tabs). `TarjetaEvento.tsx` es la tarjeta compartida por
+ambas vistas.
 
 ### Fase 3 — Panel de detalle del evento
 - [ ] Panel con tabs: Información, Recorridos, Premios, Reglamento,

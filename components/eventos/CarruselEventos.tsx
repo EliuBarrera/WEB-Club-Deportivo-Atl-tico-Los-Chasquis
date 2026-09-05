@@ -30,42 +30,69 @@ export function CarruselEventos({
   }
 
   return (
-    <div className="relative flex items-center gap-2 sm:gap-4">
-      <button
-        type="button"
-        aria-label="Evento anterior"
-        onClick={() => desplazar(-1)}
-        className="hidden shrink-0 font-display text-3xl font-black text-casi-negro sm:block"
-      >
-        &lt;
-      </button>
-
-      <div
-        ref={scrollRef}
-        className="flex flex-1 snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2"
-      >
-        {eventos.map((evento) => (
-          <div
-            key={evento.id}
-            data-tarjeta
-            className="w-[85vw] shrink-0 snap-start sm:w-[340px]"
+    <div className="relative left-1/2 w-[80vw] -translate-x-1/2">
+      <div className="flex items-center gap-2 px-4 sm:gap-4 sm:px-8">
+        <button
+          type="button"
+          aria-label="Evento anterior"
+          onClick={() => desplazar(-1)}
+          className="hidden shrink-0 items-center justify-center rounded-full border-[3px] border-casi-negro bg-white text-casi-negro transition-colors hover:bg-casi-negro hover:text-white sm:flex sm:h-14 sm:w-14"
+        >
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
           >
-            <TarjetaEvento
-              evento={evento}
-              onInscribirte={() => onInscribirte(evento.id)}
-            />
-          </div>
-        ))}
-      </div>
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </button>
 
-      <button
-        type="button"
-        aria-label="Evento siguiente"
-        onClick={() => desplazar(1)}
-        className="hidden shrink-0 font-display text-3xl font-black text-casi-negro sm:block"
-      >
-        &gt;
-      </button>
+        <div
+          ref={scrollRef}
+          className="flex flex-1 snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth pb-2"
+        >
+          {eventos.map((evento) => (
+            <div
+              key={evento.id}
+              data-tarjeta
+              className="w-[85vw] shrink-0 snap-start sm:w-[340px]"
+            >
+              <TarjetaEvento
+                evento={evento}
+                mostrarLema={false}
+                onInscribirte={() => onInscribirte(evento.id)}
+              />
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          aria-label="Evento siguiente"
+          onClick={() => desplazar(1)}
+          className="hidden shrink-0 items-center justify-center rounded-full border-[3px] border-casi-negro bg-white text-casi-negro transition-colors hover:bg-casi-negro hover:text-white sm:flex sm:h-14 sm:w-14"
+        >
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <polyline points="9 18 15 12 9 6" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 }

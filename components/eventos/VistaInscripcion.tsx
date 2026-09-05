@@ -17,9 +17,22 @@ export function VistaInscripcion({
       <button
         type="button"
         onClick={onVolver}
-        className="w-fit font-display font-bold uppercase text-gris-oscuro hover:text-casi-negro"
+        className="inline-flex w-fit items-center gap-2 rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
       >
-        &larr; Volver al listado
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={3.5}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Volver al listado
       </button>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
