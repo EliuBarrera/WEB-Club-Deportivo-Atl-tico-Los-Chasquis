@@ -1,5 +1,5 @@
 import type { EventoPublicado } from "@/lib/eventos";
-import { MiniCalendario } from "./MiniCalendario";
+import { CalendarioMapaCarrusel } from "./CalendarioMapaCarrusel";
 import { PanelDetalleTabs } from "./PanelDetalleTabs";
 import { TarjetaEvento } from "./TarjetaEvento";
 
@@ -38,12 +38,13 @@ export function VistaInscripcion({
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
         <div className="flex flex-col gap-4">
           <TarjetaEvento evento={evento} compacta onInscribirte={onInscribirte} />
-          <MiniCalendario
+          <CalendarioMapaCarrusel
             titulo={evento.titulo}
             fecha={evento.fecha}
             horario={evento.horario}
             ubicacion={evento.ubicacion}
             descripcion={evento.descripcion}
+            mapUrl={evento.mapUrl}
           />
         </div>
 

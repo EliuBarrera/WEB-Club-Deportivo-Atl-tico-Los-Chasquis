@@ -28,6 +28,7 @@ export function TarjetaEvento({
             fill
             sizes="(min-width: 1024px) 380px, 90vw"
             className="object-cover"
+            unoptimized
           />
         ) : null}
       </div>

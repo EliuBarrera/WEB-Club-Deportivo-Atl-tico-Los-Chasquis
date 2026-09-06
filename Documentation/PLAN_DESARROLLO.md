@@ -121,11 +121,29 @@ placeholder de tabs). `TarjetaEvento.tsx` es la tarjeta compartida por
 ambas vistas.
 
 ### Fase 3 — Panel de detalle del evento
-- [ ] Panel con tabs: Información, Recorridos, Premios, Reglamento,
+- [x] Panel con tabs: Información, Recorridos, Premios, Reglamento,
       Logística, Noticias, Contacto — se muestra en la columna derecha
       descrita en la Fase 2, no como página aparte.
-- [ ] Todo el contenido viene de la base de datos (categorías, pruebas,
+- [x] Todo el contenido viene de la base de datos (categorías, pruebas,
       reglas, servicios, noticias), nada hardcodeado
+
+**Implementado:** `lib/eventos.ts` (`getEventosPublicados`) amplía el
+`select` para traer, además de lo de la Fase 2, `categorias` (con
+`pruebas`→`PruebaCatalogo`), `costos`, `recorrido` (+`programacion`),
+`premios` (+`condiciones`), `reglamento` (+`competencia`, `seguridad`,
+`controles`), `logistica` (+`servicios`, `recomendaciones`, `kit`),
+`noticias`, y los campos `mapUrl`/`organizador`/`terminosUrl` del
+evento — todo en la misma consulta, porque la vista de inscripción
+alterna de evento del lado del cliente sin ruta propia por evento.
+`components/eventos/PanelDetalleTabs.tsx` reemplaza el placeholder de
+la Fase 2: cada tab (`TabInformacion`, `TabRecorridos`, `TabPremios`,
+`TabReglamento`, `TabLogistica`, `TabNoticias`, `TabContacto`) renderiza
+esos datos reales, con un mensaje "sin datos" cuando una sección viene
+vacía para un evento en particular. Verificado con `npx tsc --noEmit`,
+`npm run build`, `npm run lint` (los tres sin errores) y un script
+puntual que llamó a `getEventosPublicados()` contra la base real,
+confirmando categorías/pruebas/recorridos/premios/reglamento/logística/
+noticias no vacíos para los eventos migrados en la Fase 1.
 
 ### Fase 4 — Formulario de inscripción
 - [ ] Formulario con los mismos campos del actual (datos del atleta,
@@ -165,17 +183,43 @@ ambas vistas.
 - [ ] Listado de inscripciones por evento, con filtro y exportar a CSV
       (el CSV incluye datos personales de menores — restringir su
       descarga solo a usuarios autenticados con rol `ADMIN`)
-- [ ] **Carga de imágenes**: usar **Vercel Blob** para que el admin suba
+- [ ] **Carga de imágenes**: usar **Cloudinary** para que el admin suba
       imágenes desde el formulario (portada del evento, imágenes de
       programación/recorrido, tabla de premios en efectivo) en vez de
       pegar links de ibb.co a mano. El upload se hace desde una Server
-      Action que devuelve la URL de Vercel Blob, y esa URL se guarda tal
-      cual en los campos que ya existen (`imagenUrl`,
+      Action que llama a `cloudinary.uploader.upload(...)` importando el
+      cliente ya configurado en `lib/cloudinary.ts` (no `src/lib/`, mismo
+      criterio que `lib/prisma.ts` de la Fase 1), y guarda la URL que
+      devuelve tal cual en los campos que ya existen (`imagenUrl`,
       `ImagenProgramacion.url`, `Premios.efectivoUrl`) — no requiere
-      cambiar el modelo de datos
+      cambiar el modelo de datos.
+  - [x] `lib/cloudinary.ts` creado: configura el SDK (`cloudinary.v2`)
+        con `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`,
+        `CLOUDINARY_API_SECRET` leídas de variables de entorno
+        (locales y pendientes de agregar en Vercel al desplegar). Solo
+        se importa desde código de servidor, nunca desde un componente
+        `"use client"`, para no exponer el `api_secret` al navegador.
   - [ ] Validar en servidor el tipo de archivo (solo `image/jpeg`,
         `image/png`, `image/webp`) y un tamaño máximo (ej. 5 MB) antes
         de subir, para no permitir subir cualquier archivo
+  - [ ] Usar transformaciones de Cloudinary vía parámetros de URL (ej.
+        `c_fill,w_400,h_300` para tarjetas, `c_fill,w_1200,h_400` para
+        banners) en vez de guardar varias copias de la misma imagen
+  - [ ] **Migrar las imágenes ya sembradas en Fase 1** (URLs de
+        `ibb.co`/`unsplash` que vienen del `Festivales` original) a
+        Cloudinary, para no seguir dependiendo de `ibb.co` como
+        almacenamiento — puede ser un script puntual que recorra los
+        eventos, suba cada imagen a Cloudinary con
+        `cloudinary.uploader.upload(url_externa)` y actualice el campo
+        con la nueva URL
+
+**Nota (detectado en Fase 3):** el componente `<Image>` de Next.js
+intenta optimizar toda imagen externa pasando por `/_next/image`, y
+`ibb.co` responde demasiado lento para eso — resultado: error `500`
+después de ~8 segundos. Arreglo inmediato mientras se completa la
+migración a Cloudinary: agregar `unoptimized` a los `<Image>` que
+muestran URLs externas, para que carguen directo sin pasar por el
+optimizador de Next.js.
 - [ ] Editor de noticias por evento — si se permite pegar HTML/rich
       text, sanitizarlo (ej. con `DOMPurify`) antes de guardarlo o
       mostrarlo, para evitar XSS
