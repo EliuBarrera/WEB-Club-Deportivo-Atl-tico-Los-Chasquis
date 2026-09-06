@@ -43,6 +43,36 @@ function calcularEdad(fechaNacimiento: string, fechaEvento: Date): number | null
   return edad;
 }
 
+// Parsea el campo de texto libre `categoria.nacimiento` (ej. "2014-2013",
+// "1976 o anterior") para poder sugerir la categoría a partir del año de
+// nacimiento. Solo se usa como ayuda de UX (preselecciona el select, que
+// sigue siendo editable) — el servidor no depende de este parseo porque
+// el formato varía entre eventos y no es confiable para bloquear el
+// envío (ver Fase 4 en el plan de desarrollo).
+function rangoAnios(nacimiento: string): { min: number; max: number } | null {
+  const rango = nacimiento.match(/^(\d{4})\s*-\s*(\d{4})$/);
+  if (rango) {
+    const a = Number(rango[1]);
+    const b = Number(rango[2]);
+    return { min: Math.min(a, b), max: Math.max(a, b) };
+  }
+  const anterior = nacimiento.match(/^(\d{4})\s+o\s+anterior$/i);
+  if (anterior) {
+    return { min: -Infinity, max: Number(anterior[1]) };
+  }
+  return null;
+}
+
+function sugerirCategoriaPorNacimiento(
+  anioNacimiento: number,
+  categorias: EventoPublicado["categorias"]
+) {
+  return categorias.find((c) => {
+    const rango = rangoAnios(c.nacimiento);
+    return rango && anioNacimiento >= rango.min && anioNacimiento <= rango.max;
+  });
+}
+
 function Campo({
   etiqueta,
   children,
@@ -83,7 +113,13 @@ export function FormularioInscripcion({
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [genero, setGenero] = useState<string>("MASCULINO");
 
-  const [categoriaId, setCategoriaId] = useState("");
+  // `null` = sin elección manual: se usa la categoría sugerida según la
+  // fecha de nacimiento. Se guarda aparte (en vez de escribir la
+  // sugerencia directamente en el estado) para no pisar una elección
+  // manual del atleta mientras no cambie la fecha de nacimiento.
+  const [categoriaIdManual, setCategoriaIdManual] = useState<string | null>(
+    null
+  );
   const [pruebasIds, setPruebasIds] = useState<string[]>([]);
   const [costoId, setCostoId] = useState("");
 
@@ -110,6 +146,15 @@ export function FormularioInscripcion({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [inscripcionId, setInscripcionId] = useState<string | null>(null);
+
+  const categoriaSugerida = useMemo(() => {
+    if (!fechaNacimiento) return undefined;
+    const anio = new Date(`${fechaNacimiento}T00:00:00Z`).getUTCFullYear();
+    if (Number.isNaN(anio)) return undefined;
+    return sugerirCategoriaPorNacimiento(anio, evento.categorias);
+  }, [fechaNacimiento, evento.categorias]);
+
+  const categoriaId = categoriaIdManual ?? categoriaSugerida?.id ?? "";
 
   const categoriaSeleccionada = useMemo(
     () => evento.categorias.find((c) => c.id === categoriaId),
@@ -248,22 +293,35 @@ export function FormularioInscripcion({
   }
 
   return (
-    <div className="flex w-full flex-col rounded-2xl border-2 border-casi-negro bg-casi-negro/5 p-4 sm:p-6">
+    <div className="flex w-full flex-col rounded-2xl border-2 border-casi-negro bg-white p-4 sm:p-6">
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         strategy="afterInteractive"
         onReady={renderTurnstile}
       />
 
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <h3 className="font-display text-2xl font-extrabold uppercase">
           Formulario de inscripción
         </h3>
         <button
           type="button"
           onClick={onCancelar}
-          className="font-display text-sm font-bold uppercase text-gris-oscuro underline"
+          className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border-[3px] border-casi-negro bg-white px-4 py-1.5 font-display text-sm font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
         >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={3.5}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
           Volver al detalle
         </button>
       </div>
@@ -327,7 +385,14 @@ export function FormularioInscripcion({
                   required
                   type="date"
                   value={fechaNacimiento}
-                  onChange={(e) => setFechaNacimiento(e.target.value)}
+                  onChange={(e) => {
+                    setFechaNacimiento(e.target.value);
+                    // Vuelve a dejar que la categoría se elija por fecha
+                    // de nacimiento en vez de conservar una elección
+                    // manual anterior, que pudo corresponder a otra edad.
+                    setCategoriaIdManual(null);
+                    setPruebasIds([]);
+                  }}
                   className={inputClase}
                 />
               </Campo>
@@ -354,7 +419,7 @@ export function FormularioInscripcion({
                   required
                   value={categoriaId}
                   onChange={(e) => {
-                    setCategoriaId(e.target.value);
+                    setCategoriaIdManual(e.target.value);
                     setPruebasIds([]);
                   }}
                   className={inputClase}
@@ -366,6 +431,12 @@ export function FormularioInscripcion({
                     </option>
                   ))}
                 </select>
+                {categoriaIdManual === null && categoriaSugerida ? (
+                  <span className="text-sm text-gris-oscuro">
+                    Sugerida según la fecha de nacimiento — puedes cambiarla
+                    si no aplica.
+                  </span>
+                ) : null}
               </Campo>
 
               {categoriaSeleccionada && pruebasDisponibles.length > 0 ? (

@@ -35,6 +35,7 @@ export async function getEventosPublicados() {
           id: true,
           nombre: true,
           edad: true,
+          nacimiento: true,
           rama: true,
           pruebas: {
             select: {
