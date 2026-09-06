@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { inscripcionSchema } from "@/lib/validation/inscripcion";
+import { generarFirmaIntegridad } from "@/lib/wompi";
 
 // Endpoint de inscripción (Fase 4). El precio, la elegibilidad de
 // categoría/prueba/costo y el requisito de acudiente por edad se
@@ -208,7 +209,18 @@ export async function POST(request: NextRequest) {
       select: { id: true },
     });
 
-    return NextResponse.json({ id: inscripcion.id }, { status: 201 });
+    // La referencia que se le manda a Wompi es el id de la inscripción: ya
+    // es único, así que no hace falta generar ni guardar otro valor aparte.
+    const firmaIntegridad = generarFirmaIntegridad({
+      reference: inscripcion.id,
+      amountInCents: totalPago * 100,
+      currency: "COP",
+    });
+
+    return NextResponse.json(
+      { id: inscripcion.id, totalPago, firmaIntegridad },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("Error creando inscripción:", error);
     return NextResponse.json(

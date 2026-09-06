@@ -1,9 +1,13 @@
 "use client";
 
 import Script from "next/script";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { EventoPublicado } from "@/lib/eventos";
 import { formatPrecio } from "@/lib/format";
+
+type ResultadoWidgetWompi = {
+  transaction: { id: string; status: string; reference: string };
+};
 
 declare global {
   interface Window {
@@ -19,7 +23,24 @@ declare global {
       ) => string;
       reset: (widgetId?: string) => void;
     };
+    WidgetCheckout?: new (opciones: {
+      currency: "COP";
+      amountInCents: number;
+      reference: string;
+      publicKey: string;
+      signature: { integrity: string };
+    }) => { open: (callback: (resultado: ResultadoWidgetWompi) => void) => void };
   }
+}
+
+// Sondeo del estado de pago tras volver del widget: unos medios de pago de
+// Wompi son asíncronos, así que el resultado del callback no siempre es
+// definitivo de inmediato.
+const INTENTOS_POLLING = 5;
+const INTERVALO_POLLING_MS = 3000;
+
+function esperar(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const TIPOS_DOCUMENTO = [
@@ -146,6 +167,35 @@ export function FormularioInscripcion({
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [inscripcionId, setInscripcionId] = useState<string | null>(null);
+  const [totalPago, setTotalPago] = useState<number | null>(null);
+  const [firmaIntegridad, setFirmaIntegridad] = useState<string | null>(null);
+  const [estadoPago, setEstadoPago] = useState<
+    "PENDIENTE" | "APROBADO" | "RECHAZADO" | "DECLINADO" | "ERROR" | null
+  >(null);
+  const [verificandoPago, setVerificandoPago] = useState(false);
+  const [widgetWompiListo, setWidgetWompiListo] = useState(false);
+
+  // Carga manual del widget de Wompi (en vez de next/script): con
+  // next/script el `<link rel=preload>` que genera para este script se
+  // quedaba sin usar (el navegador nunca disparaba la carga real), así que
+  // `window.WidgetCheckout` nunca quedaba definido y el botón de pago se
+  // quedaba en "Cargando pasarela de pago..." para siempre.
+  useEffect(() => {
+    if (!inscripcionId) return;
+    if (window.WidgetCheckout) {
+      queueMicrotask(() => setWidgetWompiListo(true));
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://checkout.wompi.co/widget.js";
+    script.async = true;
+    script.onload = () => setWidgetWompiListo(true);
+    script.onerror = () =>
+      setError(
+        "No se pudo cargar la pasarela de pago. Si tienes un bloqueador de anuncios activo, desactívalo para este sitio e intenta de nuevo."
+      );
+    document.body.appendChild(script);
+  }, [inscripcionId]);
 
   const categoriaSugerida = useMemo(() => {
     if (!fechaNacimiento) return undefined;
@@ -261,6 +311,9 @@ export function FormularioInscripcion({
       }
 
       setInscripcionId(datos.id);
+      setTotalPago(datos.totalPago);
+      setFirmaIntegridad(datos.firmaIntegridad);
+      setEstadoPago("PENDIENTE");
     } catch {
       setError("No se pudo conectar con el servidor, intenta de nuevo.");
     } finally {
@@ -268,19 +321,125 @@ export function FormularioInscripcion({
     }
   }
 
+  // Consulta el estado de pago hasta `INTENTOS_POLLING` veces: algunos
+  // medios de pago de Wompi confirman de forma asíncrona, así que el
+  // resultado del callback del widget no siempre es definitivo.
+  async function verificarPago(id: string, wompiTransactionId?: string) {
+    setVerificandoPago(true);
+    try {
+      for (let intento = 0; intento < INTENTOS_POLLING; intento++) {
+        const url = wompiTransactionId
+          ? `/api/inscripciones/${id}?tx=${wompiTransactionId}`
+          : `/api/inscripciones/${id}`;
+        const respuesta = await fetch(url);
+        if (respuesta.ok) {
+          const datos = await respuesta.json();
+          setEstadoPago(datos.estadoPago);
+          if (datos.estadoPago !== "PENDIENTE") return;
+        }
+        await esperar(INTERVALO_POLLING_MS);
+      }
+    } finally {
+      setVerificandoPago(false);
+    }
+  }
+
+  function abrirWidgetPago() {
+    setError(null);
+    const publicKey = process.env.NEXT_PUBLIC_WOMPI_PUBLIC_KEY;
+    if (
+      !window.WidgetCheckout ||
+      !publicKey ||
+      !inscripcionId ||
+      !firmaIntegridad ||
+      totalPago === null
+    ) {
+      setError("No se pudo iniciar el pago, intenta de nuevo.");
+      return;
+    }
+
+    try {
+      const checkout = new window.WidgetCheckout({
+        currency: "COP",
+        amountInCents: totalPago * 100,
+        reference: inscripcionId,
+        publicKey,
+        signature: { integrity: firmaIntegridad },
+      });
+
+      checkout.open((resultado) => {
+        void verificarPago(inscripcionId, resultado.transaction?.id);
+      });
+    } catch (error) {
+      console.error("Error abriendo el widget de Wompi:", error);
+      setError(
+        "No se pudo abrir la pasarela de pago. Si tienes un bloqueador de anuncios activo, desactívalo para este sitio e intenta de nuevo."
+      );
+    }
+  }
+
   if (inscripcionId) {
+    const pagoRechazado =
+      estadoPago === "RECHAZADO" ||
+      estadoPago === "DECLINADO" ||
+      estadoPago === "ERROR";
+
     return (
       <div className="flex flex-col gap-4 rounded-2xl border-2 border-casi-negro bg-crema p-6">
         <h3 className="font-display text-2xl font-extrabold uppercase">
-          ¡Inscripción registrada!
+          {estadoPago === "APROBADO"
+            ? "¡Pago aprobado!"
+            : "¡Inscripción registrada!"}
         </h3>
+
         <p className="text-lg leading-relaxed">
           Tu inscripción a <strong>{evento.titulo}</strong> quedó registrada
-          en estado <strong>pendiente de pago</strong>. El pago en línea se
-          habilita en una próxima fase — por ahora guarda este número de
-          referencia:
+          con número de referencia <span className="font-mono">{inscripcionId}</span>.
         </p>
-        <p className="font-mono text-base">{inscripcionId}</p>
+
+        {error ? <p className="text-base font-bold text-naranja">{error}</p> : null}
+
+        {estadoPago === "APROBADO" && (
+          <p className="rounded-xl border-2 border-green-700 bg-green-50 p-4 text-lg font-bold text-green-800">
+            Tu pago de {totalPago !== null && formatPrecio(totalPago)} fue
+            aprobado. ¡Nos vemos en la línea de salida!
+          </p>
+        )}
+
+        {pagoRechazado && (
+          <div className="flex flex-col gap-3 rounded-xl border-2 border-red-700 bg-red-50 p-4">
+            <p className="text-lg font-bold text-red-800">
+              Tu pago no pudo procesarse. Puedes intentarlo de nuevo.
+            </p>
+            <button
+              type="button"
+              onClick={abrirWidgetPago}
+              className="w-fit rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+            >
+              Reintentar pago
+            </button>
+          </div>
+        )}
+
+        {estadoPago === "PENDIENTE" && !verificandoPago && (
+          <button
+            type="button"
+            onClick={abrirWidgetPago}
+            disabled={!widgetWompiListo}
+            className="w-fit rounded-full border-[3px] border-casi-negro bg-naranja px-6 py-3 font-display text-lg font-bold uppercase text-white transition-colors hover:bg-casi-negro disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {widgetWompiListo
+              ? `Pagar ${totalPago !== null ? formatPrecio(totalPago) : ""} ahora`
+              : "Cargando pasarela de pago…"}
+          </button>
+        )}
+
+        {verificandoPago && (
+          <p className="text-lg font-bold">
+            Verificando tu pago, un momento…
+          </p>
+        )}
+
         <button
           type="button"
           onClick={onCancelar}
