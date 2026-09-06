@@ -38,7 +38,9 @@ export async function getEventosPublicados() {
           rama: true,
           pruebas: {
             select: {
-              prueba: { select: { nombre: true, icon: true, genero: true } },
+              prueba: {
+                select: { key: true, nombre: true, icon: true, genero: true },
+              },
             },
           },
         },

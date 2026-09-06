@@ -1,17 +1,21 @@
+"use client";
+
+import { useState } from "react";
 import type { EventoPublicado } from "@/lib/eventos";
 import { CalendarioMapaCarrusel } from "./CalendarioMapaCarrusel";
+import { FormularioInscripcion } from "./FormularioInscripcion";
 import { PanelDetalleTabs } from "./PanelDetalleTabs";
 import { TarjetaEvento } from "./TarjetaEvento";
 
 export function VistaInscripcion({
   evento,
   onVolver,
-  onInscribirte,
 }: {
   evento: EventoPublicado;
   onVolver: () => void;
-  onInscribirte: () => void;
 }) {
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
+
   return (
     <div className="flex flex-col gap-6">
       <button
@@ -37,7 +41,11 @@ export function VistaInscripcion({
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr] lg:items-start">
         <div className="flex flex-col gap-4">
-          <TarjetaEvento evento={evento} compacta onInscribirte={onInscribirte} />
+          <TarjetaEvento
+            evento={evento}
+            compacta
+            onInscribirte={() => setMostrarFormulario(true)}
+          />
           <CalendarioMapaCarrusel
             titulo={evento.titulo}
             fecha={evento.fecha}
@@ -48,7 +56,14 @@ export function VistaInscripcion({
           />
         </div>
 
-        <PanelDetalleTabs evento={evento} />
+        {mostrarFormulario ? (
+          <FormularioInscripcion
+            evento={evento}
+            onCancelar={() => setMostrarFormulario(false)}
+          />
+        ) : (
+          <PanelDetalleTabs evento={evento} />
+        )}
       </div>
     </div>
   );
