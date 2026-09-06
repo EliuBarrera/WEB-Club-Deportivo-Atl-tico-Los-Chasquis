@@ -146,16 +146,49 @@ confirmando categorías/pruebas/recorridos/premios/reglamento/logística/
 noticias no vacíos para los eventos migrados en la Fase 1.
 
 ### Fase 4 — Formulario de inscripción
-- [ ] Formulario con los mismos campos del actual (datos del atleta,
+- [x] Formulario con los mismos campos del actual (datos del atleta,
       contacto, sección de acudiente si es menor de edad, selección de
       hasta 2 pruebas según categoría/género elegidos)
-- [ ] Validaciones en servidor con Zod (no confiar solo en las
+- [x] Validaciones en servidor con Zod (no confiar solo en las
       validaciones del navegador) — nunca aceptar el precio/total desde
       el cliente, se recalcula siempre en servidor a partir del evento
-- [ ] CAPTCHA (ej. Cloudflare Turnstile) antes de enviar el formulario,
+- [x] CAPTCHA (ej. Cloudflare Turnstile) antes de enviar el formulario,
       para evitar inscripciones automatizadas/spam
-- [ ] Rate limiting por IP en el endpoint de inscripción
-- [ ] Al enviar, crear registro `Inscripcion` en estado `PENDIENTE`
+- [x] Rate limiting por IP en el endpoint de inscripción
+- [x] Al enviar, crear registro `Inscripcion` en estado `PENDIENTE`
+
+**Implementado:** `POST /api/inscripciones` orquesta, en orden: rate
+limiting por IP contra la nueva tabla `IntentoInscripcion`
+(`lib/rate-limit.ts`, basado en base de datos y no en memoria, porque el
+endpoint corre en funciones serverless de Vercel), verificación
+server-side de Cloudflare Turnstile (`lib/turnstile.ts`), validación de
+forma con Zod (`lib/validation/inscripcion.ts`) y la creación del
+registro `Inscripcion` en estado `PENDIENTE`. El evento se recarga fresco
+desde la base de datos para recalcular `totalPago` y validar que la
+categoría/pruebas/costo enviados pertenecen a ese evento — nunca se
+confía en el cliente para precio ni elegibilidad — y la edad se calcula
+en servidor (`fechaNacimiento` contra la fecha del evento) para exigir
+los datos de acudiente cuando el atleta es menor de edad.
+
+`Inscripcion.categoriaId` pasó a opcional y se agregó `costoId`
+(relación a `Costo`) porque algunos eventos ya `ABIERTO` (ej. "6K Running
+de Fuego") no tienen ninguna `Categoria` en la base, solo una lista de
+`Costo` por tipo ("adultos"/"ninos") — con el esquema anterior nadie
+podría inscribirse a esos eventos reales. `FormularioInscripcion.tsx`
+(en `VistaInscripcion.tsx`, reemplazando el panel de tabs al hacer clic
+en "Inscríbete") soporta ambos flujos: categoría + pruebas cuando el
+evento tiene categorías, o un selector de tipo de costo cuando no las
+tiene, incluyendo el widget de Turnstile.
+
+Probado end-to-end con `curl` directo al endpoint (sin pasar por el
+formulario): body inválido (`400`), CAPTCHA inválido con el secret real
+de Turnstile (`403`), rate limit tras 5 intentos desde la misma IP
+(`429`), evento `CERRADO` (`400`, usando el secret de pruebas de
+Cloudflare para superar el CAPTCHA), menor de edad sin datos de
+acudiente (`400`), y el flujo completo tanto de categoría como de costo
+(`201`), verificando en la base de datos que `edad` y `totalPago`
+quedaron recalculados en servidor y no con lo que hubiera enviado el
+cliente.
 
 ### Fase 5 — Pagos con Wompi
 - [ ] Integrar Widget/Checkout de Wompi con el monto calculado en
