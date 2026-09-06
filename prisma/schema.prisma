@@ -324,6 +324,8 @@ model Costo {
   evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
   tipo     String // ej: "adultos", "ninos"
   valor    Int
+
+  inscripciones Inscripcion[]
 }
 
 // ==========================================
@@ -334,8 +336,14 @@ model Inscripcion {
   id                  String        @id @default(cuid())
   eventoId            String
   evento              Evento        @relation(fields: [eventoId], references: [id])
-  categoriaId         String
-  categoria           Categoria     @relation(fields: [categoriaId], references: [id])
+  // Opcional: eventos sin categorías (ej. carreras que solo usan `Costo`,
+  // como "adultos"/"ninos") no tienen una Categoria a la que enlazar.
+  categoriaId         String?
+  categoria           Categoria?    @relation(fields: [categoriaId], references: [id])
+  // Alternativa a categoria+pruebas para eventos que cobran por tipo de
+  // costo (ej. "adultos"/"ninos") en vez de por categoría de competencia.
+  costoId             String?
+  costo               Costo?        @relation(fields: [costoId], references: [id])
 
   // Atleta
   nombres             String
@@ -381,4 +389,16 @@ model Inscripcion {
   @@index([eventoId])
   @@index([numeroDocumento])
   @@index([estadoPago])
+}
+
+// ==========================================
+// RATE LIMITING (Fase 4 — endpoint de inscripciones)
+// ==========================================
+
+model IntentoInscripcion {
+  id        String   @id @default(cuid())
+  ip        String
+  createdAt DateTime @default(now())
+
+  @@index([ip, createdAt])
 }
