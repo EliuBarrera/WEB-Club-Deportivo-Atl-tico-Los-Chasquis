@@ -385,7 +385,7 @@ export function FormularioInscripcion({
       estadoPago === "ERROR";
 
     return (
-      <div className="flex flex-col gap-4 rounded-2xl border-2 border-casi-negro bg-crema p-6">
+      <div className="flex flex-col gap-4 rounded-2xl border-2 border-casi-negro bg-white p-6">
         <h3 className="font-display text-2xl font-extrabold uppercase">
           {estadoPago === "APROBADO"
             ? "¡Pago aprobado!"
@@ -394,7 +394,7 @@ export function FormularioInscripcion({
 
         <p className="text-lg leading-relaxed">
           Tu inscripción a <strong>{evento.titulo}</strong> quedó registrada
-          con número de referencia <span className="font-mono">{inscripcionId}</span>.
+          con número de referencia: <span className="font-mono font-bold italic text-naranja">{inscripcionId}</span>.
         </p>
 
         {error ? <p className="text-base font-bold text-naranja">{error}</p> : null}
@@ -405,48 +405,50 @@ export function FormularioInscripcion({
             aprobado. ¡Nos vemos en la línea de salida!
           </p>
         )}
+        <div className="flex flex-wrap items-center justify-center gap-4">
+          {pagoRechazado && (
+            <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-red-700 bg-red-50 p-4">
+              <p className="text-lg font-bold text-red-800">
+                Tu pago no pudo procesarse. Puedes intentarlo de nuevo.
+              </p>
+              <button
+                type="button"
+                onClick={abrirWidgetPago}
+                className="mx-auto w-64 justify-center rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 text-center font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+              >
+                Reintentar pago
+              </button>
+            </div>
+          )}
 
-        {pagoRechazado && (
-          <div className="flex flex-col gap-3 rounded-xl border-2 border-red-700 bg-red-50 p-4">
-            <p className="text-lg font-bold text-red-800">
-              Tu pago no pudo procesarse. Puedes intentarlo de nuevo.
-            </p>
+          {estadoPago === "PENDIENTE" && !verificandoPago && (
             <button
               type="button"
               onClick={abrirWidgetPago}
-              className="w-fit rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+              disabled={!widgetWompiListo}
+              className="mx-auto w-64 justify-center rounded-full border-[3px] border-casi-negro bg-naranja px-6 py-3 text-center font-display text-lg font-bold uppercase text-white transition-colors hover:bg-casi-negro disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Reintentar pago
+              {widgetWompiListo
+                ? `Pagar ${totalPago !== null ? formatPrecio(totalPago) : ""} ahora`
+                : "Cargando pasarela de pago…"}
             </button>
-          </div>
-        )}
+          )}
 
-        {estadoPago === "PENDIENTE" && !verificandoPago && (
+          {verificandoPago && (
+            <p className="text-lg font-bold">
+              Verificando tu pago, un momento…
+            </p>
+          )}
+
           <button
             type="button"
-            onClick={abrirWidgetPago}
-            disabled={!widgetWompiListo}
-            className="w-fit rounded-full border-[3px] border-casi-negro bg-naranja px-6 py-3 font-display text-lg font-bold uppercase text-white transition-colors hover:bg-casi-negro disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={onCancelar}
+            className="mx-auto w-64 justify-center rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 text-center font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
           >
-            {widgetWompiListo
-              ? `Pagar ${totalPago !== null ? formatPrecio(totalPago) : ""} ahora`
-              : "Cargando pasarela de pago…"}
+            Volver
           </button>
-        )}
+        </div>
 
-        {verificandoPago && (
-          <p className="text-lg font-bold">
-            Verificando tu pago, un momento…
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={onCancelar}
-          className="w-fit rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
-        >
-          Volver
-        </button>
       </div>
     );
   }

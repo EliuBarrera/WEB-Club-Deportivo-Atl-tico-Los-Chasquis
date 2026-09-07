@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { EventoPublicado } from "@/lib/eventos";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
 
@@ -17,11 +17,11 @@ const TABS = [
 
 type Tab = (typeof TABS)[number];
 
-function SinDatos({ children }: { children: React.ReactNode }) {
+function SinDatos({ children }: { children: ReactNode }) {
   return <p className="text-lg italic text-gris-oscuro">{children}</p>;
 }
 
-function TituloSeccion({ children }: { children: React.ReactNode }) {
+function TituloSeccion({ children }: { children: ReactNode }) {
   return (
     <h4 className="mb-2 font-display text-xl font-bold uppercase">
       {children}
