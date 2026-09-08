@@ -15,13 +15,19 @@ import type { NextConfig } from "next";
 // CSP real por esto — se agrega solo cuando NODE_ENV !== "production".
 const scriptSrcDev = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
 
+// Elfsight (Fase 9, widget de Instagram en la home): `platform.js` carga a
+// su vez el bundle del widget desde static.elfsight.com, y las fotos del
+// feed vienen proxiadas por subdominios de utils.elfsightcdn.com (ej.
+// phosphor.utils.elfsightcdn.com) en vez de los CDN de Instagram
+// directamente — confirmado viendo las peticiones reales del widget en el
+// navegador, no adivinado.
 const CSP = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${scriptSrcDev} https://challenges.cloudflare.com https://checkout.wompi.co`,
+  `script-src 'self' 'unsafe-inline'${scriptSrcDev} https://challenges.cloudflare.com https://checkout.wompi.co https://elfsightcdn.com https://static.elfsight.com`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://res.cloudinary.com https://i.ibb.co https://images.unsplash.com https://assets.grupify.com",
+  "img-src 'self' data: https://res.cloudinary.com https://i.ibb.co https://images.unsplash.com https://assets.grupify.com https://*.elfsightcdn.com https://static.elfsight.com",
   "font-src 'self' data:",
-  "connect-src 'self' https://checkout.wompi.co https://challenges.cloudflare.com",
+  "connect-src 'self' https://checkout.wompi.co https://challenges.cloudflare.com https://*.elfsightcdn.com https://*.service.elfsight.com",
   "frame-src 'self' https://challenges.cloudflare.com https://checkout.wompi.co https://www.google.com",
   "object-src 'none'",
   "base-uri 'self'",

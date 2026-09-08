@@ -532,11 +532,8 @@ puerta de entrada.
    logos, se derivan las entidades reales ya registradas por evento.
 6. [x] **Testimonios** — ver nota de implementación: 3 testimonios reales
    y anónimos, entregados por el club.
-7. [x] **Galería de momentos** — ver nota de implementación: no existe
-   ningún widget de Elfsight/Instagram en el proyecto (se verificó con
-   grep sobre todo el repo antes de escribir esto — la mención de este
-   documento a "que ya está integrado en el detalle de evento" no
-   corresponde a nada real; se corrige acá).
+7. [x] **Galería de momentos** — widget de Elfsight con el feed real de
+   Instagram del club (`@clubloschasquis`), ver nota de implementación.
 8. [x] **CTA final** — última invitación a inscribirse, antes del footer.
 9. [x] **Documentos legales y transparencia** — implementado como página
    aparte (`/transparencia`), ver Fase 9 más abajo — este ítem se
@@ -602,10 +599,23 @@ sale de datos que ya existen en la base — nada inventado:
   "Liga de Atletismo de Boyacá", "Federación Colombiana de Atletismo"),
   deduplicadas — se actualiza solo con lo que el admin ya carga por
   evento, no requiere gestión aparte.
-- **Galería de momentos** (`components/home/GaleriaMomentos.tsx`):
-  reutiliza las portadas reales de `Evento.imagenUrl` de los eventos
-  existentes (grid de las últimas 8 con imagen) en vez de fotos de
-  archivo nuevas sin recopilar.
+- **Galería de momentos** (`components/home/GaleriaInstagram.tsx`): al
+  principio se reemplazó por un grid de portadas de evento reales (no
+  existía ningún widget de Elfsight en el proyecto pese a lo que decía
+  este documento), pero el club entregó después el snippet real del
+  widget de Elfsight ya configurado con su feed de Instagram
+  (`@clubloschasquis`) — se reemplazó ese grid por el widget real
+  (`next/script` con `strategy="lazyOnload"`, ya que es contenido
+  decorativo no crítico). Requirió ampliar la CSP de `next.config.ts`
+  (Fase 7): `script-src` con `elfsightcdn.com`/`static.elfsight.com`
+  (de donde carga su bundle), `img-src` con `*.elfsightcdn.com` (las
+  fotos del feed vienen proxiadas por ahí, ej.
+  `phosphor.utils.elfsightcdn.com`, no por los CDN de Instagram
+  directamente) y `connect-src` con `*.elfsightcdn.com`/
+  `*.service.elfsight.com` (llamadas del widget a su propio backend).
+  Cada dominio se agregó viendo primero la violación real de CSP en la
+  consola del navegador (Playwright), no adivinado — el proceso completo
+  y sus tres iteraciones quedan en el historial de commits.
 - **Documentos legales y transparencia**
   (`components/home/TransparenciaTeaser.tsx`): tarjeta de invitación a
   `/transparencia` (la sección completa, implementada por separado).

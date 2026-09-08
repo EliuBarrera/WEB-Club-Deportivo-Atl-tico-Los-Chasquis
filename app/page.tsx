@@ -6,7 +6,7 @@ import { CifrasConfianza } from "@/components/home/CifrasConfianza";
 import { ProximosEventosHome } from "@/components/home/ProximosEventosHome";
 import { AvalInstitucional } from "@/components/home/AvalInstitucional";
 import { Testimonios } from "@/components/home/Testimonios";
-import { GaleriaMomentos } from "@/components/home/GaleriaMomentos";
+import { GaleriaInstagram } from "@/components/home/GaleriaInstagram";
 import { TransparenciaTeaser } from "@/components/home/TransparenciaTeaser";
 import { CtaFinal } from "@/components/home/CtaFinal";
 import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
@@ -49,19 +49,6 @@ export default async function HomePage() {
     eventos.map((evento) => evento.aval)
   );
 
-  const momentos = eventos
-    .filter(
-      (evento): evento is typeof evento & { imagenUrl: string } =>
-        Boolean(evento.imagenUrl)
-    )
-    .slice(-8)
-    .reverse()
-    .map((evento) => ({
-      id: evento.id,
-      titulo: evento.titulo,
-      imagenUrl: evento.imagenUrl,
-    }));
-
   return (
     <>
       <Header />
@@ -86,7 +73,7 @@ export default async function HomePage() {
 
         <Testimonios testimonios={testimonios} />
 
-        <GaleriaMomentos momentos={momentos} />
+        <GaleriaInstagram />
 
         <TransparenciaTeaser />
 
