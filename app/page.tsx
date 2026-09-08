@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/home/Hero";
 import { CifrasConfianza } from "@/components/home/CifrasConfianza";
 import { ProximosEventosHome } from "@/components/home/ProximosEventosHome";
-import { AvalInstitucional } from "@/components/home/AvalInstitucional";
+import { RespaldoInstitucional } from "@/components/home/RespaldoInstitucional";
 import { Testimonios } from "@/components/home/Testimonios";
 import { GaleriaInstagram } from "@/components/home/GaleriaInstagram";
 import { TransparenciaTeaser } from "@/components/home/TransparenciaTeaser";
@@ -12,7 +12,7 @@ import { CtaFinal } from "@/components/home/CtaFinal";
 import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
 import { getCifrasConfianza } from "@/lib/cifras";
 import { getTestimonios } from "@/lib/testimonios";
-import { deriveAvalesInstitucionales } from "@/lib/format";
+import { getSocios } from "@/lib/socios";
 
 export const metadata: Metadata = {
   title: "Club Atlético Los Chasquis",
@@ -28,11 +28,12 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // No dependen entre sí — se piden en paralelo, mismo criterio que
   // app/eventos/page.tsx.
-  const [eventos, terminos, cifras, testimonios] = await Promise.all([
+  const [eventos, terminos, cifras, testimonios, socios] = await Promise.all([
     getEventosPublicados(),
     getTerminosVigente(),
     getCifrasConfianza(),
     getTestimonios(),
+    getSocios(),
   ]);
 
   const eventosAbiertos = eventos.filter(
@@ -44,10 +45,6 @@ export default async function HomePage() {
   // insinuar que una carrera pasada sigue vigente.
   const heroImagenUrl =
     eventosAbiertos.find((evento) => evento.imagenUrl)?.imagenUrl ?? null;
-
-  const avales = deriveAvalesInstitucionales(
-    eventos.map((evento) => evento.aval)
-  );
 
   return (
     <>
@@ -69,7 +66,7 @@ export default async function HomePage() {
           <ProximosEventosHome eventos={eventosAbiertos} />
         </section>
 
-        <AvalInstitucional entidades={avales} />
+        <RespaldoInstitucional socios={socios} />
 
         <Testimonios testimonios={testimonios} />
 

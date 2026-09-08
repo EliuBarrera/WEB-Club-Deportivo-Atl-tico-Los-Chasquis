@@ -479,3 +479,19 @@ model Testimonio {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ==========================================
+// SOCIOS / RESPALDO INSTITUCIONAL (Fase 9 — Home)
+// ==========================================
+
+// Reemplaza la lista de texto derivada de Evento.aval: logos reales de
+// entidades y empresas que respaldan al club, editables desde el admin
+// (los patrocinadores cambian de un año a otro).
+model Socio {
+  id        String   @id @default(cuid())
+  nombre    String
+  logoUrl   String   @unique
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

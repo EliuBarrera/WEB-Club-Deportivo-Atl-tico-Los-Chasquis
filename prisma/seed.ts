@@ -1056,6 +1056,35 @@ const testimonios = [
 ];
 
 // ------------------------------------------
+// Socios / respaldo institucional (Fase 9) — sección de la home
+// ------------------------------------------
+
+// Logos reales entregados por el club (carpeta public/Socios/,
+// 2026-09-08). "SQ" y "EJC" se guardan con las iniciales tal como
+// aparecen impresas en su propio logo — no se inventó ni se expandió el
+// nombre completo de esas dos entidades.
+const socios = [
+  { nombre: "Liga de Atletismo de Boyacá", logoUrl: "/Socios/liga-atletismo-boyaca.png" },
+  { nombre: "Indeportes Boyacá", logoUrl: "/Socios/indeportes.png" },
+  { nombre: "IRDET", logoUrl: "/Socios/irdet.png" },
+  { nombre: "Alcaldía de Chivatá", logoUrl: "/Socios/alcaldia-chivata.png" },
+  { nombre: "Comisión Departamental de Juzgamiento", logoUrl: "/Socios/comision-departamental-juzgamiento.png" },
+  { nombre: "Bomberos Tunja", logoUrl: "/Socios/bomberos-tunja.png" },
+  { nombre: "Policía Nacional", logoUrl: "/Socios/policia-nacional.png" },
+  { nombre: "EJC", logoUrl: "/Socios/ejc.png" },
+  { nombre: "Financiera Comultrasan", logoUrl: "/Socios/financiera-comultrasan.png" },
+  { nombre: "Central Colombiana de Aseo", logoUrl: "/Socios/central-colombiana-de-aseo.png" },
+  { nombre: "Urbaser", logoUrl: "/Socios/urbaser.png" },
+  { nombre: "Veolia", logoUrl: "/Socios/veolia.png" },
+  { nombre: "DC Investigaciones", logoUrl: "/Socios/dc-investigaciones.png" },
+  { nombre: "Distribucarnes Normandía", logoUrl: "/Socios/distribucarnes-normandia.png" },
+  { nombre: "Las Hinojosas", logoUrl: "/Socios/las-hinojosas.png" },
+  { nombre: "Minas El Siral", logoUrl: "/Socios/minas-el-siral.png" },
+  { nombre: "Panadería mi Soffi", logoUrl: "/Socios/panaderia-mi-soffi.png" },
+  { nombre: "SQ", logoUrl: "/Socios/sq.png" },
+];
+
+// ------------------------------------------
 // Términos y Condiciones (Fase 4) — versión 1
 // ------------------------------------------
 
@@ -1325,6 +1354,17 @@ async function main() {
         orden: index,
       },
       create: { ...testimonio, orden: index },
+    });
+  }
+
+  // Socios (Fase 9): mismo criterio que documentos legales/cifras/
+  // testimonios — `upsert` por `logoUrl` para no pisar ediciones del admin.
+  console.log("Sembrando socios...");
+  for (const [index, socio] of socios.entries()) {
+    await prisma.socio.upsert({
+      where: { logoUrl: socio.logoUrl },
+      update: { nombre: socio.nombre, orden: index },
+      create: { nombre: socio.nombre, logoUrl: socio.logoUrl, orden: index },
     });
   }
 

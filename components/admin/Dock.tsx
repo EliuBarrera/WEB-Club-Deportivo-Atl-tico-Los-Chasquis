@@ -118,6 +118,27 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/admin/socios",
+    etiqueta: "Socios",
+    icono: (
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <circle cx="9" cy="7" r="4" />
+        <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" />
+        <path d="M17 3.13a4 4 0 0 1 0 7.75" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+      </svg>
+    ),
+  },
 ];
 
 // Dock inferior flotante del panel admin (Fase 6/9): reemplaza la barra

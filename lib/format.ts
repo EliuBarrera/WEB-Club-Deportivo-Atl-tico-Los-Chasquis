@@ -127,22 +127,3 @@ export function buildGoogleCalendarUrl(params: {
 
   return url.toString();
 }
-
-// Deriva la lista de entidades que avalan al club (Fase 9, sección "Aval
-// institucional") a partir del campo `Evento.aval` que YA existe y ya se
-// llena en el editor de eventos (ej. "Liga de Atletismo de Boyacá y
-// Federación Colombiana de Atletismo") — no se inventan logos ni entidades:
-// se listan, deduplicadas, las que el club ya registró en algún evento real.
-export function deriveAvalesInstitucionales(
-  avales: (string | null)[]
-): string[] {
-  const vistos = new Set<string>();
-  for (const aval of avales) {
-    if (!aval) continue;
-    for (const entidad of aval.split(/,| y /)) {
-      const nombre = entidad.trim();
-      if (nombre) vistos.add(nombre);
-    }
-  }
-  return Array.from(vistos);
-}

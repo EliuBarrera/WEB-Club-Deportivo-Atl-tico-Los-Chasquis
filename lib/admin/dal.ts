@@ -318,6 +318,18 @@ export type TestimonioAdmin = Awaited<
   ReturnType<typeof getTestimoniosAdmin>
 >[number];
 
+// Socios / respaldo institucional (Fase 9 — Home): lista completa para el
+// CRUD del admin. La versión pública vive en lib/socios.ts.
+export async function getSociosAdmin() {
+  await verifySession();
+  return prisma.socio.findMany({
+    orderBy: { orden: "asc" },
+    select: { id: true, nombre: true, logoUrl: true, orden: true },
+  });
+}
+
+export type SocioAdmin = Awaited<ReturnType<typeof getSociosAdmin>>[number];
+
 // Usado solo por el Route Handler de export (Fase 6: el CSV incluye datos
 // personales de menores, de ahí requireAdmin() en vez de verifySession()).
 export async function getInscripcionesParaExport(filtros: FiltrosInscripciones) {

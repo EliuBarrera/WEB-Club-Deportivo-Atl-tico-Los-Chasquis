@@ -528,8 +528,8 @@ puerta de entrada.
    contenido** (ver lista al final).
 4. [x] **Próximos eventos** — reutiliza tal cual el carrusel de eventos
    ya construido en la Fase 2, filtrado a `estado: 'ABIERTO'`.
-5. [x] **Aval institucional** — ver nota de implementación: no hay
-   logos, se derivan las entidades reales ya registradas por evento.
+5. [x] **Aval institucional** — grid con los 18 logos reales de socios y
+   aliados entregados por el club, ver nota de implementación.
 6. [x] **Testimonios** — ver nota de implementación: 3 testimonios reales
    y anónimos, entregados por el club.
 7. [x] **Galería de momentos** — widget de Elfsight con el feed real de
@@ -590,15 +590,27 @@ sale de datos que ya existen en la base — nada inventado:
   botón secundario no ancla a "historia" (esa sección sigue bloqueada):
   ancla a la sección de Aval institucional (`#respaldo`), que sí tiene
   contenido real.
-- **Aval institucional** (`components/home/AvalInstitucional.tsx` +
-  `deriveAvalesInstitucionales()` en `lib/format.ts`): no hay logos en
-  el proyecto (se verificó: `Evento.aval` siempre se renderizó como
-  texto plano en `PanelDetalleTabs.tsx`, nunca como imagen, pese a lo que
-  decía este documento). Se listan como texto las entidades reales ya
-  registradas en `Evento.aval` a través de los eventos existentes (ej.
-  "Liga de Atletismo de Boyacá", "Federación Colombiana de Atletismo"),
-  deduplicadas — se actualiza solo con lo que el admin ya carga por
-  evento, no requiere gestión aparte.
+- **Aval institucional** (`components/home/RespaldoInstitucional.tsx`):
+  al principio no había logos en el proyecto (se verificó:
+  `Evento.aval` siempre se renderizó como texto plano en
+  `PanelDetalleTabs.tsx`, nunca como imagen, pese a lo que decía este
+  documento) — se listaban como texto las entidades derivadas de
+  `Evento.aval`. El club entregó después los 18 logos reales de sus
+  socios/aliados en `public/Socios/` (Liga de Atletismo de Boyacá,
+  Indeportes, IRDET, Alcaldía de Chivatá, Comisión Departamental de
+  Juzgamiento, Bomberos Tunja, Policía Nacional, EJC, Financiera
+  Comultrasan, Central Colombiana de Aseo, Urbaser, Veolia, DC
+  Investigaciones, Distribucarnes Normandía, Las Hinojosas, Minas El
+  Siral, Panadería mi Soffi y "SQ" — estas dos últimas iniciales tal
+  como aparecen impresas en su propio logo, no se inventó ni se expandió
+  el nombre completo). Se creó el modelo `Socio { id, nombre, logoUrl,
+  orden }` (migración `20260908165219_fase9_socios`, sembrado vía
+  `upsert` por `logoUrl`, mismo criterio que las secciones anteriores) y
+  se reemplazó el texto por un grid de logos reales, con CRUD completo
+  en `/admin/socios` — los patrocinadores cambian de un año a otro, así
+  que agregarlos o quitarlos no debería requerir un despliegue nuevo.
+  `deriveAvalesInstitucionales()` (en `lib/format.ts`) y el componente
+  de texto que reemplaza se eliminaron por quedar sin uso.
 - **Galería de momentos** (`components/home/GaleriaInstagram.tsx`): al
   principio se reemplazó por un grid de portadas de evento reales (no
   existía ningún widget de Elfsight en el proyecto pese a lo que decía
