@@ -414,35 +414,91 @@ que ya tiene su propio filtro por evento.
 
 ### Fase 7 — Seguridad (transversal, revisar antes de producción)
 
-- [ ] **Secretos y variables de entorno**: `DATABASE_URL`, credenciales
+- [x] **Secretos y variables de entorno**: `DATABASE_URL`, credenciales
       de Wompi, secreto de NextAuth, etc. solo en variables de entorno
       de Vercel — nunca en el código ni commiteados en `.env` al repo
       (agregar `.env` a `.gitignore` desde el inicio)
-- [ ] **Prisma solo en servidor**: el cliente de Prisma nunca se importa
+- [x] **Prisma solo en servidor**: el cliente de Prisma nunca se importa
       en componentes cliente (`"use client"`); todo acceso a datos pasa
       por Server Components, Server Actions o API routes
-- [ ] **Validación de entradas**: todo dato que llega del usuario
+- [x] **Validación de entradas**: todo dato que llega del usuario
       (formulario de inscripción, login admin, creación de eventos) se
       valida con Zod en el servidor antes de tocar la base de datos
-- [ ] **Cabeceras de seguridad HTTP** en `next.config.ts` o middleware:
+- [x] **Cabeceras de seguridad HTTP** en `next.config.ts` o middleware:
       `Content-Security-Policy`, `X-Frame-Options: DENY`,
       `Strict-Transport-Security`, `X-Content-Type-Options: nosniff`
 - [ ] **HTTPS**: Vercel lo da automático; si se usa dominio propio
       (`clubloschasquis.com`), confirmar el certificado SSL activo antes
       de apagar WordPress
-- [ ] **Protección de datos personales (Ley 1581 de 2012 – Colombia)**:
+- [x] **Protección de datos personales (Ley 1581 de 2012 – Colombia)**:
       el formulario ya tiene checkbox de autorización de datos e
       imágenes; agregar una página de "Política de tratamiento de
       datos personales" enlazada desde ahí, y un correo/proceso para que
       alguien pueda pedir que se eliminen sus datos
-- [ ] **No exponer errores internos**: las páginas de error no deben
+- [x] **No exponer errores internos**: las páginas de error no deben
       mostrar stacks de Prisma ni mensajes técnicos al usuario final;
       loguear el detalle solo del lado del servidor (sin datos sensibles
       como número de documento en logs de producción)
-- [ ] **Dependencias**: correr `npm audit` antes del primer despliegue y
+- [x] **Dependencias**: correr `npm audit` antes del primer despliegue y
       periódicamente después; mantener Next.js y Prisma actualizados
 - [ ] **Backups**: confirmar que el plan de Neon usado tenga backups /
       point-in-time recovery activo para la base de datos de producción
+
+**Implementado:**
+- `.env*` ya estaba en `.gitignore` y nunca se commiteó (`git ls-files |
+  grep .env` no devuelve nada).
+- Ningún archivo `"use client"` importa `lib/prisma` ni `@prisma/client`
+  (verificado con grep sobre todo `app/`, `components/`, `lib/`) — el
+  acceso a datos siempre pasa por Server Components/Actions/Route
+  Handlers, ya venía siendo así desde fases anteriores.
+- Todas las mutaciones desde el cliente (inscripción, login, CRUD de
+  eventos/categorías/noticias, edición de términos) ya pasaban por un
+  schema de Zod en servidor antes de tocar la base — verificado, no
+  hizo falta agregar nada nuevo.
+- `next.config.ts` agrega `headers()` con `Content-Security-Policy`
+  (sin nonces — la alternativa con nonces obliga a renderizar
+  dinámicamente todo el sitio, incluida la portada estática — restringida
+  a los orígenes que la app realmente usa: Cloudinary/ibb.co/Unsplash/
+  Grupify para imágenes, Cloudflare Turnstile y el widget de Wompi para
+  scripts/frames, Google Maps para el iframe de ubicación),
+  `X-Frame-Options: DENY`, `Strict-Transport-Security`,
+  `X-Content-Type-Options: nosniff` y `Referrer-Policy`. Verificado con
+  `curl -I` en `/eventos`, `/admin/login` y `/api/inscripciones`.
+- Nueva página pública `/politica-datos-personales` (responsable,
+  derechos del titular, cómo ejercerlos) enlazada desde el checkbox de
+  aceptación del formulario y desde el footer; el correo de contacto
+  real del club (`chasquis1981@gmail.com`, ya usado en los datos
+  migrados en Fase 1) sirve como canal para solicitudes de eliminación
+  de datos. **Los compromisos específicos del club (qué se recolecta,
+  para qué, por cuánto tiempo, con quién se comparte) quedan marcados
+  como `[TODO]`** dentro de esa página — es contenido legal que el club
+  debe redactar, el proyecto no lo inventa.
+- Revisado: ningún endpoint devuelve `error.message`/stack al cliente,
+  todos los `catch` responden con un mensaje genérico fijo y solo
+  loguean el detalle con `console.error` del lado del servidor; no hay
+  `numeroDocumento` ni otros datos sensibles en esos logs. Next.js ya
+  oculta por defecto los stacks de errores no capturados en producción
+  (Server Components/Actions/Route Handlers), tanto en páginas propias
+  como en la de error por defecto (no se creó `error.tsx` custom porque
+  el comportamiento por defecto ya cumple esto).
+- `npm audit fix` corrigió `fast-uri` (alto, sin cambios de breaking).
+  Quedan 4 vulnerabilidades altas (`deepmerge-ts`, `mysql2` vía
+  `@prisma/config`/`prisma`) que solo se pueden resolver con
+  `npm audit fix --force`, el cual **degradaría Prisma a 6.19.3** — no
+  se aplicó porque el proyecto migró deliberadamente a Prisma 7. Además
+  `mysql2` es una dependencia del CLI de Prisma para el *provider*
+  MySQL, que este proyecto no usa (`datasource db { provider =
+  "postgresql" }`), y ninguna de las dos rutas de esa cadena de
+  dependencias se ejecuta en el runtime desplegado (`@prisma/client` +
+  `@prisma/adapter-pg`, no el paquete `prisma` completo). Se deja para
+  revisar cuando haya un release de `prisma`/`@prisma/config` sobre
+  Prisma 7 que no dependa de esas versiones vulnerables.
+  `@prisma/client`/`prisma` se actualizaron de 7.9.1 a 7.10.0 (dentro
+  del rango ya declarado en `package.json`).
+
+**Pendiente (requiere acceso a Vercel/Neon, no es código):** confirmar
+el certificado SSL del dominio propio al desplegar, y confirmar que el
+plan de Neon usado tenga backups/point-in-time recovery activo.
 
 ### Fase 8 — Despliegue y QA
 - [ ] Variables de entorno en Vercel (`DATABASE_URL`, credenciales Wompi)
