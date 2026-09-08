@@ -12,7 +12,7 @@ Web platform for **Club Atlético Los Chasquis** (Tunja, Boyacá), replacing a W
 
 Full roadmap, phase checklist, and fixed stack/design decisions (payment provider, brand colors, visual style) live in `Documentation/PLAN_DESARROLLO.md` — read it before planning any feature work, since it records decisions ("don't change without asking") that aren't visible in code yet.
 
-**Current state**: early scaffold. `app/page.tsx` and `app/layout.tsx` are still the unmodified `create-next-app` defaults. The Prisma schema and one migration exist and are applied to the database, but no application code (routes, components, `lib/`, Prisma client singleton, seed script) has been written yet.
+**Current state**: past the early-scaffold stage. `app/page.tsx` is now the real home page (Fase 9 in progress); `app/layout.tsx` carries real fonts/metadata. Phases 1–8 are built (public event calendar/registration/payment, admin panel, security hardening) and Fase 9's landing page is partially built — see `Documentation/PLAN_DESARROLLO.md` for the up-to-date per-phase checklist and what's still pending in each.
 
 ## Commands
 

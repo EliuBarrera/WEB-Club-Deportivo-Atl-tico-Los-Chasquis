@@ -516,96 +516,124 @@ confianza), y llevar al visitante a inscribirse en un evento activo
 (conversión). No es un blog ni un archivo histórico completo — es una
 puerta de entrada.
 
-**Secciones sugeridas, en orden:**
+**Secciones sugeridas, en orden, con estado actual:**
 
-1. **Hero** — imagen fuerte de carrera (real, no genérica de banco de
-   imágenes si es posible), título de impacto en Big Shoulders Display,
-   lema del club, y dos botones: uno primario ("Ver próximos eventos",
-   naranja, lleva al listado de la Fase 2) y uno secundario ("Conoce
-   nuestra historia", ancla a la sección 3).
-2. **Barra de cifras de confianza** — franja angosta con 3-4 números
+1. [x] **Hero** — imagen fuerte de carrera, título de impacto en Big
+   Shoulders Display, y dos botones: uno primario ("Ver próximos
+   eventos", naranja, lleva al listado de la Fase 2) y uno secundario.
+2. [ ] **Barra de cifras de confianza** — franja angosta con 3-4 números
    grandes en Space Mono: años de trayectoria, eventos realizados,
    atletas que han participado en total, entidades que avalan al club.
-   *(Ver nota de contenido pendiente abajo — estas cifras deben ser
-   reales, no inventadas.)*
-3. **Nuestra historia / línea de tiempo** — recorrido cronológico por
-   las ediciones anteriores de los festivales y carreras ya realizados
-   (foto + año + nombre del evento + un dato destacado, ej. "180
-   atletas"). Es el corazón de "dar a conocer el recorrido" que pediste.
-4. **Próximos eventos** — reutiliza tal cual el carrusel de eventos ya
-   construido en la Fase 2, filtrado a `status: 'open'`. No duplicar
-   componente.
-5. **Aval institucional** — logos de la Liga de Atletismo de Boyacá,
-   Federación Colombiana de Atletismo, alcaldías, etc. (ya existen como
-   imágenes en el detalle de evento — reutilizar, no rehacer).
-6. **Testimonios** — atletas, padres de familia o entrenadores dando fe
-   de la experiencia. Requiere contenido nuevo (ver abajo).
-7. **Galería de momentos** — grid de fotos de eventos pasados vía
-   Cloudinary, o reutilizar el widget de Elfsight/Instagram que ya está
-   integrado en el detalle de evento.
-8. **CTA final** — última invitación a inscribirse, antes del footer.
-9. **Documentos legales y transparencia** — sección pública con enlace
-   a los documentos institucionales del club (estatutos, certificación
-   de representante legal, actas de asamblea, estados financieros,
-   renta, etc.). **Ya existe un HTML construido para esto**
-   (`reglamento-legal-section.html`, subido por Alejandro) con el estilo
-   brutalista correcto — dos columnas: lista de documentos a la
-   izquierda (cada uno linkeando a Google Drive) y panel de título a la
-   derecha. No rediseñar, solo integrarlo como componente.
-   - [x] Pasar la lista de documentos (hoy hardcodeada en el HTML) a un
-         modelo simple `DocumentoLegal { id, nombre, url, orden }`
-         editable desde el admin — estos documentos se actualizan una
-         vez al año (renta, estados financieros, acta de asamblea) y no
-         debería requerir un despliegue nuevo cada vez
-   - [x] Confirmar si esta sección vive dentro del home (como scroll
-         final antes del footer) o como página aparte enlazada desde el
-         footer (`/transparencia`) — dado que es contenido de
-         cumplimiento más que de atracción, una página aparte puede
-         ordenar mejor la página de inicio
+   **Sin implementar — bloqueado por contenido** (ver lista al final).
+3. [ ] **Nuestra historia / línea de tiempo** — recorrido cronológico por
+   las ediciones anteriores. **Sin implementar — bloqueado por
+   contenido** (ver lista al final).
+4. [x] **Próximos eventos** — reutiliza tal cual el carrusel de eventos
+   ya construido en la Fase 2, filtrado a `estado: 'ABIERTO'`.
+5. [x] **Aval institucional** — ver nota de implementación: no hay
+   logos, se derivan las entidades reales ya registradas por evento.
+6. [ ] **Testimonios** — atletas, padres de familia o entrenadores dando
+   fe de la experiencia. **Sin implementar — bloqueado por contenido**
+   (ver lista al final).
+7. [x] **Galería de momentos** — ver nota de implementación: no existe
+   ningún widget de Elfsight/Instagram en el proyecto (se verificó con
+   grep sobre todo el repo antes de escribir esto — la mención de este
+   documento a "que ya está integrado en el detalle de evento" no
+   corresponde a nada real; se corrige acá).
+8. [x] **CTA final** — última invitación a inscribirse, antes del footer.
+9. [x] **Documentos legales y transparencia** — implementado como página
+   aparte (`/transparencia`), ver Fase 9 más abajo — este ítem se
+   adelantó antes que el resto de la fase, a pedido puntual.
+10. [x] **Footer** — contacto real agregado (ver nota); redes sociales y
+    ubicación exacta quedan pendientes (no hay cuentas ni dirección
+    confirmadas, no se inventan).
 
-**Implementado (adelantado antes que el resto de la Fase 9, a pedido
-puntual):** modelo `DocumentoLegal { id, nombre, url, orden }` (migración
-`20260908134008_fase9_documentos_legales`), sembrado con los 10 documentos
-reales de `Documentation/reglamento-legal-section.html` (enlaces reales a
-Google Drive del club, ninguno inventado) vía `upsert` por `url` en
-`prisma/seed.ts` — igual que `TerminosBase`, un reseed no pisa ediciones
-que el admin ya haya hecho. Se optó por página aparte (`/transparencia`,
-`lib/documentosLegales.ts` para la lectura pública) en vez de sección del
-home, siguiendo la propia recomendación de este documento; enlazada desde
-`components/Footer.tsx` junto a los otros enlaces legales.
+**Implementado (Hero, Próximos eventos, Aval institucional, Galería,
+CTA final, Footer, y un `Header` nuevo no contemplado originalmente):**
 
-`components/DocumentosLegales.tsx` reconstruye el layout de dos columnas
-del HTML de referencia (aprobado visualmente por el club) pero con el
-lenguaje visual actual del sitio: sombras suaves difuminadas en vez de los
-bordes gruesos + sombra dura tipo "cutout" del diseño original (ver nota
-de Fase 6 sobre ese cambio de dirección). El panel de título usa como
-fondo `public/admin-banner.jpg` — el banner corporativo real del club
-(corredor naranja del logo sobre fondo casi-negro), ya reutilizado en el
-panel admin — en vez de una figura decorativa inventada.
+`app/page.tsx` reemplaza el scaffold de `create-next-app` (era el estado
+"early scaffold" documentado al inicio de este archivo). Todo el contenido
+sale de datos que ya existen en la base — nada inventado:
 
-CRUD completo en `/admin/documentos` (`components/admin/
-DocumentosLegalesAdmin.tsx` + `DocumentoLegalModal.tsx`, mismo patrón de
-modal que `NoticiaModal.tsx`), protegido por el mismo `verifySession()` de
-`lib/admin/dal.ts` que el resto del panel, con su ítem correspondiente en
-`components/admin/Dock.tsx`. Verificado con `npx tsc --noEmit` (vía
-`npm run build`), `npm run lint` y una revisión visual con Playwright en
-desktop (1280px, layout de dos columnas) y móvil (390px, panel de título
-arriba y lista de documentos abajo, apilados correctamente), incluyendo el
-estado `:hover` de una fila.
-10. **Footer** — contacto, redes, ubicación, enlaces a políticas de
-    datos (Fase 7) y al modal de términos y condiciones generales
-    (Fase 4).
+- **Hero** (`components/home/Hero.tsx`): usa como fondo la portada real
+  del próximo evento `ABIERTO` (`Evento.imagenUrl`, la misma imagen de su
+  tarjeta) en vez de una foto de carrera nueva sin recopilar; si no hay
+  ningún evento abierto con imagen, cae al banner corporativo del club
+  (`public/admin-banner.jpg`) — nunca la portada de un evento ya
+  `CERRADO`, para no insinuar que una carrera pasada sigue vigente. El
+  botón secundario no ancla a "historia" (esa sección sigue bloqueada):
+  ancla a la sección de Aval institucional (`#respaldo`), que sí tiene
+  contenido real.
+- **Aval institucional** (`components/home/AvalInstitucional.tsx` +
+  `deriveAvalesInstitucionales()` en `lib/format.ts`): no hay logos en
+  el proyecto (se verificó: `Evento.aval` siempre se renderizó como
+  texto plano en `PanelDetalleTabs.tsx`, nunca como imagen, pese a lo que
+  decía este documento). Se listan como texto las entidades reales ya
+  registradas en `Evento.aval` a través de los eventos existentes (ej.
+  "Liga de Atletismo de Boyacá", "Federación Colombiana de Atletismo"),
+  deduplicadas — se actualiza solo con lo que el admin ya carga por
+  evento, no requiere gestión aparte.
+- **Galería de momentos** (`components/home/GaleriaMomentos.tsx`):
+  reutiliza las portadas reales de `Evento.imagenUrl` de los eventos
+  existentes (grid de las últimas 8 con imagen) en vez de fotos de
+  archivo nuevas sin recopilar.
+- **Documentos legales y transparencia**
+  (`components/home/TransparenciaTeaser.tsx`): tarjeta de invitación a
+  `/transparencia` (la sección completa, implementada por separado).
+- **Footer** (`components/Footer.tsx`): se agregó el contacto real del
+  club (`chasquis1981@gmail.com`, WhatsApp 311 264 4205 — ambos ya
+  usados en datos migrados/documentos de referencia) enlazado con
+  `mailto:`/`wa.me`.
+- **`components/Header.tsx`** (nuevo, no listado originalmente en esta
+  fase): antes de esta home no existía ninguna forma de volver a "/"
+  desde `/eventos` o `/transparencia` salvo el botón atrás del
+  navegador. Encabezado mínimo (logo + enlaces a Eventos/Transparencia),
+  agregado también a esas dos páginas. El wordmark de
+  `cropped-cropped-Logo-png.png` viene en texto claro (pensado para
+  fondo oscuro) y queda casi invisible sobre el fondo crema del sitio
+  público — el header usa solo el ícono del corredor (`Logo.png`,
+  transparente) junto con el nombre en la tipografía real del sitio, no
+  el PNG completo.
+- **Deep link evento → inscripción** (`EventosExplorer.tsx`,
+  `app/eventos/page.tsx`, `components/home/ProximosEventosHome.tsx`):
+  "Inscríbete aquí" en el carrusel de la home navega a
+  `/eventos?evento=<id>`, que abre directo la vista de inscripción de
+  ese evento (antes este flujo solo existía como estado local dentro de
+  `/eventos`, sin URL propia). Probado de punta a punta con Playwright:
+  clic en la home → navega → abre el panel de inscripción con los datos
+  reales del evento (categorías, fecha, aval), sin errores de consola.
+
+Verificado con `npx tsc --noEmit` (vía `npm run build`), `npm run lint`,
+y revisión visual con Playwright en desktop (1280px) y móvil (390px) de
+`/`, además de recorrer el flujo completo de deep-link.
+
+**Deliberadamente sin implementar en este incremento — no son un
+recorte de alcance, son el bloqueo de contenido que este mismo documento
+ya señalaba:** cifras de confianza, línea de tiempo histórica y
+testimonios (secciones 2, 3 y 6). No se creó el modelo de datos que
+sugiere la sección de abajo (`HitoHistorico`, `Testimonio`, cifras)
+porque hacerlo ahora habría significado construir pantallas de admin
+completas para contenido que hoy tiene cero filas reales y ninguna forma
+de llenarse sin inventar — se prefiere esperar a que el club entregue el
+contenido antes de diseñar ese modelo, tal como pide la nota original de
+"Modelo de datos — a decidir antes de tocar `schema.prisma`" más abajo.
 
 **⚠️ Contenido real que falta recopilar antes de maquetar (no inventar
-cifras ni citas):**
+cifras ni citas) — sigue siendo el bloqueo real, sin cambios:**
 - [ ] Números exactos o aproximados: año de fundación, total de eventos
       realizados, total acumulado de atletas participantes
 - [ ] Fotos de buena resolución de ediciones anteriores, para la línea
-      de tiempo y la galería
+      de tiempo (la galería de momentos ya no depende de esto: usa
+      portadas de evento existentes mientras tanto)
 - [ ] Testimonios reales (nombre, cita corta, foto) — confirmar que se
       tiene autorización de uso de imagen para esas personas
-- [ ] Confirmar qué avales institucionales siguen vigentes hoy, para no
-      mostrar el logo de una entidad que ya no respalda al club
+- [ ] Redes sociales oficiales del club (no hay ninguna enlazada hoy en
+      el sitio) y dirección física exacta, para completar el footer
+- [ ] Confirmar qué avales institucionales siguen vigentes hoy: la
+      sección ya lista los reales de `Evento.aval`, pero si alguno de
+      esos convenios ya no aplica, hay que quitarlo del evento
+      correspondiente en el admin (no hay un paso de "confirmación"
+      aparte — es la misma edición de evento de siempre)
 
 **Modelo de datos — a decidir antes de tocar `schema.prisma`:**
 - Para la línea de tiempo: evaluar si conviene un modelo nuevo y

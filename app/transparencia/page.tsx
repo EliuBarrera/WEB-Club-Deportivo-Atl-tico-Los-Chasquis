@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DocumentosLegales } from "@/components/DocumentosLegales";
 import { getDocumentosLegales } from "@/lib/documentosLegales";
@@ -22,6 +23,7 @@ export default async function TransparenciaPage() {
 
   return (
     <>
+      <Header />
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-2">
           <h1 className="font-display text-4xl font-black uppercase tracking-tight sm:text-5xl">

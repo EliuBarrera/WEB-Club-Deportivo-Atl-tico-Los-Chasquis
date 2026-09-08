@@ -16,6 +16,20 @@ export function Footer({ terminos }: { terminos: TerminosVigente }) {
       <p className="text-sm text-gris-oscuro">
         © {new Date().getFullYear()} Club Deportivo Atlético Los Chasquis
       </p>
+      <p className="text-sm text-gris-oscuro">
+        <a href="mailto:chasquis1981@gmail.com" className="underline">
+          chasquis1981@gmail.com
+        </a>
+        {" · "}
+        <a
+          href="https://wa.me/573112644205"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          WhatsApp 311 264 4205
+        </a>
+      </p>
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <button
           type="button"

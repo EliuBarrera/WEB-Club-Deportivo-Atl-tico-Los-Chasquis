@@ -1,3 +1,4 @@
+import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { EventosExplorer } from "@/components/eventos/EventosExplorer";
 import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
@@ -6,16 +7,25 @@ import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
 // página no se puede pre-renderizar como contenido estático.
 export const dynamic = "force-dynamic";
 
-export default async function EventosPage() {
+export default async function EventosPage({
+  searchParams,
+}: PageProps<"/eventos">) {
   // No dependen entre sí — se piden en paralelo para no sumar dos
   // round-trips secuenciales a Neon.
-  const [eventos, terminos] = await Promise.all([
+  const [eventos, terminos, params] = await Promise.all([
     getEventosPublicados(),
     getTerminosVigente(),
+    searchParams,
   ]);
+
+  const eventoParam = params.evento;
+  const eventoInicialId = Array.isArray(eventoParam)
+    ? (eventoParam[0] ?? null)
+    : (eventoParam ?? null);
 
   return (
     <>
+      <Header />
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
         <header className="flex flex-col gap-2 justify-items-center items-center">
           <h1 className="font-display text-4xl font-black uppercase tracking-tight sm:text-5xl">
@@ -27,7 +37,11 @@ export default async function EventosPage() {
           </p>
         </header>
 
-        <EventosExplorer eventos={eventos} terminos={terminos} />
+        <EventosExplorer
+          eventos={eventos}
+          terminos={terminos}
+          eventoInicialId={eventoInicialId}
+        />
       </main>
       <Footer terminos={terminos} />
     </>

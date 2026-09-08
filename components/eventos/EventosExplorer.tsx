@@ -8,13 +8,17 @@ import { VistaInscripcion } from "./VistaInscripcion";
 export function EventosExplorer({
   eventos,
   terminos,
+  eventoInicialId = null,
 }: {
   eventos: EventoPublicado[];
   terminos: TerminosVigente;
+  // Deep link desde la home (Fase 9): /eventos?evento=<id> abre directo la
+  // inscripción de ese evento en vez del carrusel completo.
+  eventoInicialId?: string | null;
 }) {
   const [eventoSeleccionadoId, setEventoSeleccionadoId] = useState<
     string | null
-  >(null);
+  >(eventoInicialId);
 
   const eventoSeleccionado = eventos.find(
     (e) => e.id === eventoSeleccionadoId
