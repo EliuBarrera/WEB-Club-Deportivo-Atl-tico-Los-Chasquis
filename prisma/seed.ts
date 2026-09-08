@@ -1015,6 +1015,19 @@ const documentosLegales = [
 ];
 
 // ------------------------------------------
+// Cifras de confianza (Fase 9) — franja de la home
+// ------------------------------------------
+
+// Cifras reales entregadas por el club (2026-09-08) para la franja de
+// confianza de la home — no se inventan, se guardan tal cual se dieron.
+const cifrasConfianza = [
+  { etiqueta: "Años de historia", valor: "45+" },
+  { etiqueta: "Eventos organizados", valor: "100+" },
+  { etiqueta: "Atletas participantes", valor: "5.000+" },
+  { etiqueta: "Categorías para participar", valor: "15+" },
+];
+
+// ------------------------------------------
 // Términos y Condiciones (Fase 4) — versión 1
 // ------------------------------------------
 
@@ -1257,6 +1270,18 @@ async function main() {
       where: { url: documento.url },
       update: { nombre: documento.nombre, orden: index },
       create: { nombre: documento.nombre, url: documento.url, orden: index },
+    });
+  }
+
+  // Cifras de confianza (Fase 9): mismo criterio que documentos legales —
+  // `upsert` por `etiqueta` para no pisar ediciones que el admin ya haya
+  // hecho desde /admin/cifras.
+  console.log("Sembrando cifras de confianza...");
+  for (const [index, cifra] of cifrasConfianza.entries()) {
+    await prisma.cifraConfianza.upsert({
+      where: { etiqueta: cifra.etiqueta },
+      update: { valor: cifra.valor, orden: index },
+      create: { etiqueta: cifra.etiqueta, valor: cifra.valor, orden: index },
     });
   }
 

@@ -521,10 +521,8 @@ puerta de entrada.
 1. [x] **Hero** — imagen fuerte de carrera, título de impacto en Big
    Shoulders Display, y dos botones: uno primario ("Ver próximos
    eventos", naranja, lleva al listado de la Fase 2) y uno secundario.
-2. [ ] **Barra de cifras de confianza** — franja angosta con 3-4 números
-   grandes en Space Mono: años de trayectoria, eventos realizados,
-   atletas que han participado en total, entidades que avalan al club.
-   **Sin implementar — bloqueado por contenido** (ver lista al final).
+2. [x] **Barra de cifras de confianza** — franja angosta con 3-4 números
+   grandes en Space Mono. Ver nota de implementación.
 3. [ ] **Nuestra historia / línea de tiempo** — recorrido cronológico por
    las ediciones anteriores. **Sin implementar — bloqueado por
    contenido** (ver lista al final).
@@ -547,6 +545,18 @@ puerta de entrada.
 10. [x] **Footer** — contacto real agregado (ver nota); redes sociales y
     ubicación exacta quedan pendientes (no hay cuentas ni dirección
     confirmadas, no se inventan).
+
+**Implementado (Cifras de confianza):** modelo `CifraConfianza { id,
+etiqueta, valor, orden }` (migración `20260908154241_fase9_cifras_confianza`),
+sembrado con las cifras reales entregadas por el club el 2026-09-08 ("45+
+años de historia", "100+ eventos organizados", "5.000+ atletas
+participantes", "15+ categorías para participar") vía `upsert` por
+`etiqueta` en `prisma/seed.ts` — mismo criterio que `DocumentoLegal`, un
+reseed no pisa ediciones del admin. `componentes/home/CifrasConfianza.tsx`
+la muestra como franja oscura justo debajo del Hero, en Space Mono; CRUD
+completo en `/admin/cifras` (mismo patrón modal que `DocumentoLegal`).
+Verificado con `npm run build`, `npm run lint` y revisión visual con
+Playwright en desktop y móvil.
 
 **Implementado (Hero, Próximos eventos, Aval institucional, Galería,
 CTA final, Footer, y un `Header` nuevo no contemplado originalmente):**
@@ -619,9 +629,11 @@ contenido antes de diseñar ese modelo, tal como pide la nota original de
 "Modelo de datos — a decidir antes de tocar `schema.prisma`" más abajo.
 
 **⚠️ Contenido real que falta recopilar antes de maquetar (no inventar
-cifras ni citas) — sigue siendo el bloqueo real, sin cambios:**
-- [ ] Números exactos o aproximados: año de fundación, total de eventos
-      realizados, total acumulado de atletas participantes
+cifras ni citas):**
+- [x] ~~Números exactos o aproximados: año de fundación, total de eventos
+      realizados, total acumulado de atletas participantes~~ — entregado
+      por el club el 2026-09-08, ver "Implementado (Cifras de confianza)"
+      arriba.
 - [ ] Fotos de buena resolución de ediciones anteriores, para la línea
       de tiempo (la galería de momentos ya no depende de esto: usa
       portadas de evento existentes mientras tanto)

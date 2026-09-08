@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/home/Hero";
+import { CifrasConfianza } from "@/components/home/CifrasConfianza";
 import { ProximosEventosHome } from "@/components/home/ProximosEventosHome";
 import { AvalInstitucional } from "@/components/home/AvalInstitucional";
 import { GaleriaMomentos } from "@/components/home/GaleriaMomentos";
 import { TransparenciaTeaser } from "@/components/home/TransparenciaTeaser";
 import { CtaFinal } from "@/components/home/CtaFinal";
 import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
+import { getCifrasConfianza } from "@/lib/cifras";
 import { deriveAvalesInstitucionales } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -24,9 +26,10 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // No dependen entre sí — se piden en paralelo, mismo criterio que
   // app/eventos/page.tsx.
-  const [eventos, terminos] = await Promise.all([
+  const [eventos, terminos, cifras] = await Promise.all([
     getEventosPublicados(),
     getTerminosVigente(),
+    getCifrasConfianza(),
   ]);
 
   const eventosAbiertos = eventos.filter(
@@ -62,6 +65,8 @@ export default async function HomePage() {
       <Hero imagenUrl={heroImagenUrl} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-20 px-4 py-16 sm:px-8">
+        <CifrasConfianza cifras={cifras} />
+
         <section className="flex flex-col gap-8">
           <div className="flex flex-col items-center gap-2 text-center">
             <h2 className="font-display text-3xl font-extrabold uppercase tracking-tight sm:text-4xl">

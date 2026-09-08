@@ -282,6 +282,20 @@ export type DocumentoLegalAdmin = Awaited<
   ReturnType<typeof getDocumentosLegalesAdmin>
 >[number];
 
+// Cifras de confianza (Fase 9 — Home): lista completa para el CRUD del
+// admin. La versión pública vive en lib/cifras.ts.
+export async function getCifrasConfianzaAdmin() {
+  await verifySession();
+  return prisma.cifraConfianza.findMany({
+    orderBy: { orden: "asc" },
+    select: { id: true, etiqueta: true, valor: true, orden: true },
+  });
+}
+
+export type CifraConfianzaAdmin = Awaited<
+  ReturnType<typeof getCifrasConfianzaAdmin>
+>[number];
+
 // Usado solo por el Route Handler de export (Fase 6: el CSV incluye datos
 // personales de menores, de ahí requireAdmin() en vez de verifySession()).
 export async function getInscripcionesParaExport(filtros: FiltrosInscripciones) {

@@ -444,3 +444,19 @@ model DocumentoLegal {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ==========================================
+// CIFRAS DE CONFIANZA (Fase 9 — Home)
+// ==========================================
+
+// Franja de números grandes en la home ("45+ años de historia", etc.).
+// `valor` es texto libre (no Int) a propósito: permite "45+", "5.000+",
+// evitando reformatear un número en el componente.
+model CifraConfianza {
+  id        String   @id @default(cuid())
+  etiqueta  String   @unique
+  valor     String
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
