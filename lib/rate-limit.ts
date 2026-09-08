@@ -1,5 +1,13 @@
 import { prisma } from "@/lib/prisma";
 
+// Tipado como `Request` (no `NextRequest`) para poder reutilizarse también
+// desde el `authorize` de Auth.js (auth.ts), que recibe el `Request` nativo.
+export function getClientIp(request: Request): string {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0].trim();
+  return request.headers.get("x-real-ip") ?? "desconocida";
+}
+
 // Rate limiting por IP basado en base de datos (no en memoria del
 // proceso): el endpoint de inscripción corre en funciones serverless de
 // Vercel, donde cada invocación puede caer en una instancia distinta, así

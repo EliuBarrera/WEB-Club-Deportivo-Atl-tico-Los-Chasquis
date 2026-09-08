@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { checkRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { inscripcionSchema } from "@/lib/validation/inscripcion";
 import { generarFirmaIntegridad } from "@/lib/wompi";
@@ -9,12 +9,6 @@ import { generarFirmaIntegridad } from "@/lib/wompi";
 // categoría/prueba/costo y el requisito de acudiente por edad se
 // recalculan aquí siempre contra la base de datos: nunca se confía en lo
 // que envíe el cliente para esos datos.
-
-function getClientIp(request: NextRequest): string {
-  const forwardedFor = request.headers.get("x-forwarded-for");
-  if (forwardedFor) return forwardedFor.split(",")[0].trim();
-  return request.headers.get("x-real-ip") ?? "desconocida";
-}
 
 // Edad cumplida en `fechaReferencia` (la fecha del evento), calculada en
 // UTC para ser consistente con el resto del proyecto (ver lib/format.ts).
