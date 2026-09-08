@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { EventoPublicado } from "@/lib/eventos";
+import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
 import { CalendarioMapaCarrusel } from "./CalendarioMapaCarrusel";
 import { FormularioInscripcion } from "./FormularioInscripcion";
 import { PanelDetalleTabs } from "./PanelDetalleTabs";
@@ -9,9 +9,11 @@ import { TarjetaEvento } from "./TarjetaEvento";
 
 export function VistaInscripcion({
   evento,
+  terminos,
   onVolver,
 }: {
   evento: EventoPublicado;
+  terminos: TerminosVigente;
   onVolver: () => void;
 }) {
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
@@ -59,6 +61,7 @@ export function VistaInscripcion({
         {mostrarFormulario ? (
           <FormularioInscripcion
             evento={evento}
+            terminos={terminos}
             onCancelar={() => setMostrarFormulario(false)}
           />
         ) : (

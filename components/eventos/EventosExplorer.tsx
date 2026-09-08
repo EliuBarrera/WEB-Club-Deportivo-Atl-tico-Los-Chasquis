@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import type { EventoPublicado } from "@/lib/eventos";
+import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
 import { CarruselEventos } from "./CarruselEventos";
 import { VistaInscripcion } from "./VistaInscripcion";
 
-export function EventosExplorer({ eventos }: { eventos: EventoPublicado[] }) {
+export function EventosExplorer({
+  eventos,
+  terminos,
+}: {
+  eventos: EventoPublicado[];
+  terminos: TerminosVigente;
+}) {
   const [eventoSeleccionadoId, setEventoSeleccionadoId] = useState<
     string | null
   >(null);
@@ -18,6 +24,7 @@ export function EventosExplorer({ eventos }: { eventos: EventoPublicado[] }) {
     return (
       <VistaInscripcion
         evento={eventoSeleccionado}
+        terminos={terminos}
         onVolver={() => setEventoSeleccionadoId(null)}
       />
     );

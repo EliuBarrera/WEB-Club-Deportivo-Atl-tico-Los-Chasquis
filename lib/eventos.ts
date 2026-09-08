@@ -117,3 +117,17 @@ export async function getEventosPublicados() {
 export type EventoPublicado = Awaited<
   ReturnType<typeof getEventosPublicados>
 >[number];
+
+// Bloque institucional del modal de Términos y Condiciones (Fase 4): nunca
+// se edita una fila existente (ver nota en el modelo TerminosBase), así
+// que la vigente es siempre la de mayor `version`.
+export async function getTerminosVigente() {
+  return prisma.terminosBase.findFirst({
+    orderBy: { version: "desc" },
+    select: { contenido: true, version: true, vigenteDesde: true },
+  });
+}
+
+export type TerminosVigente = Awaited<
+  ReturnType<typeof getTerminosVigente>
+>;

@@ -2,8 +2,9 @@
 
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { EventoPublicado } from "@/lib/eventos";
+import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
 import { formatPrecio } from "@/lib/format";
+import { ModalTerminos } from "./ModalTerminos";
 
 type ResultadoWidgetWompi = {
   transaction: { id: string; status: string; reference: string };
@@ -119,9 +120,11 @@ const inputClase =
 
 export function FormularioInscripcion({
   evento,
+  terminos,
   onCancelar,
 }: {
   evento: EventoPublicado;
+  terminos: TerminosVigente;
   onCancelar: () => void;
 }) {
   const usaCategorias = evento.categorias.length > 0;
@@ -158,6 +161,7 @@ export function FormularioInscripcion({
 
   const [aceptaTerminos, setAceptaTerminos] = useState(false);
   const [aceptaImagenes, setAceptaImagenes] = useState(false);
+  const [modalTerminosAbierto, setModalTerminosAbierto] = useState(false);
 
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const widgetIdRef = useRef<string | undefined>(undefined);
@@ -777,17 +781,14 @@ export function FormularioInscripcion({
                 className="mt-1"
               />
               <span>
-                Acepto los términos y condiciones{" "}
-                {evento.terminosUrl ? (
-                  <a
-                    href={evento.terminosUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="underline"
-                  >
-                    (ver documento)
-                  </a>
-                ) : null}{" "}
+                Acepto los{" "}
+                <button
+                  type="button"
+                  onClick={() => setModalTerminosAbierto(true)}
+                  className="font-semibold underline"
+                >
+                  términos y condiciones
+                </button>{" "}
                 y la política de tratamiento de datos personales.
               </span>
             </label>
@@ -828,6 +829,17 @@ export function FormularioInscripcion({
           </button>
         </form>
       )}
+
+      <ModalTerminos
+        abierto={modalTerminosAbierto}
+        onCerrar={() => setModalTerminosAbierto(false)}
+        contenido={terminos?.contenido ?? null}
+        version={terminos?.version ?? null}
+        evento={{
+          kit: evento.logistica?.kit ?? [],
+          premiosEfectivo: Boolean(evento.premios?.efectivoUrl),
+        }}
+      />
     </div>
   );
 }

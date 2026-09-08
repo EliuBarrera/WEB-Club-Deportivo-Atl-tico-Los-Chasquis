@@ -1,26 +1,35 @@
+import { Footer } from "@/components/Footer";
 import { EventosExplorer } from "@/components/eventos/EventosExplorer";
-import { getEventosPublicados } from "@/lib/eventos";
+import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
 
 // Los eventos los administra el panel de admin (Fase 6), así que esta
 // página no se puede pre-renderizar como contenido estático.
 export const dynamic = "force-dynamic";
 
 export default async function EventosPage() {
-  const eventos = await getEventosPublicados();
+  // No dependen entre sí — se piden en paralelo para no sumar dos
+  // round-trips secuenciales a Neon.
+  const [eventos, terminos] = await Promise.all([
+    getEventosPublicados(),
+    getTerminosVigente(),
+  ]);
 
   return (
-    <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
-      <header className="flex flex-col gap-2 justify-items-center items-center">
-        <h1 className="font-display text-4xl font-black uppercase tracking-tight sm:text-5xl">
-          Calendario de eventos
-        </h1>
-        <p className="text-gris-oscuro text-xl font-semibold text-naranja">
-          Carreras de calle y pruebas de pista y campo del Club Atlético Los
-          Chasquis.
-        </p>
-      </header>
+    <>
+      <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-8 px-4 py-10 sm:px-8">
+        <header className="flex flex-col gap-2 justify-items-center items-center">
+          <h1 className="font-display text-4xl font-black uppercase tracking-tight sm:text-5xl">
+            Calendario de eventos
+          </h1>
+          <p className="text-gris-oscuro text-xl font-semibold text-naranja">
+            Carreras de calle y pruebas de pista y campo del Club Atlético Los
+            Chasquis.
+          </p>
+        </header>
 
-      <EventosExplorer eventos={eventos} />
-    </main>
+        <EventosExplorer eventos={eventos} terminos={terminos} />
+      </main>
+      <Footer terminos={terminos} />
+    </>
   );
 }
