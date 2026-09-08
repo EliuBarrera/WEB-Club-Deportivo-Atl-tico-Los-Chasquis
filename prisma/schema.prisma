@@ -376,6 +376,12 @@ model Inscripcion {
   // Legal
   aceptaTerminos      Boolean       @default(false)
   aceptaImagenes      Boolean       @default(false)
+  // Trazabilidad legal (Fase 4): qué versión de TerminosBase estaba vigente
+  // cuando el atleta aceptó, y en qué momento — nunca se sobrescribe si el
+  // texto cambia después. Se calculan en servidor al crear la inscripción,
+  // nunca se reciben del cliente.
+  terminosVersion     Int?
+  terminosAceptadosEn DateTime?
 
   // Pago
   totalPago           Int
@@ -401,4 +407,23 @@ model IntentoInscripcion {
   createdAt DateTime @default(now())
 
   @@index([ip, createdAt])
+}
+
+// ==========================================
+// TÉRMINOS Y CONDICIONES (Fase 4)
+// ==========================================
+
+// Bloque institucional del modal de Términos y Condiciones, igual para
+// todos los eventos (las secciones que sí varían por evento — kit,
+// premiación en efectivo — se arman en el modal a partir de datos que ya
+// existen en Logistica/Premios, no se duplican acá). Nunca se edita una
+// fila existente: cada cambio desde el admin crea una versión nueva
+// (`version` autoincremental, `vigenteDesde` = momento del cambio), para
+// que Inscripcion.terminosVersion siga apuntando a un texto inmutable
+// aunque el club actualice el contenido después.
+model TerminosBase {
+  id           String   @id @default(cuid())
+  version      Int      @unique
+  contenido    String
+  vigenteDesde DateTime @default(now())
 }

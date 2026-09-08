@@ -965,6 +965,55 @@ const ESTADO_POR_STATUS: Record<"open" | "closed", EstadoEvento> = {
 };
 
 // ------------------------------------------
+// Términos y Condiciones (Fase 4) — versión 1
+// ------------------------------------------
+
+// Generalizado a partir de "Políticas Obligatorias de Participación 2026"
+// (documento real de un evento del club, ver Documentation/), quitando lo
+// específico de esa carrera (fechas, precios, nombre del evento): esto es
+// el bloque institucional común a todos los eventos. Las secciones que sí
+// varían por evento (kit, premiación en efectivo) se arman en el modal a
+// partir de Logistica/Premios, no van acá. El bloque de tratamiento de
+// datos queda como TODO: el documento de referencia no incluye ese texto,
+// y el proyecto no inventa contenido legal — el club debe redactarlo y
+// editarlo desde el panel admin.
+const CONTENIDO_TERMINOS_V1 = `REGLAMENTO GENERAL DEL EVENTO
+
+1. La participación en el evento solo será válida para personas debidamente inscritas.
+2. El número de competencia es obligatorio y debe portarse visible durante toda la prueba.
+3. En el desarrollo de las pruebas no se permitirá el acompañamiento.
+4. El deportista declara encontrarse en óptimas condiciones físicas, médicas y de salud.
+5. El deportista se compromete a cumplir los reglamentos de World Athletics, la Federación Colombiana de Atletismo y la Liga de Atletismo de Boyacá.
+6. El deportista acepta estas Políticas de Participación y Exoneración de Responsabilidad.
+
+NORMAS DE SEGURIDAD
+
+1. Uso obligatorio del número de competencia en lugar visible durante toda la prueba.
+2. Servicio de primeros auxilios disponible durante el evento.
+3. El deportista, o su representante legal en caso de menores de edad, asume plena responsabilidad sobre su estado de salud.
+
+PREMIACIÓN
+
+1. La premiación en efectivo, cuando aplique, se entrega según la tabla de premiación publicada para el evento.
+2. Es obligatorio firmar las planillas oficiales de premiación.
+3. El deportista debe presentarse al podio 20 minutos después de finalizada la prueba.
+4. En caso de no presentarse, el premio se entrega al finalizar el evento.
+5. La premiación hace parte integral de la competencia.
+6. Se debe presentar fotocopia del documento de identidad.
+
+TRATAMIENTO DE DATOS PERSONALES
+
+[TODO: pendiente de redacción legal del club — completar y actualizar desde el panel admin. Debe cubrir a qué se autoriza el tratamiento de datos personales del deportista (y de su acudiente, si es menor de edad) conforme a la Ley 1581 de 2012.]
+
+EXONERACIÓN DE RESPONSABILIDAD
+
+El deportista declara encontrarse en óptimas condiciones físicas, médicas y de salud, y acepta estas Políticas de Participación y Exoneración de Responsabilidad. El Club Deportivo Atlético Los Chasquis, el comité organizador y las entidades vinculadas quedan exonerados de responsabilidad civil, penal o administrativa por accidentes o lesiones ocurridos antes, durante o después del evento.
+
+DECLARACIÓN DE ACEPTACIÓN
+
+Al formalizar su inscripción, el participante declara haber leído, entendido y aceptado en su totalidad el reglamento, las condiciones de participación y la exoneración de responsabilidad aquí establecidas. La participación se hace bajo absoluta responsabilidad del atleta. La aceptación de estas políticas es obligatoria para formalizar la inscripción.`;
+
+// ------------------------------------------
 // Seed
 // ------------------------------------------
 
@@ -1134,6 +1183,18 @@ async function main() {
     });
 
     console.log(`  ✓ ${festival.title}`);
+  }
+
+  // A diferencia de los eventos, TerminosBase NO se borra/recrea en cada
+  // corrida: es contenido editable desde el admin (Fase 4), así que un
+  // reseed no debe pisar ediciones reales del club. Solo siembra la
+  // versión 1 si la tabla está vacía.
+  const yaHayTerminos = await prisma.terminosBase.count();
+  if (yaHayTerminos === 0) {
+    console.log("Sembrando Términos y Condiciones (versión 1)...");
+    await prisma.terminosBase.create({
+      data: { version: 1, contenido: CONTENIDO_TERMINOS_V1 },
+    });
   }
 
   console.log("Seed completado.");
