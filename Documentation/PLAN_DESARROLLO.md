@@ -45,9 +45,15 @@ Una aplicación web que permita:
   - `#353535` gris oscuro
   - `#1C0D0A` casi negro
   - `#F7F4EF` crema cálido (fondo claro)
-- **Estilo visual**: brutalista — bordes marcados, tipografía grande y
-  contundente, poco decorado. No usar gradientes suaves ni sombras muy
-  difuminadas tipo "SaaS genérico".
+  - `#D1273B` rojo, `#1F9254` verde, `#D1A512` amarillo — estados
+    (pendiente/aprobado/rechazado) en el panel admin
+- **Estilo visual**: tipografía grande y contundente, poco decorado
+  (base brutalista). **Actualizado en Fase 6**: las tarjetas, botones y
+  paneles pasaron de bordes gruesos (`border-2`/`border-[3px]
+  border-casi-negro`) a sombras suaves difuminadas
+  (`shadow-[0_10px_30px_rgba(28,13,10,0.10)]` y variantes) — dirección
+  de diseño confirmada con el club, reemplaza la regla anterior de "no
+  sombras difuminadas tipo SaaS genérico".
 
 ## Datos existentes a migrar
 
@@ -190,33 +196,104 @@ acudiente (`400`), y el flujo completo tanto de categoría como de costo
 quedaron recalculados en servidor y no con lo que hubiera enviado el
 cliente.
 
+- [ ] **Modal reutilizable de Términos y Condiciones** (pendiente,
+      agregado después de ver el archivo de referencia
+      `Politicas-Obligatorias-Participacion-2026.html`)
+  - [ ] El texto "términos y condiciones" del checkbox de aceptación deja
+        de ser un link `href="#"` y pasa a abrir un **modal** (no navega
+        a otra página), reutilizable para cualquier evento — no crear un
+        modal distinto por evento
+  - [ ] El modal se compone de dos tipos de contenido:
+    - **Bloque genérico institucional** (igual para todos los eventos):
+      reglamento general, normas de seguridad, tratamiento de datos /
+      habeas data, exoneración de responsabilidad, declaración de
+      aceptación. Guardarlo en un modelo nuevo y simple, ej.
+      `TerminosBase { id, contenido, version, vigenteDesde }`, editable
+      desde el admin — así el club lo puede actualizar sin tocar código
+    - **Bloques condicionales**, derivados de datos que **ya existen**
+      en el evento — no duplicar información, solo mostrar/ocultar
+      secciones según lo que ese evento tenga:
+      - Sección "Entrega de Kits" → solo si `logistica.kit` tiene
+        elementos (ej. 6K Running de Fuego sí, otros eventos no)
+      - Sección "Premiación en efectivo" → solo si `premios.efectivo`
+        tiene valor
+      - Sección "Circuito Pasaporte Runner Boyacá" (descuento por
+        inscribirse a las 3 carreras) → solo si el evento pertenece a
+        un circuito — **falta un campo para esto en el schema**
+        (`Evento.circuitoId` o similar); revisar antes de implementar
+  - [ ] **Trazabilidad legal:** al aceptar y enviar el formulario, guardar
+        en `Inscripcion` qué versión del `TerminosBase` aceptó el atleta
+        y en qué momento (ej. `terminosVersion`, `terminosAceptadosEn`).
+        Es relevante porque se recolectan datos de menores y se acepta
+        una exoneración de responsabilidad — si el texto cambia después,
+        debe quedar registro de cuál versión aceptó cada quién
+  - [ ] Enlace del mismo modal también accesible desde el footer del
+        sitio ("Ver términos y condiciones generales"), no solo desde el
+        formulario
+
 ### Fase 5 — Pagos con Wompi
-- [ ] Integrar Widget/Checkout de Wompi con el monto calculado en
+- [x] Integrar Widget/Checkout de Wompi con el monto calculado en
       **servidor** (precio − descuento si aplica según fecha límite) —
       nunca confiar en un monto enviado desde el navegador
-- [ ] Webhook de confirmación de Wompi: **verificar la firma/checksum del
+- [x] Webhook de confirmación de Wompi: **verificar la firma/checksum del
       evento** con el secreto de eventos de Wompi antes de procesar
       cualquier cambio de estado (evita que alguien falsifique un pago
       aprobado llamando directamente al endpoint)
-- [ ] El webhook actualiza `estadoPago` a `APROBADO`/`RECHAZADO` y guarda
+- [x] El webhook actualiza `estadoPago` a `APROBADO`/`RECHAZADO` y guarda
       `wompiTransactionId`; el endpoint debe ser idempotente (si Wompi
       reenvía el mismo evento, no debe duplicar ni romper nada)
-- [ ] Página de confirmación para el atleta
+- [x] Página de confirmación para el atleta
+
+**Implementado:** `lib/wompi.ts` calcula la firma de integridad del
+widget y expone `verificarFirmaEvento`/`mapEstadoPago` para el webhook;
+`FormularioInscripcion.tsx` abre el widget de Wompi con el monto
+recalculado en servidor y muestra en la misma tarjeta los estados
+pendiente/aprobado/rechazado (con botón "Reintentar pago"), sin
+necesidad de una ruta aparte. `app/api/webhooks/wompi/route.ts`
+rechaza cualquier evento con firma inválida antes de tocar la base de
+datos, y el `update` de `Inscripcion` es idempotente por construcción
+(reenviar el mismo evento dos veces no duplica ni rompe nada).
 
 ### Fase 6 — Panel de administrador
-- [ ] Login con NextAuth (o similar), contraseñas con hash `bcrypt`,
+- [x] Login con NextAuth (o similar), contraseñas con hash `bcrypt`,
       nunca almacenar contraseñas en texto plano
-- [ ] Middleware que protege **todas** las rutas `/admin/*` y sus
+- [x] Middleware que protege **todas** las rutas `/admin/*` y sus
       Server Actions/API routes — la protección no puede depender solo
       de ocultar el link en el menú
-- [ ] Verificar el rol (`ADMIN`/`EDITOR`) en cada acción sensible, no
+- [x] Verificar el rol (`ADMIN`/`EDITOR`) en cada acción sensible, no
       solo al hacer login
-- [ ] CRUD de eventos: crear, editar, cambiar estado (abierto/cerrado)
-- [ ] Gestión de categorías y pruebas por categoría desde formularios
-- [ ] Listado de inscripciones por evento, con filtro y exportar a CSV
+- [x] Mitigar "user enumeration" por tiempo de respuesta en el login: si
+      el email no existe, hoy se responde antes (nunca se llega a
+      `bcrypt.compare`) que si existe pero la contraseña es incorrecta —
+      comparar siempre contra un hash dummy cuando el usuario no existe,
+      para que el tiempo de respuesta no delate si un email está
+      registrado
+- [x] Confirmar `AUTH_TRUST_HOST` (o el equivalente que use la versión
+      de Auth.js instalada) al desplegar en Vercel, para que los
+      redirects de login funcionen detrás del proxy de producción
+- [x] CRUD de eventos: crear, editar, cambiar estado (abierto/cerrado)
+- [x] Gestión de categorías y pruebas por categoría desde formularios
+- [x] Listado de inscripciones por evento, con filtro y exportar a CSV
       (el CSV incluye datos personales de menores — restringir su
       descarga solo a usuarios autenticados con rol `ADMIN`)
-- [ ] **Carga de imágenes**: usar **Cloudinary** para que el admin suba
+
+**Implementado (autenticación y CRUD):** `auth.ts` (NextAuth v5,
+Credentials + bcrypt, hash señuelo contra "user enumeration",
+`trustHost: true`) y `proxy.ts` (reemplazo de `middleware.ts` en
+Next.js 16) como primera capa sobre `/admin/*` y `/api/admin/*`;
+`lib/admin/dal.ts` repite la verificación de sesión/rol en cada
+función como segunda capa, porque las Server Actions viajan como POST
+a la misma ruta que las invoca y un matcher de proxy que excluya una
+ruta las deja sin protección. `app/admin/(panel)/eventos/` (editor por
+pestañas en `EventoEditor.tsx`, con `CategoriaModal.tsx` y
+`NoticiaModal.tsx`) cubre crear/editar evento, cambiar estado,
+categorías + pruebas por categoría, y noticias — todo validado con Zod
+en servidor (`lib/validation/{evento,categoria,listaTexto,noticia}.ts`).
+`app/admin/(panel)/inscripciones/page.tsx` trae el listado con filtro
+por evento/estado de pago, y `app/api/admin/inscripciones/export/route.ts`
+genera el CSV protegido con `requireAdmin()` (401/403 explícito en vez
+de redirigir, ya que es un Route Handler de descarga).
+- [x] **Carga de imágenes**: usar **Cloudinary** para que el admin suba
       imágenes desde el formulario (portada del evento, imágenes de
       programación/recorrido, tabla de premios en efectivo) en vez de
       pegar links de ibb.co a mano. El upload se hace desde una Server
@@ -232,10 +309,10 @@ cliente.
         (locales y pendientes de agregar en Vercel al desplegar). Solo
         se importa desde código de servidor, nunca desde un componente
         `"use client"`, para no exponer el `api_secret` al navegador.
-  - [ ] Validar en servidor el tipo de archivo (solo `image/jpeg`,
+  - [x] Validar en servidor el tipo de archivo (solo `image/jpeg`,
         `image/png`, `image/webp`) y un tamaño máximo (ej. 5 MB) antes
         de subir, para no permitir subir cualquier archivo
-  - [ ] Usar transformaciones de Cloudinary vía parámetros de URL (ej.
+  - [x] Usar transformaciones de Cloudinary vía parámetros de URL (ej.
         `c_fill,w_400,h_300` para tarjetas, `c_fill,w_1200,h_400` para
         banners) en vez de guardar varias copias de la misma imagen
   - [ ] **Migrar las imágenes ya sembradas en Fase 1** (URLs de
@@ -246,6 +323,17 @@ cliente.
         `cloudinary.uploader.upload(url_externa)` y actualice el campo
         con la nueva URL
 
+**Implementado (Cloudinary):** `actualizarEvento` en
+`app/admin/(panel)/eventos/actions.ts` valida `IMAGEN_TIPOS_PERMITIDOS`
+y `IMAGEN_TAMANO_MAXIMO` (de `lib/validation/evento.ts`) en servidor
+antes de subir. `cloudinaryThumb()` en `lib/cloudinary.ts` aplica
+transformaciones por URL (usado, ej., para las miniaturas del listado
+de eventos). **Pendiente de ejecutar** (no de escribir):
+`prisma/migrar-imagenes-cloudinary.ts` ya existe y es idempotente,
+pero correrlo contra la base de producción — y confirmar las
+credenciales de Cloudinary en Vercel — se deja como paso explícito
+antes de apagar la dependencia de `ibb.co`/`unsplash`.
+
 **Nota (detectado en Fase 3):** el componente `<Image>` de Next.js
 intenta optimizar toda imagen externa pasando por `/_next/image`, y
 `ibb.co` responde demasiado lento para eso — resultado: error `500`
@@ -253,9 +341,45 @@ después de ~8 segundos. Arreglo inmediato mientras se completa la
 migración a Cloudinary: agregar `unoptimized` a los `<Image>` que
 muestran URLs externas, para que carguen directo sin pasar por el
 optimizador de Next.js.
-- [ ] Editor de noticias por evento — si se permite pegar HTML/rich
+- [x] Editor de noticias por evento — si se permite pegar HTML/rich
       text, sanitizarlo (ej. con `DOMPurify`) antes de guardarlo o
       mostrarlo, para evitar XSS
+
+**Implementado:** `NoticiaModal.tsx` + `noticiaSchema` (campo
+`contenido` en texto plano, sin editor rich-text). Se renderiza como
+`{noticia.contenido}` (`PanelDetalleTabs.tsx`), nunca con
+`dangerouslySetInnerHTML` — no hay HTML/rich text involucrado en este
+incremento, así que `DOMPurify` no aplica todavía. Si en el futuro se
+agrega un editor rich-text, sanitizar en ese momento.
+
+- [x] **Dashboard de ingresos**
+  - [x] Vista general: ingresos totales acumulados de **todos** los
+        eventos (suma de `totalPago` de las `Inscripcion` con
+        `estadoPago = APROBADO`) — nunca sumar inscripciones pendientes
+        o rechazadas
+  - [x] Vista por evento: selector/filtro para ver el ingreso de un solo
+        evento a la vez
+  - [x] Tarjeta pequeña por evento (mismo formato/tamaño visual que el
+        `MiniCalendario.tsx` de la Fase 2): muestra el monto recaudado de
+        ese evento y, debajo, el número total de inscritos (conteo de
+        `Inscripcion` con `estadoPago = APROBADO` para ese evento)
+  - [x] Botón "Ver en Wompi" en cada tarjeta/vista que abra en una
+        pestaña nueva el dashboard de comercios de Wompi
+        (`https://comercios.wompi.co`), para que el admin pueda
+        contrastar el número contra el estado real de la pasarela
+  - [x] Estos números se calculan siempre desde la base de datos local
+        (no se le pide nada a la API de Wompi en cada carga) — el
+        webhook de la Fase 5 ya mantiene `estadoPago` sincronizado, así
+        que el dashboard solo lee lo que ya está guardado
+
+**Implementado:** `getDashboardIngresos()` en `lib/admin/dal.ts`
+(`aggregate` + `groupBy` sobre `Inscripcion` filtrado a
+`estadoPago: "APROBADO"`) y la sección "Dashboard de ingresos" al
+inicio de `app/admin/(panel)/inscripciones/page.tsx`: tarjeta de total
+general + una tarjeta por evento con recaudado/inscritos y enlace
+"Ver en Wompi" a `comercios.wompi.co`. No vive en una vista separada
+por selector — comparte página con el listado/filtro de inscripciones,
+que ya tiene su propio filtro por evento.
 
 ### Fase 7 — Seguridad (transversal, revisar antes de producción)
 
@@ -295,6 +419,103 @@ optimizador de Next.js.
       ve la inscripción
 - [ ] Revisión responsive (móvil) — el sitio actual tiene mucho tráfico
       desde celular
+
+### Fase 9 — Página de Inicio (Landing)
+
+**Objetivo:** es la primera impresión del club para un atleta que no lo
+conoce todavía. Tiene que lograr dos cosas al mismo tiempo: transmitir
+que Los Chasquis llevan más de 40 años organizando eventos serios (
+confianza), y llevar al visitante a inscribirse en un evento activo
+(conversión). No es un blog ni un archivo histórico completo — es una
+puerta de entrada.
+
+**Secciones sugeridas, en orden:**
+
+1. **Hero** — imagen fuerte de carrera (real, no genérica de banco de
+   imágenes si es posible), título de impacto en Big Shoulders Display,
+   lema del club, y dos botones: uno primario ("Ver próximos eventos",
+   naranja, lleva al listado de la Fase 2) y uno secundario ("Conoce
+   nuestra historia", ancla a la sección 3).
+2. **Barra de cifras de confianza** — franja angosta con 3-4 números
+   grandes en Space Mono: años de trayectoria, eventos realizados,
+   atletas que han participado en total, entidades que avalan al club.
+   *(Ver nota de contenido pendiente abajo — estas cifras deben ser
+   reales, no inventadas.)*
+3. **Nuestra historia / línea de tiempo** — recorrido cronológico por
+   las ediciones anteriores de los festivales y carreras ya realizados
+   (foto + año + nombre del evento + un dato destacado, ej. "180
+   atletas"). Es el corazón de "dar a conocer el recorrido" que pediste.
+4. **Próximos eventos** — reutiliza tal cual el carrusel de eventos ya
+   construido en la Fase 2, filtrado a `status: 'open'`. No duplicar
+   componente.
+5. **Aval institucional** — logos de la Liga de Atletismo de Boyacá,
+   Federación Colombiana de Atletismo, alcaldías, etc. (ya existen como
+   imágenes en el detalle de evento — reutilizar, no rehacer).
+6. **Testimonios** — atletas, padres de familia o entrenadores dando fe
+   de la experiencia. Requiere contenido nuevo (ver abajo).
+7. **Galería de momentos** — grid de fotos de eventos pasados vía
+   Cloudinary, o reutilizar el widget de Elfsight/Instagram que ya está
+   integrado en el detalle de evento.
+8. **CTA final** — última invitación a inscribirse, antes del footer.
+9. **Documentos legales y transparencia** — sección pública con enlace
+   a los documentos institucionales del club (estatutos, certificación
+   de representante legal, actas de asamblea, estados financieros,
+   renta, etc.). **Ya existe un HTML construido para esto**
+   (`reglamento-legal-section.html`, subido por Alejandro) con el estilo
+   brutalista correcto — dos columnas: lista de documentos a la
+   izquierda (cada uno linkeando a Google Drive) y panel de título a la
+   derecha. No rediseñar, solo integrarlo como componente.
+   - [ ] Pasar la lista de documentos (hoy hardcodeada en el HTML) a un
+         modelo simple `DocumentoLegal { id, nombre, url, orden }`
+         editable desde el admin — estos documentos se actualizan una
+         vez al año (renta, estados financieros, acta de asamblea) y no
+         debería requerir un despliegue nuevo cada vez
+   - [ ] Confirmar si esta sección vive dentro del home (como scroll
+         final antes del footer) o como página aparte enlazada desde el
+         footer (`/transparencia`) — dado que es contenido de
+         cumplimiento más que de atracción, una página aparte puede
+         ordenar mejor la página de inicio
+10. **Footer** — contacto, redes, ubicación, enlaces a políticas de
+    datos (Fase 7) y al modal de términos y condiciones generales
+    (Fase 4).
+
+**⚠️ Contenido real que falta recopilar antes de maquetar (no inventar
+cifras ni citas):**
+- [ ] Números exactos o aproximados: año de fundación, total de eventos
+      realizados, total acumulado de atletas participantes
+- [ ] Fotos de buena resolución de ediciones anteriores, para la línea
+      de tiempo y la galería
+- [ ] Testimonios reales (nombre, cita corta, foto) — confirmar que se
+      tiene autorización de uso de imagen para esas personas
+- [ ] Confirmar qué avales institucionales siguen vigentes hoy, para no
+      mostrar el logo de una entidad que ya no respalda al club
+
+**Modelo de datos — a decidir antes de tocar `schema.prisma`:**
+- Para la línea de tiempo: evaluar si conviene un modelo nuevo y
+  liviano tipo `HitoHistorico` (año, título, foto, cifra destacada,
+  descripción corta) en vez de mezclar hitos puramente narrativos con
+  el modelo `Evento` operativo (que tiene inscripción/pago). Mantiene
+  las cosas separadas y más simples de administrar.
+- Para testimonios: modelo `Testimonio` (nombre, rol, cita, fotoUrl,
+  destacado, orden).
+- Para las cifras de confianza: si son solo 3-4 números, puede bastar
+  con campos simples editables desde el admin en vez de una tabla
+  relacional completa.
+
+**Pasos de construcción:**
+1. Copy y wireframe de baja fidelidad — validar contigo el orden y los
+   mensajes clave antes de maquetar en código
+2. Recopilar el contenido real listado arriba
+3. Definir el modelo de datos (según lo anotado)
+4. Construir los componentes de UI siguiendo la identidad brutalista ya
+   establecida (bordes gruesos, sombras duras, tipografías del sistema)
+5. SEO y performance: metadatos Open Graph, datos estructurados
+   schema.org (`SportsOrganization`), imágenes vía Cloudinary
+6. QA responsive — es la página con más tráfico de celular
+
+**Fuera de alcance de esta fase:** blog/noticias generales del club más
+allá de las noticias por evento ya existentes (Fase 3), soporte
+multi-idioma.
 
 ## Fuera de alcance por ahora
 
