@@ -528,9 +528,9 @@ puerta de entrada.
    contenido** (ver lista al final).
 4. [x] **Próximos eventos** — reutiliza tal cual el carrusel de eventos
    ya construido en la Fase 2, filtrado a `estado: 'ABIERTO'`.
-5. [x] **Aval institucional** — grid con los 18 logos reales de socios y
-   aliados entregados por el club, a color sobre tarjetas blancas, ver
-   nota de implementación.
+5. [x] **Aval institucional** — carrusel deslizable de 5 columnas x 2
+   filas por página, logos reales a color con el nombre del socio
+   debajo, ver nota de implementación.
 6. [x] **Testimonios** — ver nota de implementación: 3 testimonios reales
    y anónimos, entregados por el club.
 7. [x] **Galería de momentos** — widget de Elfsight con el feed real de
@@ -627,6 +627,16 @@ sale de datos que ya existen en la base — nada inventado:
   `Socio.nivel` y su migración se eliminaron (migración
   `20260908172934_revert_socios_nivel`), sin dejar código ni columnas
   sin uso.
+
+  **Layout final (2026-09-08):** sobre esa versión revertida (logos a
+  color, tarjetas blancas), se cambió de un grid de una sola tira larga
+  a un carrusel deslizable de páginas de 5 columnas x 2 filas (10 logos
+  por página en desktop; menos columnas en móvil, más filas por página,
+  mismo total de 10), con el nombre del socio siempre visible debajo del
+  logo. Mismo patrón de carrusel que `CarruselEventos.tsx` (Fase 2):
+  flechas para deslizar entre páginas (ocultas en móvil, donde se
+  desliza con swipe), `scroll-snap` para que cada página quede alineada
+  al soltar. Con los 18 socios reales actuales quedan 2 páginas (10 + 8).
 - **Galería de momentos** (`components/home/GaleriaInstagram.tsx`): al
   principio se reemplazó por un grid de portadas de evento reales (no
   existía ningún widget de Elfsight en el proyecto pese a lo que decía
