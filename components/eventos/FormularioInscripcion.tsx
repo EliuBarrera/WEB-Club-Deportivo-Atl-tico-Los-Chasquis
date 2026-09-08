@@ -789,7 +789,16 @@ export function FormularioInscripcion({
                 >
                   términos y condiciones
                 </button>{" "}
-                y la política de tratamiento de datos personales.
+                y la{" "}
+                <a
+                  href="/politica-datos-personales"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                >
+                  política de tratamiento de datos personales
+                </a>
+                .
               </span>
             </label>
             <label className="flex items-start gap-2 text-lg">
