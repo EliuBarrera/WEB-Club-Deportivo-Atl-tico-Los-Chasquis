@@ -171,6 +171,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Trazabilidad legal (Fase 4): qué versión de TerminosBase estaba
+  // vigente quedó registrada al momento de aceptar, no la que el cliente
+  // pudo haber visto si tardó en enviar el formulario — se resuelve acá,
+  // nunca se recibe del cliente.
+  const terminosVigente = await prisma.terminosBase.findFirst({
+    orderBy: { version: "desc" },
+    select: { version: true },
+  });
+
   try {
     const inscripcion = await prisma.inscripcion.create({
       data: {
@@ -197,6 +206,8 @@ export async function POST(request: NextRequest) {
         celularAcudiente: datos.celularAcudiente || null,
         aceptaTerminos: datos.aceptaTerminos,
         aceptaImagenes: datos.aceptaImagenes,
+        terminosVersion: terminosVigente?.version ?? null,
+        terminosAceptadosEn: terminosVigente ? new Date() : null,
         totalPago,
         estadoPago: "PENDIENTE",
       },
