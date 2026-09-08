@@ -528,8 +528,10 @@ puerta de entrada.
    contenido** (ver lista al final).
 4. [x] **Próximos eventos** — reutiliza tal cual el carrusel de eventos
    ya construido en la Fase 2, filtrado a `estado: 'ABIERTO'`.
-5. [x] **Aval institucional** — grid con los 18 logos reales de socios y
-   aliados entregados por el club, ver nota de implementación.
+5. [x] **Aval institucional** — dos niveles de jerarquía visual (avales
+   grandes arriba, socios/aliados chicos abajo) sobre fondo casi-negro,
+   logos recoloreados a naranja vía CSS `mask-image`, ver nota de
+   implementación.
 6. [x] **Testimonios** — ver nota de implementación: 3 testimonios reales
    y anónimos, entregados por el club.
 7. [x] **Galería de momentos** — widget de Elfsight con el feed real de
@@ -611,6 +613,42 @@ sale de datos que ya existen en la base — nada inventado:
   que agregarlos o quitarlos no debería requerir un despliegue nuevo.
   `deriveAvalesInstitucionales()` (en `lib/format.ts`) y el componente
   de texto que reemplaza se eliminaron por quedar sin uso.
+
+  **Rediseño posterior (dos niveles de jerarquía + fondo oscuro):** se
+  agregó `Socio.nivel` (enum `AVAL`/`SOCIO`, migración
+  `20260908171014_fase9_socios_nivel`, editable desde `/admin/socios`)
+  para separar las entidades de gobernanza/sanción deportiva (Liga de
+  Atletismo, Indeportes, IRDET, Alcaldía de Chivatá, Comisión
+  Departamental de Juzgamiento — 5 de los 18, las mismas que ya
+  aparecían como texto en `Evento.aval` más Indeportes/IRDET por cumplir
+  el mismo rol) de los socios/aliados de apoyo logístico (los 13
+  restantes) — es una clasificación por tipo de entidad, no un dato que
+  el club haya confirmado explícitamente; corregible en dos clics desde
+  el admin si no están de acuerdo con algún caso. El componente ahora
+  vive sobre una tarjeta `bg-casi-negro`, con los avales en fila superior
+  (logos más grandes, `h-20 sm:h-28`) y los aliados en fila inferior más
+  densa (`h-10 sm:h-14`), separadas por una línea naranja tenue. Cada
+  logo se recolorea a naranja de marca vía CSS `mask-image` +
+  `mask-size: contain` (con fallback `-webkit-`) en vez de mostrarse a
+  color.
+
+  **Hallazgo real durante la verificación visual (no un defecto de
+  código):** varios de los 18 logos reales son insignias circulares
+  prácticamente opacas en todo su disco, sin espacio negativo interno
+  — medido con ImageMagick (`convert -alpha extract -format
+  "%[fx:mean*100]"`): "Comisión Departamental de Juzgamiento" ~79% de
+  opacidad promedio, "Panadería mi Soffi" ~66%, "Las Hinojosas" ~32%,
+  "Liga de Atletismo de Boyacá" ~38% — la máscara los colapsa a una
+  mancha sólida irreconocible en vez de conservar el detalle del logo.
+  El logo "SQ" no tiene transparencia en absoluto (100% opaco), así que
+  su máscara es un rectángulo completo. Esto no es arreglable
+  ajustando el CSS: son las imágenes reales tal como las entregó el
+  club. Se agregó un rótulo con el nombre **siempre visible** debajo de
+  cada logo (antes solo iba en `aria-label`/`sr-only`, invisible para un
+  visitante vidente) para que esas entidades sigan siendo identificables
+  aunque su silueta no lo sea. Si el club consigue versiones de esos
+  logos con más espacio transparente interno (línea, no relleno sólido),
+  se pueden actualizar por URL desde `/admin/socios` sin tocar código.
 - **Galería de momentos** (`components/home/GaleriaInstagram.tsx`): al
   principio se reemplazó por un grid de portadas de evento reales (no
   existía ningún widget de Elfsight en el proyecto pese a lo que decía

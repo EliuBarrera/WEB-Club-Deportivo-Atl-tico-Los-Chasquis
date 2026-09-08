@@ -89,17 +89,33 @@ export function SocioModal({
               />
             </label>
 
+            <label className="flex flex-col gap-1.5">
+              <span className={labelClase}>URL del logo</span>
+              <input
+                type="text"
+                name="logoUrl"
+                required
+                placeholder="/Socios/archivo.png o https://..."
+                defaultValue={socio?.logoUrl ?? ""}
+                className={campoClase}
+              />
+            </label>
+
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]">
               <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>URL del logo</span>
-                <input
-                  type="text"
-                  name="logoUrl"
-                  required
-                  placeholder="/Socios/archivo.png o https://..."
-                  defaultValue={socio?.logoUrl ?? ""}
+                <span className={labelClase}>Nivel</span>
+                <select
+                  name="nivel"
+                  defaultValue={socio?.nivel ?? "SOCIO"}
                   className={campoClase}
-                />
+                >
+                  <option value="AVAL">
+                    Aval institucional (fila superior, logos grandes)
+                  </option>
+                  <option value="SOCIO">
+                    Socio / aliado (fila inferior, logos chicos)
+                  </option>
+                </select>
               </label>
               <label className="flex flex-col gap-1.5">
                 <span className={labelClase}>Orden</span>

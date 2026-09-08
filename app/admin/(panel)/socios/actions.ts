@@ -10,6 +10,7 @@ function datosSocio(formData: FormData) {
   return socioSchema.parse({
     nombre: String(formData.get("nombre") ?? "").trim(),
     logoUrl: String(formData.get("logoUrl") ?? "").trim(),
+    nivel: String(formData.get("nivel") ?? "SOCIO"),
     orden: String(formData.get("orden") ?? "0"),
   });
 }
