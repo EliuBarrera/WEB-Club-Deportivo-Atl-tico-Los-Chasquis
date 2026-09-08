@@ -30,6 +30,12 @@ export function Footer({ terminos }: { terminos: TerminosVigente }) {
         >
           Política de tratamiento de datos personales
         </a>
+        <a
+          href="/transparencia"
+          className="font-display text-sm font-bold uppercase text-naranja underline"
+        >
+          Transparencia y documentos legales
+        </a>
       </div>
 
       <ModalTerminos

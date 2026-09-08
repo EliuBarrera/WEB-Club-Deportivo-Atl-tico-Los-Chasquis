@@ -427,3 +427,20 @@ model TerminosBase {
   contenido    String
   vigenteDesde DateTime @default(now())
 }
+
+// ==========================================
+// DOCUMENTOS LEGALES (Fase 9 — Transparencia)
+// ==========================================
+
+// Reemplaza la lista hardcodeada de reglamento-legal-section.html: cada
+// documento es un enlace externo (Google Drive) editable desde el admin,
+// porque se actualizan una vez al año (renta, estados financieros, acta de
+// asamblea) y no deberían requerir un despliegue nuevo cada vez.
+model DocumentoLegal {
+  id        String   @id @default(cuid())
+  nombre    String
+  url       String   @unique
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

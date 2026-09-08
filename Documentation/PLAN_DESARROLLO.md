@@ -552,16 +552,46 @@ puerta de entrada.
    brutalista correcto — dos columnas: lista de documentos a la
    izquierda (cada uno linkeando a Google Drive) y panel de título a la
    derecha. No rediseñar, solo integrarlo como componente.
-   - [ ] Pasar la lista de documentos (hoy hardcodeada en el HTML) a un
+   - [x] Pasar la lista de documentos (hoy hardcodeada en el HTML) a un
          modelo simple `DocumentoLegal { id, nombre, url, orden }`
          editable desde el admin — estos documentos se actualizan una
          vez al año (renta, estados financieros, acta de asamblea) y no
          debería requerir un despliegue nuevo cada vez
-   - [ ] Confirmar si esta sección vive dentro del home (como scroll
+   - [x] Confirmar si esta sección vive dentro del home (como scroll
          final antes del footer) o como página aparte enlazada desde el
          footer (`/transparencia`) — dado que es contenido de
          cumplimiento más que de atracción, una página aparte puede
          ordenar mejor la página de inicio
+
+**Implementado (adelantado antes que el resto de la Fase 9, a pedido
+puntual):** modelo `DocumentoLegal { id, nombre, url, orden }` (migración
+`20260908134008_fase9_documentos_legales`), sembrado con los 10 documentos
+reales de `Documentation/reglamento-legal-section.html` (enlaces reales a
+Google Drive del club, ninguno inventado) vía `upsert` por `url` en
+`prisma/seed.ts` — igual que `TerminosBase`, un reseed no pisa ediciones
+que el admin ya haya hecho. Se optó por página aparte (`/transparencia`,
+`lib/documentosLegales.ts` para la lectura pública) en vez de sección del
+home, siguiendo la propia recomendación de este documento; enlazada desde
+`components/Footer.tsx` junto a los otros enlaces legales.
+
+`components/DocumentosLegales.tsx` reconstruye el layout de dos columnas
+del HTML de referencia (aprobado visualmente por el club) pero con el
+lenguaje visual actual del sitio: sombras suaves difuminadas en vez de los
+bordes gruesos + sombra dura tipo "cutout" del diseño original (ver nota
+de Fase 6 sobre ese cambio de dirección). El panel de título usa como
+fondo `public/admin-banner.jpg` — el banner corporativo real del club
+(corredor naranja del logo sobre fondo casi-negro), ya reutilizado en el
+panel admin — en vez de una figura decorativa inventada.
+
+CRUD completo en `/admin/documentos` (`components/admin/
+DocumentosLegalesAdmin.tsx` + `DocumentoLegalModal.tsx`, mismo patrón de
+modal que `NoticiaModal.tsx`), protegido por el mismo `verifySession()` de
+`lib/admin/dal.ts` que el resto del panel, con su ítem correspondiente en
+`components/admin/Dock.tsx`. Verificado con `npx tsc --noEmit` (vía
+`npm run build`), `npm run lint` y una revisión visual con Playwright en
+desktop (1280px, layout de dos columnas) y móvil (390px, panel de título
+arriba y lista de documentos abajo, apilados correctamente), incluyendo el
+estado `:hover` de una fila.
 10. **Footer** — contacto, redes, ubicación, enlaces a políticas de
     datos (Fase 7) y al modal de términos y condiciones generales
     (Fase 4).

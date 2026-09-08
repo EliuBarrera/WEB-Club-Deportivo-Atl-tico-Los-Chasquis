@@ -965,6 +965,56 @@ const ESTADO_POR_STATUS: Record<"open" | "closed", EstadoEvento> = {
 };
 
 // ------------------------------------------
+// Documentos legales (Fase 9) — transparencia institucional
+// ------------------------------------------
+
+// Lista real tomada de Documentation/reglamento-legal-section.html (HTML
+// de referencia subido por Alejandro, con enlaces reales a Google Drive del
+// club) — no se inventan documentos ni URLs.
+const documentosLegales = [
+  {
+    nombre: "Certificación de cargos directivos",
+    url: "https://drive.google.com/file/d/1-E_Bq9DPALRPSL1uJBqxb8wrquFA1OXS/view?usp=drive_link",
+  },
+  {
+    nombre: "Certificación de Representante Legal sobre antecedentes",
+    url: "https://drive.google.com/file/d/1UBahXiKxg0UBEns-5cCVNVaDo-2b_mHF/view?usp=drive_link",
+  },
+  {
+    nombre: "Estatutos",
+    url: "https://drive.google.com/file/d/124OerS9HtJOvQH_LcdCuHlshhSWlZ5zU/view?usp=drive_link",
+  },
+  {
+    nombre: "Certificación de requisitos",
+    url: "https://drive.google.com/file/d/1EuxQnRtO0DEj3CHjHgvXNLHnbTUa3Y-u/view?usp=drive_link",
+  },
+  {
+    nombre: "Certificado existencia y representante legal",
+    url: "https://drive.google.com/file/d/1F4mkkAorbir9GzOrrXphKEFwmw-5SjnR/view?usp=drive_link",
+  },
+  {
+    nombre: "Estados financieros",
+    url: "https://drive.google.com/file/d/1iMcavB_4UEf_28w9OepaWF1jGdbxc0rc/view?usp=drive_link",
+  },
+  {
+    nombre: "Acta de Asamblea",
+    url: "https://drive.google.com/file/d/1K31fOIjt9q7hXjyI6SlBS_INtqqN4nWg/view?usp=drive_link",
+  },
+  {
+    nombre: "Informe presidencial",
+    url: "https://drive.google.com/file/d/1-hGt3SxaigLaEx29RJuemlYpHIp8grXC/view?usp=drive_link",
+  },
+  {
+    nombre: "Renta 2025",
+    url: "https://drive.google.com/file/d/1MQjlLG9N72PaiJD6GiVZ2juC3GrcPMGO/view?usp=drive_link",
+  },
+  {
+    nombre: "Historial",
+    url: "https://drive.google.com/drive/folders/1pXnOYxWcLwcoKlVCkzuyuTUCzbh2QO1E?usp=drive_link",
+  },
+];
+
+// ------------------------------------------
 // Términos y Condiciones (Fase 4) — versión 1
 // ------------------------------------------
 
@@ -1194,6 +1244,19 @@ async function main() {
     console.log("Sembrando Términos y Condiciones (versión 1)...");
     await prisma.terminosBase.create({
       data: { version: 1, contenido: CONTENIDO_TERMINOS_V1 },
+    });
+  }
+
+  // Documentos legales (Fase 9): igual que TerminosBase, se usa `upsert` por
+  // `url` (no delete+recreate) para no pisar ediciones que el admin ya haya
+  // hecho desde /admin/documentos. Lista real tomada de
+  // Documentation/reglamento-legal-section.html (subido por Alejandro).
+  console.log("Sembrando documentos legales...");
+  for (const [index, documento] of documentosLegales.entries()) {
+    await prisma.documentoLegal.upsert({
+      where: { url: documento.url },
+      update: { nombre: documento.nombre, orden: index },
+      create: { nombre: documento.nombre, url: documento.url, orden: index },
     });
   }
 

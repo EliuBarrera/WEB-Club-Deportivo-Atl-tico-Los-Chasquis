@@ -267,6 +267,21 @@ export type PruebaCatalogoAdmin = Awaited<
   ReturnType<typeof getPruebasCatalogo>
 >[number];
 
+// Documentos legales (Fase 9 — Transparencia): lista completa para el CRUD
+// del admin. La versión pública (sin createdAt/updatedAt) vive en
+// lib/documentosLegales.ts.
+export async function getDocumentosLegalesAdmin() {
+  await verifySession();
+  return prisma.documentoLegal.findMany({
+    orderBy: { orden: "asc" },
+    select: { id: true, nombre: true, url: true, orden: true },
+  });
+}
+
+export type DocumentoLegalAdmin = Awaited<
+  ReturnType<typeof getDocumentosLegalesAdmin>
+>[number];
+
 // Usado solo por el Route Handler de export (Fase 6: el CSV incluye datos
 // personales de menores, de ahí requireAdmin() en vez de verifySession()).
 export async function getInscripcionesParaExport(filtros: FiltrosInscripciones) {

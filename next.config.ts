@@ -8,9 +8,16 @@ import type { NextConfig } from "next";
 // propio App Router de Next.js inyecta scripts inline para hidratación
 // (__next_f, RSC payload) — sin nonces no hay forma de evitarlo. El resto de
 // directivas sí queda restringido a los orígenes que la app realmente usa.
+// 'unsafe-eval' solo en desarrollo: Turbopack/React usan eval() para el
+// fast refresh y para reconstruir stack traces en modo debug (ver el error
+// de consola "eval() is not supported..." con la CSP estricta de abajo).
+// React nunca usa eval() en producción, así que no hace falta debilitar la
+// CSP real por esto — se agrega solo cuando NODE_ENV !== "production".
+const scriptSrcDev = process.env.NODE_ENV === "production" ? "" : " 'unsafe-eval'";
+
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://checkout.wompi.co",
+  `script-src 'self' 'unsafe-inline'${scriptSrcDev} https://challenges.cloudflare.com https://checkout.wompi.co`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: https://res.cloudinary.com https://i.ibb.co https://images.unsplash.com https://assets.grupify.com",
   "font-src 'self' data:",
