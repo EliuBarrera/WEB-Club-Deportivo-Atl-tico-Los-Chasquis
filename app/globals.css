@@ -2,6 +2,9 @@
 
 :root {
   --color-naranja: #f15808;
+  --color-rojo: #d1273b;
+  --color-verde: #1f9254;
+  --color-amarillo: #d1a512;
   --color-gris-oscuro: #353535;
   --color-casi-negro: #1c0d0a;
   --color-crema: #f7f4ef;
@@ -9,6 +12,9 @@
 
 @theme inline {
   --color-naranja: var(--color-naranja);
+  --color-rojo: var(--color-rojo);
+  --color-verde: var(--color-verde);
+  --color-amarillo: var(--color-amarillo);
   --color-gris-oscuro: var(--color-gris-oscuro);
   --color-casi-negro: var(--color-casi-negro);
   --color-crema: var(--color-crema);
