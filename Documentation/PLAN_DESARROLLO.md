@@ -2,10 +2,14 @@
 
 ## Contexto
 
-Club Deportivo Atlético Los Chasquis (Tunja, Boyacá) organiza el circuito
-**Pasaporte Runner Boyacá**: carreras de calle y eventos de pista y campo en
-la región. Actualmente el sitio corre en WordPress (`clubloschasquis.com`),
-lento y limitado. Este proyecto lo reemplaza por una aplicación propia.
+Club Deportivo Atlético Los Chasquis (Tunja, Boyacá) organiza carreras de
+calle y eventos de pista y campo en la región. Actualmente el sitio corre
+en WordPress (`clubloschasquis.com`), lento y limitado. Este proyecto lo
+reemplaza por una aplicación propia.
+
+*(Nota: versiones anteriores de este documento mencionaban un "Circuito
+Pasaporte Runner Boyacá" — era información generada que no corresponde a
+nada real del club; se retiró de todo el documento.)*
 
 Sitio actual de referencia (solo para inspiración visual/UX, no para copiar
 código): https://www.clubloschasquis.com/
@@ -196,14 +200,18 @@ acudiente (`400`), y el flujo completo tanto de categoría como de costo
 quedaron recalculados en servidor y no con lo que hubiera enviado el
 cliente.
 
-- [ ] **Modal reutilizable de Términos y Condiciones** (pendiente,
-      agregado después de ver el archivo de referencia
-      `Politicas-Obligatorias-Participacion-2026.html`)
-  - [ ] El texto "términos y condiciones" del checkbox de aceptación deja
+- [x] **Modal reutilizable de Términos y Condiciones** (agregado después
+      de ver el archivo de referencia
+      `Politicas-Obligatorias-Participacion-2026.html`, de un evento real
+      del club — generalizado para que sirva para todos los eventos, sin
+      la información específica de esa carrera en particular: precios,
+      fechas y el "Circuito Pasaporte Runner Boyacá" que mencionaba, que
+      ya no existe)
+  - [x] El texto "términos y condiciones" del checkbox de aceptación deja
         de ser un link `href="#"` y pasa a abrir un **modal** (no navega
         a otra página), reutilizable para cualquier evento — no crear un
         modal distinto por evento
-  - [ ] El modal se compone de dos tipos de contenido:
+  - [x] El modal se compone de dos tipos de contenido:
     - **Bloque genérico institucional** (igual para todos los eventos):
       reglamento general, normas de seguridad, tratamiento de datos /
       habeas data, exoneración de responsabilidad, declaración de
@@ -217,19 +225,42 @@ cliente.
         elementos (ej. 6K Running de Fuego sí, otros eventos no)
       - Sección "Premiación en efectivo" → solo si `premios.efectivo`
         tiene valor
-      - Sección "Circuito Pasaporte Runner Boyacá" (descuento por
-        inscribirse a las 3 carreras) → solo si el evento pertenece a
-        un circuito — **falta un campo para esto en el schema**
-        (`Evento.circuitoId` o similar); revisar antes de implementar
-  - [ ] **Trazabilidad legal:** al aceptar y enviar el formulario, guardar
+  - [x] **Trazabilidad legal:** al aceptar y enviar el formulario, guardar
         en `Inscripcion` qué versión del `TerminosBase` aceptó el atleta
         y en qué momento (ej. `terminosVersion`, `terminosAceptadosEn`).
         Es relevante porque se recolectan datos de menores y se acepta
         una exoneración de responsabilidad — si el texto cambia después,
         debe quedar registro de cuál versión aceptó cada quién
-  - [ ] Enlace del mismo modal también accesible desde el footer del
+  - [x] Enlace del mismo modal también accesible desde el footer del
         sitio ("Ver términos y condiciones generales"), no solo desde el
         formulario
+
+**Implementado:** modelo `TerminosBase { id, version, contenido,
+vigenteDesde }` (migración `20260908044725_fase4_terminos_base`) — nunca
+se edita una fila existente, cada cambio desde el admin
+(`app/admin/(panel)/terminos/`) crea una versión nueva, así
+`Inscripcion.terminosVersion` sigue apuntando a un texto inmutable aunque
+el club actualice el contenido después. La versión 1 se sembró
+generalizando el bloque institucional (reglamento general, normas de
+seguridad, reglas de premiación, exoneración de responsabilidad,
+declaración de aceptación) del documento de referencia de un evento real
+(`Documentation/Politicas-Obligatorias-Participacion-2026.html`), quitando
+lo específico de esa carrera. La sección de **tratamiento de datos
+personales queda como `[TODO]`** dentro del contenido: ese documento no
+traía ese texto y el proyecto no inventa contenido legal — el club debe
+redactarlo y actualizarlo desde `/admin/terminos`.
+
+`components/eventos/ModalTerminos.tsx` es el único componente de modal,
+usado tanto desde el checkbox de `FormularioInscripcion.tsx` (con las
+secciones condicionales de kit/premiación del evento en curso) como desde
+`components/Footer.tsx` (sin secciones condicionales, ya que no hay un
+evento específico). En `POST /api/inscripciones` el servidor —nunca el
+cliente— resuelve cuál era la versión vigente de `TerminosBase` en el
+momento de crear la inscripción y la guarda junto con la marca de tiempo.
+
+`components/Footer.tsx` es un footer mínimo, solo con este enlace: el
+footer completo (contacto, redes, ubicación, demás políticas) es alcance
+de la Fase 9.
 
 ### Fase 5 — Pagos con Wompi
 - [x] Integrar Widget/Checkout de Wompi con el monto calculado en
