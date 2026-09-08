@@ -5,11 +5,13 @@ import { Hero } from "@/components/home/Hero";
 import { CifrasConfianza } from "@/components/home/CifrasConfianza";
 import { ProximosEventosHome } from "@/components/home/ProximosEventosHome";
 import { AvalInstitucional } from "@/components/home/AvalInstitucional";
+import { Testimonios } from "@/components/home/Testimonios";
 import { GaleriaMomentos } from "@/components/home/GaleriaMomentos";
 import { TransparenciaTeaser } from "@/components/home/TransparenciaTeaser";
 import { CtaFinal } from "@/components/home/CtaFinal";
 import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
 import { getCifrasConfianza } from "@/lib/cifras";
+import { getTestimonios } from "@/lib/testimonios";
 import { deriveAvalesInstitucionales } from "@/lib/format";
 
 export const metadata: Metadata = {
@@ -26,10 +28,11 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // No dependen entre sí — se piden en paralelo, mismo criterio que
   // app/eventos/page.tsx.
-  const [eventos, terminos, cifras] = await Promise.all([
+  const [eventos, terminos, cifras, testimonios] = await Promise.all([
     getEventosPublicados(),
     getTerminosVigente(),
     getCifrasConfianza(),
+    getTestimonios(),
   ]);
 
   const eventosAbiertos = eventos.filter(
@@ -80,6 +83,8 @@ export default async function HomePage() {
         </section>
 
         <AvalInstitucional entidades={avales} />
+
+        <Testimonios testimonios={testimonios} />
 
         <GaleriaMomentos momentos={momentos} />
 

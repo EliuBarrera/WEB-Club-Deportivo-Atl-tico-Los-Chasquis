@@ -460,3 +460,22 @@ model CifraConfianza {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// ==========================================
+// TESTIMONIOS (Fase 9 — Home)
+// ==========================================
+
+// `nombre`/`rol` son opcionales a propósito: los primeros testimonios
+// reales son anónimos (autorizada la foto, no un nombre público) — el
+// componente público solo muestra lo que tenga valor.
+model Testimonio {
+  id        String   @id @default(cuid())
+  nombre    String?
+  rol       String?
+  cita      String   @unique
+  fotoUrl   String?
+  destacado Boolean  @default(false)
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

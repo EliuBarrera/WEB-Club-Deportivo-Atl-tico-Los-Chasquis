@@ -1028,6 +1028,34 @@ const cifrasConfianza = [
 ];
 
 // ------------------------------------------
+// Testimonios (Fase 9) — sección de la home
+// ------------------------------------------
+
+// Fotos reales (2026-09-08), autorizadas por las personas para su uso en
+// el sitio, anónimas a pedido del club. Las citas son las frases que ya
+// vienen sobreimpresas en cada foto (no se redactó texto nuevo). La foto 1
+// es de un atleta de otro club que participa en eventos de Los Chasquis
+// (confirmado por el club) — se deja el rol así, no se asume que sea
+// socio del club.
+const testimonios = [
+  {
+    rol: "Atleta invitado de otro club",
+    cita: "Hoy celebramos el esfuerzo de todos los que aceptaron el reto.",
+    fotoUrl: "/Testimonio1.jpg",
+  },
+  {
+    rol: "Atleta participante",
+    cita: "Cada paso puso a prueba la fuerza y la determinación.",
+    fotoUrl: "/Testimonio2.jpg",
+  },
+  {
+    rol: "Atleta participante",
+    cita: "La montaña exigió lo mejor de cada corredor.",
+    fotoUrl: "/Testimonio3.jpg",
+  },
+];
+
+// ------------------------------------------
 // Términos y Condiciones (Fase 4) — versión 1
 // ------------------------------------------
 
@@ -1282,6 +1310,21 @@ async function main() {
       where: { etiqueta: cifra.etiqueta },
       update: { valor: cifra.valor, orden: index },
       create: { etiqueta: cifra.etiqueta, valor: cifra.valor, orden: index },
+    });
+  }
+
+  // Testimonios (Fase 9): mismo criterio que documentos legales y cifras —
+  // `upsert` por `cita` para no pisar ediciones del admin.
+  console.log("Sembrando testimonios...");
+  for (const [index, testimonio] of testimonios.entries()) {
+    await prisma.testimonio.upsert({
+      where: { cita: testimonio.cita },
+      update: {
+        rol: testimonio.rol,
+        fotoUrl: testimonio.fotoUrl,
+        orden: index,
+      },
+      create: { ...testimonio, orden: index },
     });
   }
 

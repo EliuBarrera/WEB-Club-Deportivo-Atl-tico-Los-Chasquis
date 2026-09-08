@@ -530,9 +530,8 @@ puerta de entrada.
    ya construido en la Fase 2, filtrado a `estado: 'ABIERTO'`.
 5. [x] **Aval institucional** — ver nota de implementación: no hay
    logos, se derivan las entidades reales ya registradas por evento.
-6. [ ] **Testimonios** — atletas, padres de familia o entrenadores dando
-   fe de la experiencia. **Sin implementar — bloqueado por contenido**
-   (ver lista al final).
+6. [x] **Testimonios** — ver nota de implementación: 3 testimonios reales
+   y anónimos, entregados por el club.
 7. [x] **Galería de momentos** — ver nota de implementación: no existe
    ningún widget de Elfsight/Instagram en el proyecto (se verificó con
    grep sobre todo el repo antes de escribir esto — la mención de este
@@ -557,6 +556,26 @@ la muestra como franja oscura justo debajo del Hero, en Space Mono; CRUD
 completo en `/admin/cifras` (mismo patrón modal que `DocumentoLegal`).
 Verificado con `npm run build`, `npm run lint` y revisión visual con
 Playwright en desktop y móvil.
+
+**Implementado (Testimonios):** modelo `Testimonio { id, nombre?, rol?,
+cita, fotoUrl?, destacado, orden }` (migración
+`20260908161156_fase9_testimonios`) — `nombre`/`rol` opcionales a
+propósito: los 3 testimonios reales entregados por el club el
+2026-09-08 son anónimos (autorizaron la foto, no un nombre público).
+Fotos reales en `public/Testimonio{1,2,3}.jpg`; las citas son las frases
+que ya venían sobreimpresas en cada foto, no se redactó texto nuevo. La
+foto 1 es de un atleta de **otro club** que participa en eventos de Los
+Chasquis (confirmado directamente por el club antes de publicarla, para
+no dar a entender que es socio) — el rol se guardó como "Atleta invitado
+de otro club". Sembrado vía `upsert` por `cita` en `prisma/seed.ts`
+(mismo criterio que `DocumentoLegal`/`CifraConfianza`).
+`components/home/Testimonios.tsx` los muestra en grid de 3 columnas
+(1 en móvil); si `nombre`/`rol` vienen ambos vacíos, la tarjeta no
+muestra ninguna etiqueta de autoría en vez de inventar una. CRUD completo
+en `/admin/testimonios` (mismo patrón modal que las secciones anteriores,
+con nota en la página recordándole al admin confirmar autorización antes
+de cargar uno nuevo). Verificado con `npm run build`, `npm run lint` y
+revisión visual con Playwright en desktop y móvil.
 
 **Implementado (Hero, Próximos eventos, Aval institucional, Galería,
 CTA final, Footer, y un `Header` nuevo no contemplado originalmente):**
@@ -617,16 +636,17 @@ Verificado con `npx tsc --noEmit` (vía `npm run build`), `npm run lint`,
 y revisión visual con Playwright en desktop (1280px) y móvil (390px) de
 `/`, además de recorrer el flujo completo de deep-link.
 
-**Deliberadamente sin implementar en este incremento — no son un
-recorte de alcance, son el bloqueo de contenido que este mismo documento
-ya señalaba:** cifras de confianza, línea de tiempo histórica y
-testimonios (secciones 2, 3 y 6). No se creó el modelo de datos que
-sugiere la sección de abajo (`HitoHistorico`, `Testimonio`, cifras)
-porque hacerlo ahora habría significado construir pantallas de admin
-completas para contenido que hoy tiene cero filas reales y ninguna forma
-de llenarse sin inventar — se prefiere esperar a que el club entregue el
-contenido antes de diseñar ese modelo, tal como pide la nota original de
-"Modelo de datos — a decidir antes de tocar `schema.prisma`" más abajo.
+**Deliberadamente sin implementar todavía — no es un recorte de
+alcance, es el único bloqueo de contenido que queda de los tres que este
+documento señalaba (cifras y testimonios ya se resolvieron):** la línea
+de tiempo histórica (sección 3). No se creó el modelo `HitoHistorico` que
+sugiere la sección de abajo porque hacerlo ahora habría significado
+construir una pantalla de admin completa para contenido que hoy tiene
+cero filas reales y ninguna forma de llenarse sin inventar fechas o
+descripciones — se espera a que el club entregue el contenido (fotos +
+años + hitos) antes de diseñar ese modelo, tal como pide la nota original
+de "Modelo de datos — a decidir antes de tocar `schema.prisma`" más
+abajo.
 
 **⚠️ Contenido real que falta recopilar antes de maquetar (no inventar
 cifras ni citas):**
@@ -634,11 +654,14 @@ cifras ni citas):**
       realizados, total acumulado de atletas participantes~~ — entregado
       por el club el 2026-09-08, ver "Implementado (Cifras de confianza)"
       arriba.
-- [ ] Fotos de buena resolución de ediciones anteriores, para la línea
-      de tiempo (la galería de momentos ya no depende de esto: usa
-      portadas de evento existentes mientras tanto)
-- [ ] Testimonios reales (nombre, cita corta, foto) — confirmar que se
-      tiene autorización de uso de imagen para esas personas
+- [x] ~~Testimonios reales (nombre, cita corta, foto) — confirmar que se
+      tiene autorización de uso de imagen para esas personas~~ —
+      entregados por el club el 2026-09-08 (3 testimonios anónimos, foto
+      autorizada), ver "Implementado (Testimonios)" arriba.
+- [ ] Fotos de buena resolución de ediciones anteriores, con año y un
+      dato destacado por cada una, para la línea de tiempo (la galería de
+      momentos ya no depende de esto: usa portadas de evento existentes
+      mientras tanto)
 - [ ] Redes sociales oficiales del club (no hay ninguna enlazada hoy en
       el sitio) y dirección física exacta, para completar el footer
 - [ ] Confirmar qué avales institucionales siguen vigentes hoy: la
