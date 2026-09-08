@@ -324,7 +324,7 @@ export async function getSociosAdmin() {
   await verifySession();
   return prisma.socio.findMany({
     orderBy: { orden: "asc" },
-    select: { id: true, nombre: true, logoUrl: true, nivel: true, orden: true },
+    select: { id: true, nombre: true, logoUrl: true, orden: true },
   });
 }
 

@@ -8,7 +8,7 @@ import "dotenv/config";
 import dns from "node:dns";
 import net from "node:net";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { EstadoEvento, Genero, NivelSocio, PrismaClient } from "@prisma/client";
+import { EstadoEvento, Genero, PrismaClient } from "@prisma/client";
 
 // Ver nota en lib/prisma.ts: se evita que Node abra conexiones IPv4/IPv6
 // en paralelo ("Happy Eyeballs"), que en algunas redes hace que el
@@ -1063,34 +1063,25 @@ const testimonios = [
 // 2026-09-08). "SQ" y "EJC" se guardan con las iniciales tal como
 // aparecen impresas en su propio logo — no se inventó ni se expandió el
 // nombre completo de esas dos entidades.
-//
-// `nivel`: AVAL para las entidades de gobernanza/sanción deportiva (las
-// mismas que ya aparecían como texto en Evento.aval — Liga de Atletismo
-// de Boyacá, Comisión Departamental de Juzgamiento, Alcaldía de Chivatá —
-// más Indeportes/IRDET, que cumplen el mismo rol institucional aunque no
-// aparecían literalmente en ese campo). SOCIO para el resto: negocios y
-// apoyo logístico/seguridad. Es una clasificación editable desde
-// /admin/socios — si el club no está de acuerdo con algún nivel, se
-// corrige ahí sin tocar código.
 const socios = [
-  { nombre: "Liga de Atletismo de Boyacá", logoUrl: "/Socios/liga-atletismo-boyaca.png", nivel: NivelSocio.AVAL },
-  { nombre: "Indeportes Boyacá", logoUrl: "/Socios/indeportes.png", nivel: NivelSocio.AVAL },
-  { nombre: "IRDET", logoUrl: "/Socios/irdet.png", nivel: NivelSocio.AVAL },
-  { nombre: "Alcaldía de Chivatá", logoUrl: "/Socios/alcaldia-chivata.png", nivel: NivelSocio.AVAL },
-  { nombre: "Comisión Departamental de Juzgamiento", logoUrl: "/Socios/comision-departamental-juzgamiento.png", nivel: NivelSocio.AVAL },
-  { nombre: "Bomberos Tunja", logoUrl: "/Socios/bomberos-tunja.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Policía Nacional", logoUrl: "/Socios/policia-nacional.png", nivel: NivelSocio.SOCIO },
-  { nombre: "EJC", logoUrl: "/Socios/ejc.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Financiera Comultrasan", logoUrl: "/Socios/financiera-comultrasan.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Central Colombiana de Aseo", logoUrl: "/Socios/central-colombiana-de-aseo.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Urbaser", logoUrl: "/Socios/urbaser.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Veolia", logoUrl: "/Socios/veolia.png", nivel: NivelSocio.SOCIO },
-  { nombre: "DC Investigaciones", logoUrl: "/Socios/dc-investigaciones.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Distribucarnes Normandía", logoUrl: "/Socios/distribucarnes-normandia.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Las Hinojosas", logoUrl: "/Socios/las-hinojosas.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Minas El Siral", logoUrl: "/Socios/minas-el-siral.png", nivel: NivelSocio.SOCIO },
-  { nombre: "Panadería mi Soffi", logoUrl: "/Socios/panaderia-mi-soffi.png", nivel: NivelSocio.SOCIO },
-  { nombre: "SQ", logoUrl: "/Socios/sq.png", nivel: NivelSocio.SOCIO },
+  { nombre: "Liga de Atletismo de Boyacá", logoUrl: "/Socios/liga-atletismo-boyaca.png" },
+  { nombre: "Indeportes Boyacá", logoUrl: "/Socios/indeportes.png" },
+  { nombre: "IRDET", logoUrl: "/Socios/irdet.png" },
+  { nombre: "Alcaldía de Chivatá", logoUrl: "/Socios/alcaldia-chivata.png" },
+  { nombre: "Comisión Departamental de Juzgamiento", logoUrl: "/Socios/comision-departamental-juzgamiento.png" },
+  { nombre: "Bomberos Tunja", logoUrl: "/Socios/bomberos-tunja.png" },
+  { nombre: "Policía Nacional", logoUrl: "/Socios/policia-nacional.png" },
+  { nombre: "EJC", logoUrl: "/Socios/ejc.png" },
+  { nombre: "Financiera Comultrasan", logoUrl: "/Socios/financiera-comultrasan.png" },
+  { nombre: "Central Colombiana de Aseo", logoUrl: "/Socios/central-colombiana-de-aseo.png" },
+  { nombre: "Urbaser", logoUrl: "/Socios/urbaser.png" },
+  { nombre: "Veolia", logoUrl: "/Socios/veolia.png" },
+  { nombre: "DC Investigaciones", logoUrl: "/Socios/dc-investigaciones.png" },
+  { nombre: "Distribucarnes Normandía", logoUrl: "/Socios/distribucarnes-normandia.png" },
+  { nombre: "Las Hinojosas", logoUrl: "/Socios/las-hinojosas.png" },
+  { nombre: "Minas El Siral", logoUrl: "/Socios/minas-el-siral.png" },
+  { nombre: "Panadería mi Soffi", logoUrl: "/Socios/panaderia-mi-soffi.png" },
+  { nombre: "SQ", logoUrl: "/Socios/sq.png" },
 ];
 
 // ------------------------------------------
@@ -1372,7 +1363,7 @@ async function main() {
   for (const [index, socio] of socios.entries()) {
     await prisma.socio.upsert({
       where: { logoUrl: socio.logoUrl },
-      update: { nombre: socio.nombre, nivel: socio.nivel, orden: index },
+      update: { nombre: socio.nombre, orden: index },
       create: { ...socio, orden: index },
     });
   }

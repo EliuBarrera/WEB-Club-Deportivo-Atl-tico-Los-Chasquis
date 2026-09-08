@@ -3,7 +3,6 @@ import { z } from "zod";
 export const socioSchema = z.object({
   nombre: z.string().trim().min(1).max(120),
   logoUrl: z.string().trim().min(1).max(500),
-  nivel: z.enum(["AVAL", "SOCIO"]).default("SOCIO"),
   orden: z.coerce.number().int().nonnegative().default(0),
 });
 

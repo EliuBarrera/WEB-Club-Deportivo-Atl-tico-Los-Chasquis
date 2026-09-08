@@ -484,23 +484,14 @@ model Testimonio {
 // SOCIOS / RESPALDO INSTITUCIONAL (Fase 9 — Home)
 // ==========================================
 
-// AVAL: entidades de gobernanza/sanción deportiva (Liga de Atletismo,
-// Indeportes, IRDET, alcaldías) — fila superior, logos más grandes.
-// SOCIO: negocios/aliados de apoyo logístico — fila inferior, más densa.
-enum NivelSocio {
-  AVAL
-  SOCIO
-}
-
 // Reemplaza la lista de texto derivada de Evento.aval: logos reales de
 // entidades y empresas que respaldan al club, editables desde el admin
 // (los patrocinadores cambian de un año a otro).
 model Socio {
-  id        String     @id @default(cuid())
+  id        String   @id @default(cuid())
   nombre    String
-  logoUrl   String     @unique
-  nivel     NivelSocio @default(SOCIO)
-  orden     Int        @default(0)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  logoUrl   String   @unique
+  orden     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

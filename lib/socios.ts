@@ -6,7 +6,7 @@ import { prisma } from "@/lib/prisma";
 export async function getSocios() {
   return prisma.socio.findMany({
     orderBy: { orden: "asc" },
-    select: { id: true, nombre: true, logoUrl: true, nivel: true },
+    select: { id: true, nombre: true, logoUrl: true },
   });
 }
 

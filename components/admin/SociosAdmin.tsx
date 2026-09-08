@@ -36,7 +36,6 @@ export function SociosAdmin({
               <tr className="border-b border-casi-negro/10 text-sm uppercase tracking-wide text-gris-oscuro">
                 <th className="px-4 py-3">Logo</th>
                 <th className="px-4 py-3">Nombre</th>
-                <th className="px-4 py-3">Nivel</th>
                 <th className="px-4 py-3">Orden</th>
                 <th className="px-4 py-3" />
               </tr>
@@ -59,17 +58,6 @@ export function SociosAdmin({
                     </div>
                   </td>
                   <td className="px-4 py-3 font-bold">{socio.nombre}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        socio.nivel === "AVAL"
-                          ? "rounded-full bg-naranja/10 px-3 py-1 text-xs font-bold uppercase text-naranja"
-                          : "rounded-full bg-casi-negro/5 px-3 py-1 text-xs font-bold uppercase text-gris-oscuro"
-                      }
-                    >
-                      {socio.nivel === "AVAL" ? "Aval" : "Socio"}
-                    </span>
-                  </td>
                   <td className="px-4 py-3">{socio.orden}</td>
                   <td className="px-4 py-3">
                     <div className="flex justify-end gap-2">
