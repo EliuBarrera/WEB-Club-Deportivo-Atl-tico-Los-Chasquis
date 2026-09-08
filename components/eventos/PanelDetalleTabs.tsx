@@ -57,7 +57,7 @@ export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
   const [tabActiva, setTabActiva] = useState<Tab>("Información");
 
   return (
-    <div className="flex w-full flex-col rounded-2xl border-2 border-casi-negro bg-casi-negro/5 p-4 sm:p-6">
+    <div className="flex w-full flex-col rounded-[20px] bg-white p-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)] sm:p-6">
       <div className="flex flex-wrap gap-2">
         {TABS.map((tab) => (
           <button
@@ -66,7 +66,7 @@ export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
             onClick={() => setTabActiva(tab)}
             className={`rounded-t-lg px-4 py-2 font-display text-lg font-bold ${
               tab === tabActiva
-                ? "bg-crema text-casi-negro"
+                ? "bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
                 : "bg-casi-negro/10 text-gris-oscuro"
             }`}
           >
@@ -136,7 +136,7 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
             {evento.costos.map((costo) => (
               <div
                 key={costo.id}
-                className="flex overflow-hidden rounded-2xl border-2 border-casi-negro bg-white"
+                className="flex overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
               >
                 <div
                   style={{ writingMode: "vertical-rl" }}
@@ -166,7 +166,7 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
               return (
                 <div
                   key={categoria.id}
-                  className="relative flex flex-col gap-3 rounded-xl border-2 border-casi-negro bg-white p-4"
+                  className="relative flex flex-col gap-3 rounded-[20px] bg-white p-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-display text-lg font-extrabold uppercase capitalize">
@@ -181,7 +181,7 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
                         i
                       </button>
 
-                      <div className="pointer-events-none invisible absolute right-0 top-8 z-10 flex min-w-[220px] flex-col gap-2 rounded-xl border-2 border-casi-negro bg-white p-3 opacity-0 shadow-[0_10px_24px_rgba(28,13,10,0.20)] transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                      <div className="pointer-events-none invisible absolute right-0 top-8 z-10 flex min-w-[220px] flex-col gap-2 rounded-xl bg-white p-3 opacity-0 shadow-[0_10px_24px_rgba(28,13,10,0.20)] transition-opacity duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
                         <span className="text-sm font-bold uppercase tracking-wide text-naranja">
                           Todas las pruebas
                         </span>
@@ -286,7 +286,7 @@ function TabRecorridos({ evento }: { evento: EventoPublicado }) {
             {recorrido.programacion.map((img) => (
               <div
                 key={img.id}
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-xl border-2 border-casi-negro/20"
+                className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
               >
                 <Image
                   src={img.url}
@@ -351,7 +351,7 @@ function TabPremios({ evento }: { evento: EventoPublicado }) {
       {premios.efectivoUrl ? (
         <div>
           <TituloSeccion>Premiación en efectivo</TituloSeccion>
-          <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl border-2 border-casi-negro/20">
+          <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
             <Image
               src={premios.efectivoUrl}
               alt="Tabla de premiación en efectivo"
@@ -497,7 +497,7 @@ function TabContacto({ evento }: { evento: EventoPublicado }) {
           href={evento.terminosUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex w-fit items-center gap-2 rounded-full border-[3px] border-casi-negro px-5 py-2 font-display font-bold uppercase transition-colors hover:bg-casi-negro hover:text-crema"
+          className="inline-flex w-fit items-center gap-2 rounded-full bg-casi-negro/5 px-5 py-2 font-display font-bold uppercase shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-crema"
         >
           Ver términos y condiciones
         </a>

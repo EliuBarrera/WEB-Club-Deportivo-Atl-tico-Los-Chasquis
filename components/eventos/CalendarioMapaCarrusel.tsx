@@ -70,7 +70,7 @@ export function CalendarioMapaCarrusel({
   return (
     <div className="flex flex-col gap-3">
       {mostrarMapa ? (
-        <div className="overflow-hidden rounded-2xl border-2 border-casi-negro">
+        <div className="overflow-hidden rounded-2xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
           <iframe
             src={mapUrl}
             title={`Mapa de ubicación: ${ubicacion}`}
@@ -96,7 +96,7 @@ export function CalendarioMapaCarrusel({
           type="button"
           aria-label="Diapositiva anterior"
           onClick={() => setMostrarMapa((actual) => !actual)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-casi-negro bg-white text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
         >
           {FLECHA_IZQUIERDA}
         </button>
@@ -128,7 +128,7 @@ export function CalendarioMapaCarrusel({
           type="button"
           aria-label="Diapositiva siguiente"
           onClick={() => setMostrarMapa((actual) => !actual)}
-          className="flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-casi-negro bg-white text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+          className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
         >
           {FLECHA_DERECHA}
         </button>

@@ -21,7 +21,7 @@ export function VistaInscripcion({
       <button
         type="button"
         onClick={onVolver}
-        className="inline-flex w-fit items-center gap-2 rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+        className="inline-flex w-fit items-center gap-2 rounded-full bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
       >
         <svg
           width="20"

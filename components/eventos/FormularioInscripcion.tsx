@@ -115,7 +115,7 @@ function Campo({
 }
 
 const inputClase =
-  "rounded-lg border-2 border-casi-negro bg-white px-3 py-2 text-lg outline-none focus:border-naranja";
+  "rounded-lg bg-casi-negro/[0.045] px-3 py-2 text-lg outline-none focus:bg-white focus:shadow-[0_0_0_2px_rgba(241,88,8,0.4)]";
 
 export function FormularioInscripcion({
   evento,
@@ -385,7 +385,7 @@ export function FormularioInscripcion({
       estadoPago === "ERROR";
 
     return (
-      <div className="flex flex-col gap-4 rounded-2xl border-2 border-casi-negro bg-white p-6">
+      <div className="flex flex-col gap-4 rounded-[20px] bg-white p-6 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
         <h3 className="font-display text-2xl font-extrabold uppercase">
           {estadoPago === "APROBADO"
             ? "¡Pago aprobado!"
@@ -400,21 +400,21 @@ export function FormularioInscripcion({
         {error ? <p className="text-base font-bold text-naranja">{error}</p> : null}
 
         {estadoPago === "APROBADO" && (
-          <p className="rounded-xl border-2 border-green-700 bg-green-50 p-4 text-lg font-bold text-green-800">
+          <p className="rounded-xl bg-green-50 p-4 text-lg font-bold text-green-800">
             Tu pago de {totalPago !== null && formatPrecio(totalPago)} fue
             aprobado. ¡Nos vemos en la línea de salida!
           </p>
         )}
         <div className="flex flex-wrap items-center justify-center gap-4">
           {pagoRechazado && (
-            <div className="flex flex-col items-center gap-3 rounded-xl border-2 border-red-700 bg-red-50 p-4">
+            <div className="flex flex-col items-center gap-3 rounded-xl bg-red-50 p-4">
               <p className="text-lg font-bold text-red-800">
                 Tu pago no pudo procesarse. Puedes intentarlo de nuevo.
               </p>
               <button
                 type="button"
                 onClick={abrirWidgetPago}
-                className="mx-auto w-64 justify-center rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 text-center font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+                className="mx-auto w-64 justify-center rounded-full bg-white px-5 py-2 text-center font-display font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
               >
                 Reintentar pago
               </button>
@@ -426,7 +426,7 @@ export function FormularioInscripcion({
               type="button"
               onClick={abrirWidgetPago}
               disabled={!widgetWompiListo}
-              className="mx-auto w-64 justify-center rounded-full border-[3px] border-casi-negro bg-naranja px-6 py-3 text-center font-display text-lg font-bold uppercase text-white transition-colors hover:bg-casi-negro disabled:cursor-not-allowed disabled:opacity-50"
+              className="mx-auto w-64 justify-center rounded-full bg-naranja px-6 py-3 text-center font-display text-lg font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] transition-colors hover:bg-casi-negro disabled:cursor-not-allowed disabled:opacity-50"
             >
               {widgetWompiListo
                 ? `Pagar ${totalPago !== null ? formatPrecio(totalPago) : ""} ahora`
@@ -443,7 +443,7 @@ export function FormularioInscripcion({
           <button
             type="button"
             onClick={onCancelar}
-            className="mx-auto w-64 justify-center rounded-full border-[3px] border-casi-negro bg-white px-5 py-2 text-center font-display font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+            className="mx-auto w-64 justify-center rounded-full bg-white px-5 py-2 text-center font-display font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
           >
             Volver
           </button>
@@ -454,7 +454,7 @@ export function FormularioInscripcion({
   }
 
   return (
-    <div className="flex w-full flex-col rounded-2xl border-2 border-casi-negro bg-white p-4 sm:p-6">
+    <div className="flex w-full flex-col rounded-[20px] bg-white p-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)] sm:p-6">
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         strategy="afterInteractive"
@@ -468,7 +468,7 @@ export function FormularioInscripcion({
         <button
           type="button"
           onClick={onCancelar}
-          className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border-[3px] border-casi-negro bg-white px-4 py-1.5 font-display text-sm font-bold uppercase text-casi-negro transition-colors hover:bg-casi-negro hover:text-white"
+          className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-white px-4 py-1.5 font-display text-sm font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
         >
           <svg
             width="16"
@@ -613,10 +613,10 @@ export function FormularioInscripcion({
                       return (
                         <label
                           key={cp.prueba.key}
-                          className={`flex cursor-pointer items-center gap-2 rounded-full border-2 px-4 py-2 text-base font-semibold ${
+                          className={`flex cursor-pointer items-center gap-2 rounded-full px-4 py-2 text-base font-semibold ${
                             seleccionada
-                              ? "border-naranja bg-naranja/10 text-naranja"
-                              : "border-casi-negro/30 text-gris-oscuro"
+                              ? "bg-naranja/10 text-naranja shadow-[0_2px_8px_rgba(241,88,8,0.25)]"
+                              : "bg-casi-negro/5 text-gris-oscuro"
                           } ${deshabilitada ? "cursor-not-allowed opacity-50" : ""}`}
                         >
                           <input
@@ -647,7 +647,7 @@ export function FormularioInscripcion({
               {evento.costos.map((c) => (
                 <label
                   key={c.id}
-                  className="flex cursor-pointer items-center justify-between gap-4 rounded-xl border-2 border-casi-negro bg-white px-4 py-3"
+                  className="flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-white px-4 py-3 shadow-[0_6px_16px_rgba(28,13,10,0.08)]"
                 >
                   <span className="flex items-center gap-2 font-semibold capitalize">
                     <input
@@ -814,7 +814,7 @@ export function FormularioInscripcion({
           ) : null}
 
           {error ? (
-            <p className="rounded-xl border-2 border-naranja bg-naranja/10 p-3 text-lg font-semibold text-naranja">
+            <p className="rounded-xl bg-naranja/10 p-3 text-lg font-semibold text-naranja">
               {error}
             </p>
           ) : null}
