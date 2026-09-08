@@ -74,7 +74,7 @@ export function RespaldoInstitucional({ socios }: { socios: SocioPublico[] }) {
 
         <div
           ref={scrollRef}
-          className="flex flex-1 snap-x snap-mandatory overflow-x-auto scroll-smooth"
+          className="flex flex-1 snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {paginas.map((pagina, indice) => (
             <div
