@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reglamento Interno y Disposiciones Legales - Club Los Chasquis</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Space+Mono:wght@400;700&family=Barlow+Condensed:wght@500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    .legal-docs-section * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .legal-docs-section {
+        padding: 60px 20px;
+        font-family: 'Barlow Condensed', sans-serif;
+    }
+
+    .legal-docs-wrapper {
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 0;
+        border: 4px solid #1C0D0A;
+        box-shadow: 12px 12px 0 #F15808;
+        background: #ffffff;
+    }
+
+    /* ===== COLUMNA IZQUIERDA: LISTA DE DOCUMENTOS ===== */
+    .legal-docs-list-col {
+        border-right: 4px solid #1C0D0A;
+    }
+
+    .legal-doc-item {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 18px 30px;
+        text-decoration: none;
+        border-bottom: 3px solid #1C0D0A;
+        transition: background 0.2s ease, transform 0.15s ease;
+        color: #1C0D0A;
+    }
+
+    .legal-doc-item:last-child {
+        border-bottom: none;
+    }
+
+    .legal-doc-item:hover {
+        background: #F15808;
+    }
+
+    .legal-doc-item:hover .legal-doc-name,
+    .legal-doc-item:hover .legal-doc-icon {
+        color: #F7F4EF;
+    }
+
+    .legal-doc-item:hover .legal-doc-icon-circle {
+        background: #1C0D0A;
+        border-color: #F7F4EF;
+    }
+
+    .legal-doc-icon-circle {
+        flex-shrink: 0;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        background: #F15808;
+        border: 3px solid #1C0D0A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .legal-doc-icon {
+        width: 26px;
+        height: 26px;
+        color: #ffffff;
+        transition: color 0.2s ease;
+    }
+
+    .legal-doc-name {
+        font-weight: 700;
+        font-size: 19px;
+        letter-spacing: 0.3px;
+        line-height: 1.15;
+        text-transform: uppercase;
+        transition: color 0.2s ease;
+    }
+
+    /* ===== COLUMNA DERECHA: TÍTULO ===== */
+    .legal-docs-title-col {
+        background: #1C0D0A;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 50px 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .legal-docs-title-col::before {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 160px;
+        height: 160px;
+        background: #F15808;
+        transform: rotate(45deg);
+    }
+
+    .legal-docs-title-col h2 {
+        position: relative;
+        z-index: 1;
+        font-family: 'Big Shoulders Display', sans-serif;
+        font-weight: 900;
+        font-size: 84px;
+        line-height: 1.05;
+        text-transform: uppercase;
+        color: #F7F4EF;
+        letter-spacing: 0.5px;
+    }
+
+    .legal-docs-title-col h2 span {
+        color: #F15808;
+    }
+
+    .legal-docs-title-tag {
+        position: relative;
+        z-index: 1;
+        display: inline-block;
+        margin-bottom: 18px;
+        font-family: 'Space Mono', monospace;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: #F15808;
+        border: 2px solid #F15808;
+        padding: 4px 12px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 800px) {
+        .legal-docs-wrapper {
+            grid-template-columns: 1fr;
+            box-shadow: 8px 8px 0 #F15808;
+        }
+
+        .legal-docs-list-col {
+            border-right: none;
+            border-bottom: 4px solid #1C0D0A;
+            order: 2;
+        }
+
+        .legal-docs-title-col {
+            order: 1;
+            padding: 40px 30px;
+        }
+
+        .legal-docs-title-col h2 {
+            font-size: 32px;
+        }
+
+        .legal-doc-item {
+            padding: 16px 20px;
+        }
+
+        .legal-doc-name {
+            font-size: 17px;
+        }
+    }
+
+    /* ===========================
+    TABLETS
+    =========================== */
+    @media (max-width: 992px) {
+
+        .legal-docs-section{
+            padding:40px 15px;
+        }
+
+        .legal-docs-wrapper{
+            grid-template-columns:1fr;
+            box-shadow:8px 8px 0 #F15808;
+        }
+
+        .legal-docs-list-col{
+            order:2;
+            border-right:none;
+            border-top:4px solid #1C0D0A;
+        }
+
+        .legal-docs-title-col{
+            order:1;
+            padding:40px 30px;
+            min-height:280px;
+        }
+
+        .legal-docs-title-col h2{
+            font-size:56px;
+        }
+
+        .legal-docs-title-col::before{
+            width:120px;
+            height:120px;
+            top:-30px;
+            right:-30px;
+        }
+    }
+
+
+    /* ===========================
+    CELULARES
+    =========================== */
+    @media (max-width:768px){
+
+        .legal-docs-section{
+            padding:25px 12px;
+        }
+
+        .legal-docs-wrapper{
+            border-width:3px;
+            box-shadow:6px 6px 0 #F15808;
+        }
+
+        .legal-doc-item{
+            gap:14px;
+            padding:14px 16px;
+        }
+
+        .legal-doc-icon-circle{
+            width:46px;
+            height:46px;
+        }
+
+        .legal-doc-icon{
+            width:22px;
+            height:22px;
+        }
+
+        .legal-doc-name{
+            font-size:16px;
+            line-height:1.3;
+        }
+
+        .legal-docs-title-col{
+            padding:32px 24px;
+            text-align:center;
+            min-height:auto;
+        }
+
+        .legal-docs-title-col h2{
+            font-size:42px;
+            line-height:1;
+        }
+
+        .legal-docs-title-tag{
+            font-size:12px;
+            letter-spacing:1px;
+            margin-bottom:14px;
+        }
+
+        .legal-docs-title-col::before{
+            width:90px;
+            height:90px;
+            top:-25px;
+            right:-25px;
+        }
+
+    }
+
+
+    /* ===========================
+    CELULARES PEQUEÑOS
+    =========================== */
+    @media (max-width:480px){
+
+        .legal-doc-item{
+            padding:12px;
+            gap:12px;
+        }
+
+        .legal-doc-icon-circle{
+            width:40px;
+            height:40px;
+            border-width:2px;
+        }
+
+        .legal-doc-icon{
+            width:18px;
+            height:18px;
+        }
+
+        .legal-doc-name{
+            font-size:15px;
+        }
+
+        .legal-docs-title-col{
+            padding:28px 18px;
+        }
+
+        .legal-docs-title-col h2{
+            font-size:34px;
+        }
+
+        .legal-docs-title-tag{
+            font-size:11px;
+            padding:3px 8px;
+        }
+
+        .legal-docs-title-col::before{
+            width:70px;
+            height:70px;
+            top:-20px;
+            right:-20px;
+        }
+
+    }
+
+</style>
+</head>
+<body>
+
+<section class="legal-docs-section">
+    <div class="legal-docs-wrapper">
+
+        <!-- ===== IZQUIERDA: LISTA DE DOCUMENTOS ===== -->
+        <div class="legal-docs-list-col">
+
+            <a href="https://drive.google.com/file/d/1-E_Bq9DPALRPSL1uJBqxb8wrquFA1OXS/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Certificación de cargos directivos">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Certificación de cargos directivos</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1UBahXiKxg0UBEns-5cCVNVaDo-2b_mHF/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Certificación de Representante Legal sobre antecedentes">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Certificación de Representante Legal sobre antecedentes</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/124OerS9HtJOvQH_LcdCuHlshhSWlZ5zU/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Estatutos">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Estatutos</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1EuxQnRtO0DEj3CHjHgvXNLHnbTUa3Y-u/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Certificación de requisitos">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Certificación de requisitos</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1F4mkkAorbir9GzOrrXphKEFwmw-5SjnR/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Certificado existencia y representante legal">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Certificado existencia y representante legal</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1iMcavB_4UEf_28w9OepaWF1jGdbxc0rc/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Estados financieros">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Estados financieros</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1K31fOIjt9q7hXjyI6SlBS_INtqqN4nWg/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Acta de Asamblea">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Acta de Asamblea</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1-hGt3SxaigLaEx29RJuemlYpHIp8grXC/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Informe presidencial">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Informe presidencial</span>
+            </a>
+
+            <a href="https://drive.google.com/file/d/1MQjlLG9N72PaiJD6GiVZ2juC3GrcPMGO/view?usp=drive_link" target="_blank" class="legal-doc-item" title="Renta 2025">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Renta 2025</span>
+            </a>
+
+            <a href="https://drive.google.com/drive/folders/1pXnOYxWcLwcoKlVCkzuyuTUCzbh2QO1E?usp=drive_link" target="_blank" class="legal-doc-item" title="Historial">
+                <span class="legal-doc-icon-circle">
+                    <svg class="legal-doc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-9l-2-2H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z"/></svg>
+                </span>
+                <span class="legal-doc-name">Historial</span>
+            </a>
+
+        </div>
+
+        <!-- ===== DERECHA: TÍTULO ===== -->
+        <div class="legal-docs-title-col">
+            <div>
+                <span class="legal-docs-title-tag">Club Atlético Los Chasquis</span>
+                <h2>Reglamento<br>Interno y<br><span>Disposiciones<br>Legales</span></h2>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+</body>
+</html>

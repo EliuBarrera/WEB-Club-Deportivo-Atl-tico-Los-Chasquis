@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Políticas Obligatorias de Participación 2026 · Club Los Chasquis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Barlow+Condensed:wght@400;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --orange:#F15808;
+    --gray:#353535;
+    --black:#1C0D0A;
+    --cream:#F7F4EF;
+  }
+  *{box-sizing:border-box;}
+  body.pol-chasquis{
+    margin:0;
+    background:var(--cream);
+    font-family:'Barlow Condensed', sans-serif;
+    color:var(--black);
+    padding:40px 20px 80px;
+  }
+  .pol-wrap{
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .pol-masthead{
+    background:var(--black);
+    border:4px solid var(--orange);
+    box-shadow:10px 10px 0 var(--orange);
+    padding:36px 30px;
+    margin-bottom:36px;
+  }
+  .pol-masthead .pol-kicker{
+    font-family:'Space Mono', monospace;
+    color:var(--orange);
+    text-transform:uppercase;
+    letter-spacing:3px;
+    font-size:13px;
+    margin-bottom:10px;
+  }
+  .pol-masthead h1{
+    font-family:'Big Shoulders Display', sans-serif;
+    font-weight:900;
+    text-transform:uppercase;
+    color:var(--cream);
+    font-size:clamp(28px,4vw,46px);
+    line-height:1.05;
+    margin:0 0 14px;
+    letter-spacing:1px;
+  }
+  .pol-masthead .pol-events{
+    color:#fff;
+    font-family:'Space Mono', monospace;
+    font-size:14px;
+    line-height:1.7;
+  }
+  .pol-masthead .pol-events strong{color:var(--orange);}
+
+  .pol-flag{
+    background:#fff;
+    border:3px solid var(--gray);
+    border-left:10px solid var(--orange);
+    padding:20px 24px;
+    margin-bottom:36px;
+    box-shadow:6px 6px 0 var(--gray);
+  }
+  .pol-flag h2{
+    font-family:'Big Shoulders Display', sans-serif;
+    text-transform:uppercase;
+    font-size:18px;
+    margin:0 0 10px;
+    color:var(--orange);
+    letter-spacing:1px;
+  }
+  .pol-flag ul{margin:0;padding-left:20px;font-size:16px;line-height:1.6;}
+
+  .pol-section{
+    background:#fff;
+    border:3px solid var(--black);
+    box-shadow:8px 8px 0 var(--black);
+    padding:30px 30px 34px;
+    margin-bottom:34px;
+  }
+  .pol-section h2{
+    font-family:'Big Shoulders Display', sans-serif;
+    font-weight:900;
+    text-transform:uppercase;
+    font-size:26px;
+    letter-spacing:1px;
+    color:var(--black);
+    border-bottom:4px solid var(--orange);
+    padding-bottom:12px;
+    margin:0 0 20px;
+  }
+  .pol-section h3{
+    font-family:'Big Shoulders Display', sans-serif;
+    font-weight:700;
+    text-transform:uppercase;
+    font-size:19px;
+    color:var(--orange);
+    margin:22px 0 10px;
+  }
+  .pol-section p, .pol-section li{
+    font-size:17px;
+    line-height:1.65;
+    color:var(--gray);
+  }
+  .pol-section ol, .pol-section ul{
+    padding-left:22px;
+    margin:0 0 6px;
+  }
+  .pol-two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+  }
+  .pol-event-box{
+    background:var(--cream);
+    border:2px solid var(--gray);
+    padding:18px 20px;
+  }
+  .pol-event-box h4{
+    font-family:'Space Mono', monospace;
+    text-transform:uppercase;
+    font-size:14px;
+    letter-spacing:1px;
+    color:var(--orange);
+    margin:0 0 12px;
+    border-bottom:2px solid var(--orange);
+    padding-bottom:8px;
+  }
+  .pol-event-box dl{margin:0;font-size:15px;}
+  .pol-event-box dt{
+    font-family:'Space Mono', monospace;
+    font-weight:700;
+    color:var(--black);
+    text-transform:uppercase;
+    font-size:12px;
+    letter-spacing:0.5px;
+    margin-top:12px;
+  }
+  .pol-event-box dt:first-child{margin-top:0;}
+  .pol-event-box dd{margin:2px 0 0;color:var(--gray);}
+
+  table.pol-table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:8px;
+    font-size:15px;
+  }
+  table.pol-table th{
+    background:var(--orange);
+    color:#fff;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    font-family:'Space Mono', monospace;
+    font-size:12px;
+    padding:10px;
+    text-align:left;
+  }
+  table.pol-table td{
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    color:var(--gray);
+  }
+  table.pol-table tr:nth-child(even) td{background:var(--cream);}
+
+  .pol-note{
+    font-family:'Space Mono', monospace;
+    font-size:13px;
+    color:var(--gray);
+    background:var(--cream);
+    border-left:4px solid var(--orange);
+    padding:10px 14px;
+    margin-top:10px;
+  }
+
+  .pol-accept{
+    background:var(--orange);
+    border:4px solid var(--black);
+    box-shadow:8px 8px 0 var(--black);
+    padding:26px 30px;
+    color:#fff;
+  }
+  .pol-accept h2{
+    font-family:'Big Shoulders Display', sans-serif;
+    text-transform:uppercase;
+    font-size:24px;
+    margin:0 0 12px;
+    border-bottom:none;
+    color:#fff;
+  }
+  .pol-accept p{color:#fff;font-size:17px;line-height:1.6;}
+
+  @media (max-width:720px){
+    .pol-two-col{grid-template-columns:1fr;}
+    .pol-masthead, .pol-section, .pol-flag, .pol-accept{padding:22px 18px;}
+  }
+</style>
+</head>
+<body class="pol-chasquis">
+<div class="pol-wrap">
+
+  <div class="pol-masthead">
+    <div class="pol-kicker">Club Deportivo Atlético Los Chasquis · Circuito Pasaporte Runner Boyacá 2026</div>
+    <h1>Políticas Obligatorias de Participación</h1>
+    <div class="pol-events">
+      <strong>01·</strong> XXXIX Carrera Atlética Ciudad de Tunja — 9 de agosto de 2026 · Tunja, Boyacá<br>
+      <strong>02·</strong> III Carrera Atlética Chiquinquirá "Villa Republicana" — 6 de septiembre de 2026 · Parque Julio Flórez, Chiquinquirá, Boyacá
+    </div>
+  </div>
+
+  <div class="pol-flag">
+    <h2>⚠ Notas de verificación (revisar antes de publicar)</h2>
+    <ul>
+      <li>El contenido base del kit (camiseta, medalla, chip, etc.) no está especificado en los datos de estos dos eventos — solo se documenta el <em>kit adicional</em> opcional (tula + camiseta oficial, $40.000). Falta confirmar el contenido del kit base para incluirlo.</li>
+      <li>La fecha de entrega de kits de la Carrera de Chiquinquirá aparece como "7 de agosto" en la fuente, pero el evento es el 6 de septiembre. Se transcribe tal cual está en los datos — por favor confirmar si es un error de digitación (¿debería ser en septiembre?) antes de publicar.</li>
+      <li>El lugar de entrega de kits figura como "por confirmar" en ambos eventos.</li>
+      <li>Ninguno de los dos eventos trae explícitamente el nombre legal de la entidad organizadora dentro de sus datos; se usa "Club Deportivo Atlético Los Chasquis" por ser el organizador consistente del circuito.</li>
+    </ul>
+  </div>
+
+  <div class="pol-section">
+    <p>Estas políticas son de obligatorio cumplimiento para todos los participantes inscritos en la <strong>XXXIX Carrera Atlética Ciudad de Tunja</strong> y la <strong>III Carrera Atlética Chiquinquirá "Villa Republicana"</strong>, ambas parte del circuito Pasaporte Runner Boyacá 2026. La aceptación de este documento es requisito indispensable para formalizar la inscripción y tomar parte en cualquiera de los dos eventos.</p>
+  </div>
+
+  <div class="pol-section">
+    <h2>1. Reglamento General del Evento</h2>
+    <ol>
+      <li>La participación en el evento solo será válida para personas debidamente inscritas.</li>
+      <li>El número de competencia es obligatorio y debe portarse visible durante toda la prueba.</li>
+      <li>En el desarrollo de las pruebas no se permitirá el acompañamiento.</li>
+      <li>El deportista declara encontrarse en óptimas condiciones físicas, médicas y de salud.</li>
+      <li>El deportista se compromete a cumplir los reglamentos de World Athletics, la Federación Colombiana de Atletismo y la Liga de Atletismo de Boyacá.</li>
+      <li>El deportista acepta estas Políticas de Participación y Exoneración de Responsabilidad, disponibles en <strong>www.clubloschasquis.com/eventos</strong>.</li>
+    </ol>
+    <h3>Normas de Seguridad</h3>
+    <ol>
+      <li>Uso obligatorio del número de competencia en lugar visible durante toda la prueba.</li>
+      <li>Servicio de primeros auxilios disponible durante el evento.</li>
+      <li>El deportista, o su representante legal en caso de menores de edad, asume plena responsabilidad sobre su estado de salud.</li>
+    </ol>
+  </div>
+
+  <div class="pol-section">
+    <h2>2. Valores y Plazos de Inscripción</h2>
+    <div class="pol-two-col">
+      <div class="pol-event-box">
+        <h4>Ciudad de Tunja — 9 ago 2026</h4>
+        <dl>
+          <dt>Primer plazo (hasta el 25 de julio)</dt>
+          <dd>$90.000 (Mayores, Recreativa, Veteranos A-B-C) · $30.000 (Sub 12, Sub 14, Sub 16)</dd>
+          <dt>Segundo plazo (26 de julio – 4 de agosto)</dt>
+          <dd>$100.000 (Mayores, Recreativa, Veteranos A-B-C) · $40.000 (Sub 12, Sub 14, Sub 16)</dd>
+          <dt>Cierre de inscripciones</dt>
+          <dd>4 de agosto de 2026 – 6:00 p.m.</dd>
+        </dl>
+      </div>
+      <div class="pol-event-box">
+        <h4>Chiquinquirá "Villa Republicana" — 6 sep 2026</h4>
+        <dl>
+          <dt>Primer plazo (hasta el 20 de agosto)</dt>
+          <dd>$90.000 (Mayores, Recreativa, Veteranos A-B-C) · $30.000 (Sub 12, Sub 14, Sub 16)</dd>
+          <dt>Segundo plazo (21 de agosto – 2 de septiembre)</dt>
+          <dd>$100.000 (Mayores, Recreativa, Veteranos A-B-C) · $40.000 (Sub 12, Sub 14, Sub 16)</dd>
+          <dt>Cierre de inscripciones</dt>
+          <dd>2 de septiembre de 2026 – 6:00 p.m.</dd>
+        </dl>
+      </div>
+    </div>
+    <p class="pol-note">Grupos de 10 deportistas inscritos reciben un (1) cupo adicional gratuito, en ambos eventos.</p>
+  </div>
+
+  <div class="pol-section">
+    <h2>3. Categorías</h2>
+    <p>Aplican por igual a los dos eventos del circuito:</p>
+    <table class="pol-table">
+      <thead><tr><th>Categoría</th><th>Edad</th><th>Año de nacimiento</th></tr></thead>
+      <tbody>
+        <tr><td>Sub 8</td><td>6-7 años</td><td>2020-2019</td></tr>
+        <tr><td>Sub 10</td><td>8-9 años</td><td>2018-2017</td></tr>
+        <tr><td>Sub 12</td><td>10-11 años</td><td>2016-2015</td></tr>
+        <tr><td>Sub 14</td><td>12-13 años</td><td>2014-2013</td></tr>
+        <tr><td>Sub 16</td><td>14-15 años</td><td>2012-2011</td></tr>
+        <tr><td>Sub 18</td><td>16-17 años</td><td>2010-2009</td></tr>
+        <tr><td>Mayores</td><td>20-39 años</td><td>2006-1987</td></tr>
+        <tr><td>Veteranos A</td><td>40-49 años</td><td>1986-1977</td></tr>
+        <tr><td>Veteranos B</td><td>50-59 años</td><td>1976-1967</td></tr>
+        <tr><td>Veteranos C</td><td>60-99 años</td><td>1966-1927</td></tr>
+        <tr><td>Recreativa</td><td>18-99 años</td><td>2008-1927</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pol-section">
+    <h2>4. Entrega de Kits</h2>
+    <div class="pol-two-col">
+      <div class="pol-event-box">
+        <h4>Ciudad de Tunja</h4>
+        <dl>
+          <dt>Fecha</dt><dd>8 de agosto de 2026, desde las 8:00 a.m.</dd>
+          <dt>Lugar</dt><dd>Por confirmar</dd>
+        </dl>
+      </div>
+      <div class="pol-event-box">
+        <h4>Chiquinquirá "Villa Republicana"</h4>
+        <dl>
+          <dt>Fecha</dt><dd>7 de agosto de 2026, desde las 8:00 a.m. <span style="color:var(--orange);">(verificar — ver nota inicial)</span></dd>
+          <dt>Lugar</dt><dd>Por confirmar</dd>
+        </dl>
+      </div>
+    </div>
+    <h3>Kit Adicional (opcional)</h3>
+    <p>Tula + camiseta oficial: pago adicional de $40.000, gestionado por WhatsApp al 311 264 4205. Disponible para ambos eventos.</p>
+    <p class="pol-note">El kit base entregado a cada inscrito no se encuentra detallado en la información disponible de estos dos eventos.</p>
+  </div>
+
+  <div class="pol-section">
+    <h2>5. Premiación</h2>
+    <ol>
+      <li>La premiación en efectivo se entrega según la tabla de premiación publicada.</li>
+      <li>Es obligatorio firmar las planillas oficiales de premiación.</li>
+      <li>El deportista debe presentarse al podio 20 minutos después de finalizada la prueba.</li>
+      <li>En caso de no presentarse, el premio se entrega al finalizar el evento.</li>
+      <li>La premiación hace parte integral de la competencia.</li>
+      <li>Se debe presentar fotocopia del documento de identidad.</li>
+    </ol>
+    <div class="pol-two-col">
+      <div class="pol-event-box">
+        <h4>Ceremonia — Ciudad de Tunja</h4>
+        <dl>
+          <dt>Hora</dt><dd>20 minutos después de finalizada cada prueba</dd>
+          <dt>Lugar</dt><dd>Podio principal</dd>
+        </dl>
+      </div>
+      <div class="pol-event-box">
+        <h4>Ceremonia — Chiquinquirá</h4>
+        <dl>
+          <dt>Hora</dt><dd>20 minutos después de finalizada cada prueba</dd>
+          <dt>Lugar</dt><dd>Podio principal - Parque Julio Flórez</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="pol-section">
+    <h2>6. Aval y Organización</h2>
+    <p><strong>Organiza:</strong> Club Deportivo Atlético Los Chasquis</p>
+    <p><strong>Aval (ambos eventos):</strong> Liga de Atletismo de Boyacá y Federación Colombiana de Atletismo.</p>
+  </div>
+
+  <div class="pol-section">
+    <h2>7. Logística y Recomendaciones</h2>
+    <h3>Servicios</h3>
+    <ul>
+      <li>Servicio de primeros auxilios durante el evento (ambos eventos).</li>
+      <li>Entrega de kits en las fechas indicadas en la sección 4.</li>
+    </ul>
+    <h3>Recomendaciones</h3>
+    <ul>
+      <li>Llegar con anticipación para calentamiento y ubicación en zona de salida.</li>
+      <li>Presentar documento de identidad y comprobante de inscripción para reclamar el kit.</li>
+      <li>Portar el número de competencia en lugar visible durante toda la prueba.</li>
+    </ul>
+  </div>
+
+  <div class="pol-section">
+    <h2>8. Circuito Pasaporte Runner Boyacá 2026</h2>
+    <p>Quienes se inscriban en las 3 carreras del circuito (Ciudad de Tunja, Chiquinquirá y Villa de Leyva) reciben un 10% de descuento sobre el valor total. Información: 311 264 4205 / chasquis1981@gmail.com.</p>
+  </div>
+
+  <div class="pol-section">
+    <h2>9. Exoneración de Responsabilidad</h2>
+    <p>El deportista declara encontrarse en óptimas condiciones físicas, médicas y de salud, y acepta las Políticas de Participación y Exoneración de Responsabilidad disponibles en www.clubloschasquis.com/eventos. El Club Deportivo Atlético Los Chasquis, el comité organizador y las entidades vinculadas quedan exonerados de responsabilidad civil, penal o administrativa por accidentes o lesiones ocurridos antes, durante o después de cualquiera de los dos eventos.</p>
+  </div>
+
+  <div class="pol-accept">
+    <h2>10. Declaración de Aceptación</h2>
+    <p>Al formalizar la inscripción a la XXXIX Carrera Atlética Ciudad de Tunja o a la III Carrera Atlética Chiquinquirá "Villa Republicana", el participante declara haber leído, entendido y aceptado en su totalidad el reglamento, las condiciones de participación y la exoneración de responsabilidad aquí establecidas. La participación se hace bajo absoluta responsabilidad del atleta. La aceptación de estas políticas es obligatoria para formalizar la inscripción.</p>
+  </div>
+
+</div>
+</body>
+</html>
