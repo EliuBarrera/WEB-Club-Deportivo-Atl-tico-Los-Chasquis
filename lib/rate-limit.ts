@@ -18,22 +18,31 @@ const RETENCION_MS = 24 * 60 * 60 * 1000; // 1 día, para no dejar crecer la tab
 
 // Devuelve `true` si la IP puede intentar de nuevo (y registra el
 // intento); `false` si ya alcanzó el límite en la ventana actual.
-export async function checkRateLimit(ip: string): Promise<boolean> {
+// `contexto` separa el cupo por flujo (ej. "inscripcion" vs "atletas",
+// Fase 10) para que no compartan el mismo límite de intentos.
+export async function checkRateLimit(
+  ip: string,
+  contexto: string
+): Promise<boolean> {
   const ahora = new Date();
   const inicioVentana = new Date(ahora.getTime() - VENTANA_MS);
 
   const intentosRecientes = await prisma.intentoInscripcion.count({
-    where: { ip, createdAt: { gte: inicioVentana } },
+    where: { ip, contexto, createdAt: { gte: inicioVentana } },
   });
 
   if (intentosRecientes >= LIMITE_INTENTOS) {
     return false;
   }
 
-  await prisma.intentoInscripcion.create({ data: { ip } });
+  await prisma.intentoInscripcion.create({ data: { ip, contexto } });
 
   await prisma.intentoInscripcion.deleteMany({
-    where: { ip, createdAt: { lt: new Date(ahora.getTime() - RETENCION_MS) } },
+    where: {
+      ip,
+      contexto,
+      createdAt: { lt: new Date(ahora.getTime() - RETENCION_MS) },
+    },
   });
 
   return true;

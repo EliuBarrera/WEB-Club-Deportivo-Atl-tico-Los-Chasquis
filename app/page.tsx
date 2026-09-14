@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Header } from "@/components/Header";
+import { PublicDock } from "@/components/PublicDock";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/home/Hero";
 import { CifrasConfianza } from "@/components/home/CifrasConfianza";
@@ -52,7 +52,6 @@ export default async function HomePage() {
 
   return (
     <>
-      <Header />
       <Hero imagenUrl={heroImagenUrl} />
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-20 px-4 py-16 sm:px-8">
@@ -84,6 +83,7 @@ export default async function HomePage() {
       </main>
 
       <Footer terminos={terminos} />
+      <PublicDock />
     </>
   );
 }

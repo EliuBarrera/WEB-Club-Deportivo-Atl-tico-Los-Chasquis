@@ -41,7 +41,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         // advierte la propia doc de Auth.js): se reutiliza el limitador por
         // IP de Fase 4 para frenar fuerza bruta contra el login.
         const ip = getClientIp(request);
-        const puedeIntentar = await checkRateLimit(ip);
+        const puedeIntentar = await checkRateLimit(ip, "admin-login");
         if (!puedeIntentar) return null;
 
         const datos = credencialesSchema.safeParse(credentials);

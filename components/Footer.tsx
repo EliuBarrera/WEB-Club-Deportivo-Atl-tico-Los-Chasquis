@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { TerminosVigente } from "@/lib/eventos";
 import { ModalTerminos } from "@/components/eventos/ModalTerminos";
+import { ModalPoliticaDatos } from "@/components/ModalPoliticaDatos";
 
 // Footer mínimo: por ahora solo existe para exponer el enlace al modal de
 // Términos y Condiciones generales (Fase 4) y a la política de datos
@@ -54,10 +55,38 @@ const REDES_SOCIALES = [
 
 export function Footer({ terminos }: { terminos: TerminosVigente }) {
   const [abierto, setAbierto] = useState(false);
+  const [politicaAbierta, setPoliticaAbierta] = useState(false);
 
   return (
-    <footer className="mt-auto flex flex-col items-center gap-2 border-t border-casi-negro/10 bg-white px-4 py-6 text-center">
-      <div className="flex items-center justify-center gap-4">
+    <footer className="mt-auto flex flex-col items-center gap-4 border-t border-casi-negro/10 bg-white px-4 pt-6 pb-28 text-center sm:grid sm:grid-cols-3 sm:items-center sm:gap-4 sm:pb-32 sm:text-left">
+      <p className="text-sm text-gris-oscuro sm:justify-self-start sm:text-left">
+        © {new Date().getFullYear()} Club Deportivo Atlético Los Chasquis
+      </p>
+
+      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 sm:justify-self-center">
+        <button
+          type="button"
+          onClick={() => setAbierto(true)}
+          className="font-display text-sm font-bold uppercase text-naranja underline"
+        >
+          Ver términos y condiciones generales
+        </button>
+        <button
+          type="button"
+          onClick={() => setPoliticaAbierta(true)}
+          className="font-display text-sm font-bold uppercase text-naranja underline"
+        >
+          Política de tratamiento de datos personales
+        </button>
+        <a
+          href="/transparencia"
+          className="font-display text-sm font-bold uppercase text-naranja underline"
+        >
+          Transparencia y documentos legales
+        </a>
+      </div>
+
+      <div className="flex items-center justify-center gap-4 sm:justify-self-end">
         {REDES_SOCIALES.map((red) => (
           <a
             key={red.nombre}
@@ -83,36 +112,16 @@ export function Footer({ terminos }: { terminos: TerminosVigente }) {
           </a>
         ))}
       </div>
-      <p className="text-sm text-gris-oscuro">
-        © {new Date().getFullYear()} Club Deportivo Atlético Los Chasquis
-      </p>
-      <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
-        <button
-          type="button"
-          onClick={() => setAbierto(true)}
-          className="font-display text-sm font-bold uppercase text-naranja underline"
-        >
-          Ver términos y condiciones generales
-        </button>
-        <a
-          href="/politica-datos-personales"
-          className="font-display text-sm font-bold uppercase text-naranja underline"
-        >
-          Política de tratamiento de datos personales
-        </a>
-        <a
-          href="/transparencia"
-          className="font-display text-sm font-bold uppercase text-naranja underline"
-        >
-          Transparencia y documentos legales
-        </a>
-      </div>
 
       <ModalTerminos
         abierto={abierto}
         onCerrar={() => setAbierto(false)}
         contenido={terminos?.contenido ?? null}
         version={terminos?.version ?? null}
+      />
+      <ModalPoliticaDatos
+        abierto={politicaAbierta}
+        onCerrar={() => setPoliticaAbierta(false)}
       />
     </footer>
   );

@@ -788,6 +788,106 @@ operativo, editables desde el admin.
 allá de las noticias por evento ya existentes (Fase 3), soporte
 multi-idioma.
 
+### Fase 10 — Portal del Atleta ("Mis Inscripciones")
+ 
+**Objetivo:** que un atleta pueda ver el estado de sus inscripciones sin
+tener que escribir por WhatsApp a preguntar si ya se confirmó su pago.
+ 
+**Mecanismo de acceso — decidido, con un matiz respecto a la nota
+original de este documento:** el atleta se identifica con **número de
+documento + email**, ambos deben coincidir exactamente con lo guardado
+en su `Inscripcion` — sin cuenta ni contraseña, como se planteó acá
+originalmente. La única diferencia es que sí queda una **sesión
+temporal de 30 minutos** (cookie firmada) en vez de pedir los dos datos
+en cada clic: se decidió así en conversación con el club para poder
+navegar el listado sin fricción, sin sacrificar seguridad — la cookie
+nunca guarda el listado de inscripciones (eso se sigue consultando en
+vivo en cada carga), solo la identidad ya verificada, y expira sola a
+los 30 minutos. No se crea ningún modelo de cuentas/usuarios nuevo.
+ 
+**Seguridad — importante porque expone datos personales:**
+- [x] Proteger el formulario de consulta con Cloudflare Turnstile
+      (mismo mecanismo de la Fase 4) y rate limiting por IP, para evitar
+      que alguien intente fuerza bruta de documentos
+- [x] El mensaje de error es igual tanto si el documento no existe como
+      si existe pero no coincide el email — no da pistas de qué
+      documentos sí están registrados
+- [x] No se muestra ningún listado/autocompletado de documentos
+**Qué muestra la consulta (para el documento+email que coincida):**
+- [x] Lista de todas las inscripciones asociadas — puede haber varias,
+      de distintos eventos
+- [x] Por cada una: evento, categoría, prueba(s) elegidas, estado de
+      pago en tiempo real (se vuelve a consultar la base en cada carga,
+      así que refleja el webhook de Wompi de la Fase 5 sin caché),
+      monto, fecha de inscripción
+- [ ] Comprobante de pago descargable
+- [ ] Versión de los Términos y Condiciones que aceptó (Fase 4)
+**Modelo de datos:** no hizo falta ninguna tabla nueva para el listado
+en sí — sí se agregó `contexto` a `IntentoInscripcion` (rate limiting)
+para que el cupo de intentos de "buscar mis inscripciones" no se
+comparta con el del formulario de inscripción (ver "Implementado").
+
+**Implementado (2026-09-14):** `lib/atletas/sesion.ts` firma la cookie
+`atleta_sesion` con `crypto.createHmac` (Node built-in, mismo criterio
+de "no sumar una librería nueva" que ya usa `lib/wompi.ts` para firmar
+el checkout de Wompi) usando `AUTH_SECRET` — no hizo falta una variable
+de entorno nueva, y esta sesión es independiente de NextAuth (no
+comparte cookie ni modelo con el login del admin). `POST
+/api/atletas/buscar` (`app/api/atletas/buscar/route.ts`) valida con Zod
+(`lib/validation/atletas.ts`), aplica `checkRateLimit(ip, "atletas")` y
+`verifyTurnstileToken` antes de tocar la base, y solo si hay match
+firma y setea la cookie. `lib/atletas/dal.ts` (`getInscripcionesAtleta`)
+lee la cookie, la verifica, y si es válida vuelve a consultar
+`Inscripcion` por `numeroDocumento`+`email` en cada carga —
+`app/atletas/page.tsx` renderiza el formulario
+(`components/atletas/FormularioBusqueda.tsx`, mismo widget de Turnstile
+que `FormularioInscripcion.tsx`) o el listado según haya o no sesión
+válida, con botón "Cerrar sesión" (`app/atletas/actions.ts`, borra la
+cookie). El badge de estado de pago (`ESTADO_PAGO_BADGE`) se extrajo de
+`app/admin/(panel)/inscripciones/page.tsx` a `lib/estadoPagoBadge.ts`
+para no duplicarlo entre el admin y esta vista.
+
+Se agregó también `components/PublicDock.tsx`: reemplaza por completo
+el `Header` anterior del sitio público (que se eliminó, ya sin ningún
+import) en las 4 páginas públicas (`/`, `/eventos`, `/transparencia`,
+`/atletas`) — mismo estilo visual que `components/admin/Dock.tsx`
+(dock flotante inferior), con el logo del club al inicio (enlaza a
+"/"), Inicio/Eventos/Atletas en el medio y Transparencia al final, a
+pedido del club en esta misma conversación. A diferencia del dock del
+admin (ancho fijo, solo lo ve un usuario logueado), en móvil los ítems
+del dock público se achican a solo ícono sin etiqueta, porque el sitio
+público sí tiene tráfico alto de celular.
+
+Verificado con `npx tsc --noEmit`, `npm run lint`, `npm run build`, y
+un flujo end-to-end contra la base real (`npm run dev`): body inválido
+→ 400 con `fieldErrors`; token de Turnstile falso → 403; 5 intentos
+seguidos → 429, sin afectar el cupo del formulario de inscripción
+(contextos separados); cookie firmada válida contra una inscripción
+real → `/atletas` muestra el listado con badge y datos correctos;
+firma alterada/cookie vacía/token expirado → sesión inválida. **Sin
+revisión visual con Playwright** (misma limitación que la Fase 9: no
+hay herramienta de navegador disponible en esta sesión) — pendiente una
+pasada visual manual en escritorio y móvil antes de dar el Dock por
+terminado.
+
+**Fuera de alcance de esta primera versión (documentado, no un
+olvido):** comprobante de pago descargable, versión de Términos
+mostrada en el listado, y reintentar un pago `PENDIENTE` desde esta
+vista (reutilizaría el widget de Wompi que ya existe en
+`FormularioInscripcion.tsx`).
+
+**Backlog de ideas adicionales — no bloquean esta fase, evaluar cuáles
+entran más adelante:**
+- [ ] Certificado de participación descargable en PDF (nombre, evento,
+      categoría, fecha), generado automáticamente
+- [ ] Botón para reenviar el comprobante de pago al correo
+- [ ] Recordatorio de logística del evento (entrega de kit, hora de
+      salida), reutilizando los datos que ya existen en `Logistica`
+- [ ] Enlace a resultados/tiempos oficiales una vez el juez los publique
+- [ ] Historial acumulado: cuántos eventos del club ha corrido en total
+- [ ] Notificación automática por correo y por whatsapp cuando el pago se aprueba
+
+
 ## Fuera de alcance por ahora
 
 - No migrar contenido histórico de WordPress (noticias viejas, galerías

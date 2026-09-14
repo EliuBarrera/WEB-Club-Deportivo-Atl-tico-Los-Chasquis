@@ -26,7 +26,7 @@ function calcularEdad(fechaNacimiento: Date, fechaReferencia: Date): number {
 export async function POST(request: NextRequest) {
   const ip = getClientIp(request);
 
-  const puedeIntentar = await checkRateLimit(ip);
+  const puedeIntentar = await checkRateLimit(ip, "inscripcion");
   if (!puedeIntentar) {
     return NextResponse.json(
       { error: "Demasiados intentos. Intenta de nuevo más tarde." },

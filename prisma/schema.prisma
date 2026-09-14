@@ -398,15 +398,20 @@ model Inscripcion {
 }
 
 // ==========================================
-// RATE LIMITING (Fase 4 — endpoint de inscripciones)
+// RATE LIMITING (Fase 4 — endpoint de inscripciones; Fase 10 — /atletas)
 // ==========================================
 
+// `contexto` separa el cupo de intentos por flujo (ej. "inscripcion" vs
+// "atletas"): sin esto, alguien reintentando un pago y luego consultando
+// sus inscripciones compartiría el mismo límite de 5 intentos/10min,
+// bloqueándose entre sí sin motivo.
 model IntentoInscripcion {
   id        String   @id @default(cuid())
   ip        String
+  contexto  String   @default("inscripcion")
   createdAt DateTime @default(now())
 
-  @@index([ip, createdAt])
+  @@index([ip, contexto, createdAt])
 }
 
 // ==========================================

@@ -5,27 +5,9 @@ import {
   verifySession,
 } from "@/lib/admin/dal";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
-
-const ESTADOS_PAGO = [
-  "PENDIENTE",
-  "APROBADO",
-  "RECHAZADO",
-  "DECLINADO",
-  "ERROR",
-] as const;
+import { ESTADOS_PAGO, ESTADO_PAGO_BADGE } from "@/lib/estadoPagoBadge";
 
 const WOMPI_LOGIN_URL = "https://comercios.wompi.co";
-
-const ESTADO_PAGO_BADGE: Record<
-  (typeof ESTADOS_PAGO)[number],
-  string
-> = {
-  APROBADO: "bg-verde text-white",
-  PENDIENTE: "bg-amarillo text-white",
-  ERROR: "bg-rojo text-white",
-  RECHAZADO: "bg-casi-negro/[0.06] text-casi-negro",
-  DECLINADO: "bg-casi-negro/[0.06] text-casi-negro",
-};
 
 function primerValor(valor: string | string[] | undefined): string | undefined {
   return Array.isArray(valor) ? valor[0] : valor;
