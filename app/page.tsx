@@ -3,6 +3,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Hero } from "@/components/home/Hero";
 import { CifrasConfianza } from "@/components/home/CifrasConfianza";
+import { NuestraHistoria } from "@/components/home/NuestraHistoria";
 import { ProximosEventosHome } from "@/components/home/ProximosEventosHome";
 import { RespaldoInstitucional } from "@/components/home/RespaldoInstitucional";
 import { Testimonios } from "@/components/home/Testimonios";
@@ -11,6 +12,7 @@ import { TransparenciaTeaser } from "@/components/home/TransparenciaTeaser";
 import { CtaFinal } from "@/components/home/CtaFinal";
 import { getEventosPublicados, getTerminosVigente } from "@/lib/eventos";
 import { getCifrasConfianza } from "@/lib/cifras";
+import { getHitosHistoricos } from "@/lib/historia";
 import { getTestimonios } from "@/lib/testimonios";
 import { getSocios } from "@/lib/socios";
 
@@ -28,13 +30,15 @@ export const dynamic = "force-dynamic";
 export default async function HomePage() {
   // No dependen entre sí — se piden en paralelo, mismo criterio que
   // app/eventos/page.tsx.
-  const [eventos, terminos, cifras, testimonios, socios] = await Promise.all([
-    getEventosPublicados(),
-    getTerminosVigente(),
-    getCifrasConfianza(),
-    getTestimonios(),
-    getSocios(),
-  ]);
+  const [eventos, terminos, cifras, hitosHistoricos, testimonios, socios] =
+    await Promise.all([
+      getEventosPublicados(),
+      getTerminosVigente(),
+      getCifrasConfianza(),
+      getHitosHistoricos(),
+      getTestimonios(),
+      getSocios(),
+    ]);
 
   const eventosAbiertos = eventos.filter(
     (evento) => evento.estado === "ABIERTO"
@@ -53,6 +57,8 @@ export default async function HomePage() {
 
       <main className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-20 px-4 py-16 sm:px-8">
         <CifrasConfianza cifras={cifras} />
+
+        <NuestraHistoria hitos={hitosHistoricos} />
 
         <section className="flex flex-col gap-8">
           <div className="flex flex-col items-center gap-2 text-center">

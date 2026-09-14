@@ -1085,6 +1085,34 @@ const socios = [
 ];
 
 // ------------------------------------------
+// Hitos históricos / línea de tiempo (Fase 9) — sección de la home
+// ------------------------------------------
+
+// Contenido preliminar entregado por el club (2026-09-14) — texto literal,
+// sin agregar fechas ni cifras que no vinieran en lo entregado. Es un
+// BORRADOR a propósito: falta el resto de la línea de tiempo (fotos de
+// ediciones anteriores con año y dato destacado, ver PLAN_DESARROLLO.md).
+// Las imágenes vienen de public/Historia/ (fotos recientes de carreras del
+// club, no archivo histórico de cada año — se usan como acompañamiento
+// visual mientras se recopilan fotos de archivo reales).
+const hitosHistoricos = [
+  {
+    anio: 1980,
+    titulo: "Nace el Club",
+    descripcion:
+      "El Club Deportivo Atlético Los Chasquis nació en 1980, fruto del espíritu emprendedor y la pasión por el deporte de un grupo de jóvenes estudiantes en Tunja. Desde entonces, nos dedicamos a organizar eventos atléticos de alta calidad para la comunidad deportiva de Boyacá y Colombia.",
+    imagenUrl: "/Historia/2.jpg",
+  },
+  {
+    anio: null,
+    titulo: "Reconocimiento oficial: Personería Jurídica No. 086",
+    descripcion:
+      "Con reconocimiento oficial mediante Personería Jurídica No. 086, nos hemos consolidado como una de las organizaciones más importantes del atletismo regional, promoviendo la participación en competencias de todas las categorías y edades.",
+    imagenUrl: "/Historia/6.jpg",
+  },
+];
+
+// ------------------------------------------
 // Términos y Condiciones (Fase 4) — versión 1
 // ------------------------------------------
 
@@ -1365,6 +1393,22 @@ async function main() {
       where: { logoUrl: socio.logoUrl },
       update: { nombre: socio.nombre, orden: index },
       create: { ...socio, orden: index },
+    });
+  }
+
+  // Hitos históricos (Fase 9): mismo criterio que socios/testimonios/
+  // cifras — `upsert` por `titulo` para no pisar ediciones del admin.
+  console.log("Sembrando hitos históricos...");
+  for (const [index, hito] of hitosHistoricos.entries()) {
+    await prisma.hitoHistorico.upsert({
+      where: { titulo: hito.titulo },
+      update: {
+        anio: hito.anio,
+        descripcion: hito.descripcion,
+        imagenUrl: hito.imagenUrl,
+        orden: index,
+      },
+      create: { ...hito, orden: index },
     });
   }
 

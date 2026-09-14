@@ -330,6 +330,27 @@ export async function getSociosAdmin() {
 
 export type SocioAdmin = Awaited<ReturnType<typeof getSociosAdmin>>[number];
 
+// Hitos históricos / línea de tiempo (Fase 9 — Home): lista completa para
+// el CRUD del admin. La versión pública vive en lib/historia.ts.
+export async function getHitosHistoricosAdmin() {
+  await verifySession();
+  return prisma.hitoHistorico.findMany({
+    orderBy: { orden: "asc" },
+    select: {
+      id: true,
+      anio: true,
+      titulo: true,
+      descripcion: true,
+      imagenUrl: true,
+      orden: true,
+    },
+  });
+}
+
+export type HitoHistoricoAdmin = Awaited<
+  ReturnType<typeof getHitosHistoricosAdmin>
+>[number];
+
 // Usado solo por el Route Handler de export (Fase 6: el CSV incluye datos
 // personales de menores, de ahí requireAdmin() en vez de verifySession()).
 export async function getInscripcionesParaExport(filtros: FiltrosInscripciones) {

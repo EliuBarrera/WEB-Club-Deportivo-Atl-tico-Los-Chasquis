@@ -523,9 +523,9 @@ puerta de entrada.
    eventos", naranja, lleva al listado de la Fase 2) y uno secundario.
 2. [x] **Barra de cifras de confianza** — franja angosta con 3-4 números
    grandes en Space Mono. Ver nota de implementación.
-3. [ ] **Nuestra historia / línea de tiempo** — recorrido cronológico por
-   las ediciones anteriores. **Sin implementar — bloqueado por
-   contenido** (ver lista al final).
+3. [x] **Nuestra historia / línea de tiempo** — recorrido cronológico por
+   las ediciones anteriores. **Implementado como borrador**, ver nota de
+   implementación.
 4. [x] **Próximos eventos** — reutiliza tal cual el carrusel de eventos
    ya construido en la Fase 2, filtrado a `estado: 'ABIERTO'`.
 5. [x] **Aval institucional** — carrusel deslizable de 5 columnas x 2
@@ -539,9 +539,9 @@ puerta de entrada.
 9. [x] **Documentos legales y transparencia** — implementado como página
    aparte (`/transparencia`), ver Fase 9 más abajo — este ítem se
    adelantó antes que el resto de la fase, a pedido puntual.
-10. [x] **Footer** — contacto real agregado (ver nota); redes sociales y
-    ubicación exacta quedan pendientes (no hay cuentas ni dirección
-    confirmadas, no se inventan).
+10. [x] **Footer** — contacto real agregado (ver nota); redes sociales
+    reales agregadas (2026-09-14, ver nota); ubicación exacta sigue
+    pendiente (no hay dirección física confirmada, no se inventa).
 
 **Implementado (Cifras de confianza):** modelo `CifraConfianza { id,
 etiqueta, valor, orden }` (migración `20260908154241_fase9_cifras_confianza`),
@@ -659,8 +659,17 @@ sale de datos que ya existen en la base — nada inventado:
   `/transparencia` (la sección completa, implementada por separado).
 - **Footer** (`components/Footer.tsx`): se agregó el contacto real del
   club (`chasquis1981@gmail.com`, WhatsApp 311 264 4205 — ambos ya
-  usados en datos migrados/documentos de referencia) enlazado con
-  `mailto:`/`wa.me`.
+  usados en datos migrados/documentos de referencia). El 2026-09-14 el
+  club entregó sus tres redes sociales reales (Facebook, Instagram, X);
+  se agregaron como fila de íconos (SVG inline, mismo criterio que el
+  resto del proyecto — no hay librería de íconos instalada) junto con un
+  ícono de WhatsApp que abre el chat directo (`wa.me/573112644205`), y a
+  pedido del club se quitó el texto plano del correo y el número de
+  teléfono que estaba antes (el correo `mailto:` ya no se muestra en el
+  footer). Los cuatro íconos enlazan a `wa.me/573112644205`,
+  `facebook.com/Clubloschasquiss`, `instagram.com/clubloschasquis` y
+  `x.com/clubloschasquis`. La ubicación física exacta sigue sin
+  confirmar, así que no se agregó ningún dato de dirección.
 - **`components/Header.tsx`** (nuevo, no listado originalmente en esta
   fase): antes de esta home no existía ninguna forma de volver a "/"
   desde `/eventos` o `/transparencia` salvo el botón atrás del
@@ -684,17 +693,53 @@ Verificado con `npx tsc --noEmit` (vía `npm run build`), `npm run lint`,
 y revisión visual con Playwright en desktop (1280px) y móvil (390px) de
 `/`, además de recorrer el flujo completo de deep-link.
 
-**Deliberadamente sin implementar todavía — no es un recorte de
-alcance, es el único bloqueo de contenido que queda de los tres que este
-documento señalaba (cifras y testimonios ya se resolvieron):** la línea
-de tiempo histórica (sección 3). No se creó el modelo `HitoHistorico` que
-sugiere la sección de abajo porque hacerlo ahora habría significado
-construir una pantalla de admin completa para contenido que hoy tiene
-cero filas reales y ninguna forma de llenarse sin inventar fechas o
-descripciones — se espera a que el club entregue el contenido (fotos +
-años + hitos) antes de diseñar ese modelo, tal como pide la nota original
-de "Modelo de datos — a decidir antes de tocar `schema.prisma`" más
-abajo.
+**Implementado (Nuestra historia / línea de tiempo, borrador —
+2026-09-14):** modelo `HitoHistorico { id, anio?, titulo, descripcion,
+imagenUrl?, orden }` (migración `20260914192400_fase9_hitos_historicos`,
+`anio` opcional porque no todos los hitos entregados traen fecha exacta),
+sembrado vía `upsert` por `titulo` en `prisma/seed.ts` (mismo criterio que
+Testimonio/Socio/CifraConfianza, para no pisar ediciones del admin). Solo
+tiene los dos hitos entregados por el club el 2026-09-14, texto literal
+sin agregar fechas ni datos que no vinieran en lo entregado:
+
+1. "Nace el Club" (1980) — fundación por un grupo de jóvenes estudiantes
+   en Tunja.
+2. "Reconocimiento oficial: Personería Jurídica No. 086" (sin fecha
+   confirmada todavía) — consolidación como organización regional.
+
+`components/home/NuestraHistoria.tsx` los muestra como línea de tiempo
+vertical (línea + marcador naranja, tarjeta con año/título/descripción),
+con un aviso visible en la propia sección ("Versión preliminar...") para
+que quede claro en el sitio público que falta contenido, no solo en este
+documento. Las 6 fotos reales entregadas en `public/Historia/` son de un
+evento reciente del club ("Mi Ciudad Corre Tunja 2026"), no archivo
+histórico por año — se usaron 2 de las 6 (`/Historia/2.jpg` en el hito de
+fundación, `/Historia/6.jpg` en el de reconocimiento) como acompañamiento
+visual del relato, sin dar a entender que son fotos de época; las 4
+restantes quedan sin usar hasta que haya más hitos o se decida un uso
+distinto. CRUD completo en `/admin/historia` (mismo patrón modal que
+testimonios/socios/cifras), con año opcional en el formulario. Verificado
+con `npx tsc --noEmit`, `npm run build`, `npm run lint` (los tres sin
+errores) y un `curl` a `/` confirmando que el HTML renderizado trae los
+dos hitos reales desde la base de datos; no se pudo hacer la revisión
+visual con Playwright de fases anteriores porque esta sesión no tiene
+herramienta de navegador disponible — pendiente una revisión visual
+manual antes de dar la sección por terminada.
+
+Queda pendiente (no es un recorte de alcance, es contenido real que
+falta, igual que antes): fotos de archivo por año de ediciones
+anteriores, y confirmar la fecha de la Personería Jurídica No. 086 — el
+modelo y el admin ya están listos para agregarlos sin despliegue nuevo.
+
+**Nota aparte, detectada al sembrar este hito (no es parte de esta
+tarea):** `prisma/seed.ts` sigue haciendo `prisma.evento.deleteMany()`
+incondicional al reseedear. Hoy eso ya falla con una violación de FK
+porque existen inscripciones reales en producción (`Inscripcion_eventoId_fkey`) — el
+reseed completo (`npm run seed`) está efectivamente bloqueado/inseguro
+para producción tal como está. Se sembraron los 2 hitos de esta tarea con
+un script puntual (`upsert`, sin tocar eventos) para no arriesgar datos
+reales. Vale la pena revisar `prisma/seed.ts` en una tarea aparte antes
+de necesitar reseedear de nuevo.
 
 **⚠️ Contenido real que falta recopilar antes de maquetar (no inventar
 cifras ni citas):**
@@ -707,28 +752,26 @@ cifras ni citas):**
       entregados por el club el 2026-09-08 (3 testimonios anónimos, foto
       autorizada), ver "Implementado (Testimonios)" arriba.
 - [ ] Fotos de buena resolución de ediciones anteriores, con año y un
-      dato destacado por cada una, para la línea de tiempo (la galería de
-      momentos ya no depende de esto: usa portadas de evento existentes
-      mientras tanto)
-- [ ] Redes sociales oficiales del club (no hay ninguna enlazada hoy en
-      el sitio) y dirección física exacta, para completar el footer
+      dato destacado por cada una, para la línea de tiempo — las 6 fotos
+      en `public/Historia/` son de un evento reciente (2026), no archivo
+      histórico por año, así que esto sigue pendiente (la galería de
+      momentos no depende de esto: usa portadas de evento existentes)
+- [ ] Fecha exacta del reconocimiento de Personería Jurídica No. 086 (hoy
+      el hito de la línea de tiempo la muestra sin año)
+- [x] ~~Redes sociales oficiales del club~~ — entregadas por el club el
+      2026-09-14 (Facebook, Instagram, X), ver nota de implementación del
+      Footer arriba. Dirección física exacta sigue pendiente.
 - [ ] Confirmar qué avales institucionales siguen vigentes hoy: la
       sección ya lista los reales de `Evento.aval`, pero si alguno de
       esos convenios ya no aplica, hay que quitarlo del evento
       correspondiente en el admin (no hay un paso de "confirmación"
       aparte — es la misma edición de evento de siempre)
 
-**Modelo de datos — a decidir antes de tocar `schema.prisma`:**
-- Para la línea de tiempo: evaluar si conviene un modelo nuevo y
-  liviano tipo `HitoHistorico` (año, título, foto, cifra destacada,
-  descripción corta) en vez de mezclar hitos puramente narrativos con
-  el modelo `Evento` operativo (que tiene inscripción/pago). Mantiene
-  las cosas separadas y más simples de administrar.
-- Para testimonios: modelo `Testimonio` (nombre, rol, cita, fotoUrl,
-  destacado, orden).
-- Para las cifras de confianza: si son solo 3-4 números, puede bastar
-  con campos simples editables desde el admin en vez de una tabla
-  relacional completa.
+**Modelo de datos — ya decidido e implementado (los tres puntos de esta
+lista quedaron resueltos):** línea de tiempo → `HitoHistorico` (ver
+"Implementado" arriba); testimonios → `Testimonio`; cifras de confianza →
+`CifraConfianza`. Los tres son tablas separadas del modelo `Evento`
+operativo, editables desde el admin.
 
 **Pasos de construcción:**
 1. Copy y wireframe de baja fidelidad — validar contigo el orden y los
