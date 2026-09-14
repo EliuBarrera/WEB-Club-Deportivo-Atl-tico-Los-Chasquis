@@ -872,14 +872,52 @@ terminado.
 
 **Fuera de alcance de esta primera versión (documentado, no un
 olvido):** comprobante de pago descargable, versión de Términos
-mostrada en el listado, y reintentar un pago `PENDIENTE` desde esta
-vista (reutilizaría el widget de Wompi que ya existe en
-`FormularioInscripcion.tsx`).
+mostrada en el listado.
+
+**Implementado (2026-09-14, del backlog de abajo):** reintentar pago
+`PENDIENTE`/`RECHAZADO`/`DECLINADO`/`ERROR` y certificado de inscripción
+en PDF, ambos desde `/atletas`.
+
+- **Reintentar pago:** `POST /api/atletas/inscripciones/[id]/pago`
+  (`app/api/atletas/inscripciones/[id]/pago/route.ts`) exige sesión de
+  atleta válida, verifica que la inscripción sea del mismo
+  documento+email de la cookie (si no, 404 genérico — mismo criterio
+  que el resto de /atletas: no confirmar ni negar que existe), y
+  recalcula `generarFirmaIntegridad` (`lib/wompi.ts`) contra el
+  `totalPago` guardado en base — nunca se confía en un monto del
+  cliente, igual que al crear la inscripción. `Reintentar pago` no se
+  ofrece si `estadoPago` ya es `APROBADO`. `components/atletas/
+  AccionesInscripcion.tsx` reabre el widget de Wompi y sondea
+  `GET /api/inscripciones/[id]` (el mismo endpoint público que ya usaba
+  `FormularioInscripcion.tsx` para esto) hasta que el estado deja de ser
+  `PENDIENTE`, con el mismo patrón de carga manual del script del
+  widget (no `next/script`, por el mismo problema ya documentado en
+  Fase 5) y el mismo `INTENTOS_POLLING`/`INTERVALO_POLLING_MS`.
+- **Certificado en PDF:** `GET /api/atletas/inscripciones/[id]/certificado`
+  (mismo patrón de Route Handler + `Content-Disposition: attachment` que
+  el export de CSV del admin) solo lo permite si `estadoPago ===
+  "APROBADO"` y la inscripción es del atleta de la sesión. Se genera al
+  vuelo con `pdf-lib` (`lib/atletas/certificado.ts`) — sin dependencias
+  nativas, sin archivos guardados en disco — con el logo real del club
+  (`public/LogoClub.png`), colores de marca y los datos reales de la
+  inscripción (nombre, evento, categoría/tipo de costo, fecha). El texto
+  dice "se encuentra inscrito/a", no "participó": el sistema no registra
+  asistencia real al evento, solo inscripción y pago aprobado, que es lo
+  único verificable — mismo criterio de "no inventar" del resto del
+  proyecto.
+
+Verificado con `npx tsc --noEmit`, `npm run lint`, `npm run build`, y un
+flujo real contra la base de datos de producción: descarga de
+certificado con sesión propia sobre una inscripción `APROBADO` (PDF
+válido, 200, texto verificado con `pdftotext`); 400 si se pide el
+certificado de una inscripción no `APROBADO`; 404 al pedir el
+certificado o el pago de una inscripción de **otro** atleta (probado
+con dos personas reales distintas en la base, no solo dos inscripciones
+del mismo atleta); `POST /pago` devuelve `totalPago`+`firmaIntegridad`
+sobre una inscripción `PENDIENTE` propia, y 400 si ya está `APROBADO`.
 
 **Backlog de ideas adicionales — no bloquean esta fase, evaluar cuáles
 entran más adelante:**
-- [ ] Certificado de participación descargable en PDF (nombre, evento,
-      categoría, fecha), generado automáticamente
 - [ ] Botón para reenviar el comprobante de pago al correo
 - [ ] Recordatorio de logística del evento (entrega de kit, hora de
       salida), reutilizando los datos que ya existen en `Logistica`

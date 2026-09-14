@@ -108,14 +108,19 @@ export function PublicDock() {
       <Link
         href="/"
         aria-label="Los Chasquis — Inicio"
-        className="flex h-14 w-12 items-center justify-center rounded-full sm:h-16 sm:w-14"
+        className="flex h-14 items-center justify-center rounded-full px-2 sm:h-16 sm:px-3"
       >
+        {/* LogoClub.png es el wordmark completo (726x194, fondo blanco —
+            se ve bien sobre el dock, que también es blanco), no un ícono
+            cuadrado como el Logo.png anterior, así que el slot ya no
+            tiene un ancho fijo: se deja auto-ancho según su relación de
+            aspecto. */}
         <Image
-          src="/Logo.png"
+          src="/LogoClub.png"
           alt=""
-          width={36}
-          height={48}
-          className="h-8 w-auto sm:h-10"
+          width={726}
+          height={194}
+          className="h-7 w-auto sm:h-11"
         />
       </Link>
 

@@ -97,8 +97,8 @@ export function Footer({ terminos }: { terminos: TerminosVigente }) {
             className="text-gris-oscuro transition-colors hover:text-naranja"
           >
             <svg
-              width="20"
-              height="20"
+              width="28"
+              height="28"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"

@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { PublicDock } from "@/components/PublicDock";
 import { Footer } from "@/components/Footer";
 import { FormularioBusqueda } from "@/components/atletas/FormularioBusqueda";
+import { AccionesInscripcion } from "@/components/atletas/AccionesInscripcion";
 import { getInscripcionesAtleta } from "@/lib/atletas/dal";
 import { cerrarSesionAtletaAction } from "./actions";
 import { getTerminosVigente } from "@/lib/eventos";
@@ -98,6 +99,10 @@ export default async function AtletasPage() {
                       <span className="font-display text-lg font-extrabold">
                         {formatPrecio(inscripcion.totalPago)}
                       </span>
+                      <AccionesInscripcion
+                        inscripcionId={inscripcion.id}
+                        estadoPago={inscripcion.estadoPago}
+                      />
                     </div>
                   </li>
                 ))}
