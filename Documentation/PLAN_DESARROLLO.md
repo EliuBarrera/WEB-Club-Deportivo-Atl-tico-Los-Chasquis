@@ -903,8 +903,48 @@ en PDF, ambos desde `/atletas`.
   inscripción (nombre, evento, categoría/tipo de costo, fecha). El texto
   dice "se encuentra inscrito/a", no "participó": el sistema no registra
   asistencia real al evento, solo inscripción y pago aprobado, que es lo
-  único verificable — mismo criterio de "no inventar" del resto del
-  proyecto.
+  único verificable.
+
+  **Diseño (2026-09-14):** se presentaron 3 propuestas como mockups HTML
+  (artifact, no en el repo) inspiradas en objetos reales del día de
+  carrera en vez de un "diploma" genérico — "Dorsal" (número grande,
+  ojales de imperdible, borde perforado), "Acta de meta" (fondo
+  invertido, formato de planilla oficial, sello circular) y "Arco de
+  meta" (franja diagonal + fichas tipo "cifras de confianza" de la
+  home). El club eligió combinar "Dorsal" como estructura base con el
+  sello circular de "Acta de meta" en la esquina inferior derecha (con
+  las iniciales "LC", levemente rotado). El "número de dorsal" grande es
+  un hash corto y determinista del id de la inscripción (`numeroDesdeId`
+  en `lib/atletas/certificado.ts`) — siempre el mismo para la misma
+  inscripción, nunca aleatorio; no es un dato nuevo que el proyecto
+  empiece a inventar, solo una presentación visual del id real, que
+  además se sigue imprimiendo completo como referencia al pie. Iterado
+  con verificación visual real (no solo texto extraído): cada versión se
+  generó contra el endpoint real, se rasterizó con `pdftoppm` y se
+  revisó como imagen antes de la versión final — así se detectaron y
+  corrigieron a tiempo comillas dobles en títulos de evento que ya
+  traían comillas propias, y una marca de esquina que por accidente se
+  leía como ícono de "prohibido" en vez de ojal de dorsal.
+
+  A pedido puntual del club (mismo día): fondo con el banner
+  institucional del club (`public/Banner-01.jpg`, la silueta de
+  corredor a modo de marca de agua, ya venía en `public/` sin usar
+  desde Fase 9) en vez del fondo crema plano, dibujado a modo "cover"
+  (se recorta el ancho sobrante por los lados, nunca se deforma), y el
+  logo del club considerablemente más grande. El resto de textos y
+  marcas pasaron de casi-negro a crema/gris claro para seguir siendo
+  legibles sobre el fondo oscuro; el naranja de marca no cambió porque
+  ya contrastaba bien en ambos fondos.
+
+  El logo pasó por dos versiones el mismo día: primero `LogoClub.png`
+  (fondo blanco sólido de fábrica) sobre una placa blanca dibujada
+  aparte — necesaria porque un borde fino solo no se notaba sobre una
+  foto tan oscura —, y después, a pedido del club,
+  `cropped-cropped-Logo-png.png`: la versión en texto claro que ya
+  existía en `public/` pensada de fábrica para fondos oscuros (el mismo
+  wordmark que usa `public/admin-banner.jpg` en el panel admin) y con
+  fondo transparente, así que va directo sobre el banner sin necesitar
+  ninguna placa detrás. Quedó esta segunda versión.
 
 Verificado con `npx tsc --noEmit`, `npm run lint`, `npm run build`, y un
 flujo real contra la base de datos de producción: descarga de
