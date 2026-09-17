@@ -5,7 +5,6 @@ import {
   PDFDocument,
   StandardFonts,
   rgb,
-  degrees,
   type PDFFont,
   type PDFPage,
 } from "pdf-lib";
@@ -72,36 +71,6 @@ function envolverTexto(
   }
   if (actual) lineas.push(actual);
   return lineas;
-}
-
-// Centra `texto` rotado `anguloGrados` alrededor del punto (cx, cy). El
-// anclaje de drawText es el punto donde pivota la rotación (no el centro
-// visual del texto), así que hay que resolver la posición del ancla para
-// que, una vez rotado, el centro del texto caiga exactamente en (cx, cy).
-function centrarTextoRotado(
-  page: PDFPage,
-  texto: string,
-  cx: number,
-  cy: number,
-  font: PDFFont,
-  size: number,
-  anguloGrados: number,
-  color = NARANJA
-) {
-  const ancho = font.widthOfTextAtSize(texto, size);
-  const dx = ancho / 2;
-  const dy = size * 0.32; // aprox. la mitad de la altura visual del glifo
-  const theta = (anguloGrados * Math.PI) / 180;
-  const rx = dx * Math.cos(theta) - dy * Math.sin(theta);
-  const ry = dx * Math.sin(theta) + dy * Math.cos(theta);
-  page.drawText(texto, {
-    x: cx - rx,
-    y: cy - ry,
-    size,
-    font,
-    color,
-    rotate: degrees(anguloGrados),
-  });
 }
 
 // Ojal de dorsal (el hueco por donde pasa el imperdible), no el
@@ -267,26 +236,26 @@ export async function generarCertificadoPdf(datos: {
     });
   });
 
-  // Sello circular "LC" (propuesta "Acta de meta"), abajo a la derecha —
-  // no en la esquina misma, para no chocar con la marca de imperdible.
+  // Sello oficial del club, abajo a la derecha — no en la esquina misma,
+  // para no chocar con la marca de imperdible.
   const selloX = ANCHO - 105;
   const selloY = 98;
-  page.drawCircle({
-    x: selloX,
-    y: selloY,
-    size: 34,
-    borderColor: NARANJA,
-    borderWidth: 2,
-  });
-  page.drawCircle({
-    x: selloX,
-    y: selloY,
-    size: 29,
-    borderColor: NARANJA,
-    borderWidth: 0.75,
-    borderOpacity: 0.5,
-  });
-  centrarTextoRotado(page, "LC", selloX, selloY, bold, 22, 8, NARANJA);
+  try {
+    const selloBytes = await readFile(
+      path.join(process.cwd(), "public", "Sello.png")
+    );
+    const selloImg = await documento.embedPng(selloBytes);
+    const selloAncho = 90;
+    const selloAlto = (selloImg.height / selloImg.width) * selloAncho;
+    page.drawImage(selloImg, {
+      x: selloX - selloAncho / 2,
+      y: selloY - selloAlto / 2,
+      width: selloAncho,
+      height: selloAlto,
+    });
+  } catch (error) {
+    console.error("No se pudo incrustar el sello en el certificado:", error);
+  }
 
   // Referencia completa + fecha de generación, abajo a la izquierda —
   // trazabilidad real, no reemplaza el número decorativo de arriba.
