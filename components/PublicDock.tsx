@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LoaderTransicion, useLoaderTransicion } from "./LoaderTransicion";
 
 const NAV_ITEMS = [
   {
@@ -97,56 +98,103 @@ const NAV_ITEMS = [
 // ítem) desbordaría un viewport de ~390px. Por eso en móvil los ítems se
 // achican a solo ícono (sin etiqueta) y recuperan el ancho/etiqueta
 // completos desde `sm:`.
-export function PublicDock() {
+//
+// `cerrarSesionAction` es opcional porque este dock se monta en todas
+// las páginas públicas, pero solo /atletas sabe si hay una sesión de
+// atleta activa (cookie `atleta_sesion`, ver lib/atletas/sesion.ts): esa
+// página es la única que pasa la prop, así que el botón de cerrar sesión
+// solo aparece ahí — igual que el de components/admin/Dock.tsx.
+export function PublicDock({
+  cerrarSesionAction,
+}: {
+  cerrarSesionAction?: () => Promise<void>;
+}) {
   const pathname = usePathname();
+  const { navegando, irA } = useLoaderTransicion(pathname);
 
   return (
-    <nav
-      aria-label="Navegación principal"
-      className="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white p-2 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)] sm:bottom-7 sm:gap-1.5"
-    >
-      <Link
-        href="/"
-        aria-label="Los Chasquis — Inicio"
-        className="flex h-14 items-center justify-center rounded-full px-2 sm:h-16 sm:px-3"
+    <>
+      <LoaderTransicion activo={navegando} />
+      <nav
+        aria-label="Navegación principal"
+        className="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white p-2 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)] sm:bottom-7 sm:gap-1.5"
       >
-        {/* LogoClub.png es el wordmark completo (726x194, fondo blanco —
+        <Link
+          href="/"
+          aria-label="Los Chasquis — Inicio"
+          onClick={() => irA("/")}
+          className="flex h-14 items-center justify-center rounded-full px-2 sm:h-16 sm:px-3"
+        >
+          {/* LogoClub.png es el wordmark completo (726x194, fondo blanco —
             se ve bien sobre el dock, que también es blanco), no un ícono
             cuadrado como el Logo.png anterior, así que el slot ya no
             tiene un ancho fijo: se deja auto-ancho según su relación de
             aspecto. */}
-        <Image
-          src="/LogoClub.png"
-          alt=""
-          width={726}
-          height={194}
-          className="h-7 w-auto sm:h-11"
-        />
-      </Link>
+          <Image
+            src="/LogoClub.png"
+            alt=""
+            width={726}
+            height={194}
+            className="h-7 w-auto sm:h-11"
+          />
+        </Link>
 
-      <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
+        <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
 
-      {NAV_ITEMS.map((item) => {
-        const activo =
-          item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-label={item.etiqueta}
-            className={
-              activo
-                ? "flex h-14 w-12 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] sm:h-16 sm:w-[104px]"
-                : "flex h-14 w-12 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro sm:h-16 sm:w-[104px]"
-            }
-          >
-            {item.icono}
-            <span className="hidden font-display text-[11px] font-extrabold uppercase tracking-wide sm:block">
-              {item.etiqueta}
-            </span>
-          </Link>
-        );
-      })}
-    </nav>
+        {NAV_ITEMS.map((item) => {
+          const activo =
+            item.href === "/"
+              ? pathname === "/"
+              : pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-label={item.etiqueta}
+              onClick={() => irA(item.href)}
+              className={
+                activo
+                  ? "flex h-14 w-12 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] sm:h-16 sm:w-[104px]"
+                  : "flex h-14 w-12 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro sm:h-16 sm:w-[104px]"
+              }
+            >
+              {item.icono}
+              <span className="hidden font-display text-[11px] font-extrabold uppercase tracking-wide sm:block">
+                {item.etiqueta}
+              </span>
+            </Link>
+          );
+        })}
+
+        {cerrarSesionAction ? (
+          <>
+            <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
+
+            <form action={cerrarSesionAction}>
+              <button
+                type="submit"
+                aria-label="Cerrar sesión"
+                className="flex h-14 w-12 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro sm:h-16 sm:w-14"
+              >
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </button>
+            </form>
+          </>
+        ) : null}
+      </nav>
+    </>
   );
 }

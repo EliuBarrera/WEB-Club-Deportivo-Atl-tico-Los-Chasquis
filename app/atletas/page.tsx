@@ -33,19 +33,9 @@ export default async function AtletasPage() {
           <FormularioBusqueda />
         ) : (
           <div className="flex w-full flex-col gap-6">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h1 className="font-display text-3xl font-black uppercase tracking-tight sm:text-4xl">
-                Mis inscripciones
-              </h1>
-              <form action={cerrarSesionAtletaAction}>
-                <button
-                  type="submit"
-                  className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full bg-white px-4 py-1.5 font-display text-sm font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
-                >
-                  Cerrar sesión
-                </button>
-              </form>
-            </div>
+            <h1 className="font-display text-3xl font-black uppercase tracking-tight sm:text-4xl">
+              Mis inscripciones
+            </h1>
 
             {inscripciones.length === 0 ? (
               <p className="text-gris-oscuro">
@@ -112,7 +102,11 @@ export default async function AtletasPage() {
         )}
       </main>
       <Footer terminos={terminos} />
-      <PublicDock />
+      <PublicDock
+        cerrarSesionAction={
+          inscripciones !== null ? cerrarSesionAtletaAction : undefined
+        }
+      />
     </>
   );
 }
