@@ -7,9 +7,11 @@ import { TarjetaEvento } from "./TarjetaEvento";
 export function CarruselEventos({
   eventos,
   onInscribirte,
+  mensajeVacio = "No hay eventos publicados por el momento.",
 }: {
   eventos: EventoPublicado[];
   onInscribirte: (eventoId: string) => void;
+  mensajeVacio?: string;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -23,9 +25,7 @@ export function CarruselEventos({
 
   if (eventos.length === 0) {
     return (
-      <p className="text-center text-lg text-gris-oscuro">
-        No hay eventos publicados por el momento.
-      </p>
+      <p className="text-center text-lg text-gris-oscuro">{mensajeVacio}</p>
     );
   }
 
