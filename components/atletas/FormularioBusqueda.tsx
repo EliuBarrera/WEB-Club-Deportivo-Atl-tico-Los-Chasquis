@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { LoaderTransicion } from "@/components/LoaderTransicion";
 
 declare global {
   interface Window {
@@ -14,7 +15,7 @@ declare global {
           callback: (token: string) => void;
           "expired-callback"?: () => void;
           "error-callback"?: () => void;
-        }
+        },
       ) => string;
       reset: (widgetId?: string) => void;
     };
@@ -48,12 +49,15 @@ export function FormularioBusqueda() {
       return;
     }
     turnstileContainerRef.current.innerHTML = "";
-    widgetIdRef.current = window.turnstile.render(turnstileContainerRef.current, {
-      sitekey,
-      callback: (token) => setTurnstileToken(token),
-      "expired-callback": () => setTurnstileToken(null),
-      "error-callback": () => setTurnstileToken(null),
-    });
+    widgetIdRef.current = window.turnstile.render(
+      turnstileContainerRef.current,
+      {
+        sitekey,
+        callback: (token) => setTurnstileToken(token),
+        "expired-callback": () => setTurnstileToken(null),
+        "error-callback": () => setTurnstileToken(null),
+      },
+    );
   }
 
   async function enviar(evt: React.FormEvent) {
@@ -77,7 +81,7 @@ export function FormularioBusqueda() {
         const datos = await respuesta.json().catch(() => null);
         setError(
           datos?.error ??
-            "No encontramos inscripciones con esos datos. Verifica el número de documento y el correo usados al inscribirte."
+            "No encontramos inscripciones con esos datos. Verifica el número de documento y el correo usados al inscribirte.",
         );
         window.turnstile?.reset(widgetIdRef.current);
         setTurnstileToken(null);
@@ -96,6 +100,8 @@ export function FormularioBusqueda() {
 
   return (
     <div className="flex w-full max-w-md flex-col gap-5 rounded-[20px] bg-white p-6 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+      <LoaderTransicion activo={enviando} mensaje="Buscando…" />
+
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js"
         strategy="afterInteractive"
@@ -107,8 +113,8 @@ export function FormularioBusqueda() {
           Mis inscripciones
         </h2>
         <p className="text-sm text-gris-oscuro">
-          Ingresa el número de documento y el correo que usaste al
-          inscribirte para ver tus inscripciones.
+          Ingresa el número de documento y el correo que usaste al inscribirte
+          para ver tus inscripciones.
         </p>
       </div>
 

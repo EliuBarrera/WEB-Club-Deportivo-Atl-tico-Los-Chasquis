@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LoaderTransicion, useLoaderTransicion } from "../LoaderTransicion";
 
 const NAV_ITEMS = [
   {
@@ -170,56 +171,61 @@ export function Dock({
   cerrarSesionAction: () => Promise<void>;
 }) {
   const pathname = usePathname();
+  const { navegando, irA } = useLoaderTransicion(pathname);
 
   return (
-    <nav
-      aria-label="Navegación panel admin"
-      className="fixed bottom-7 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white p-2 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)]"
-    >
-      {NAV_ITEMS.map((item) => {
-        const activo = pathname.startsWith(item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={
-              activo
-                ? "flex h-16 w-[116px] flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
-                : "flex h-16 w-[116px] flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro"
-            }
-          >
-            {item.icono}
-            <span className="font-display text-[11px] font-extrabold uppercase tracking-wide">
-              {item.etiqueta}
-            </span>
-          </Link>
-        );
-      })}
+    <>
+      <LoaderTransicion activo={navegando} />
+      <nav
+        aria-label="Navegación panel admin"
+        className="fixed bottom-7 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white p-2 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)]"
+      >
+        {NAV_ITEMS.map((item) => {
+          const activo = pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => irA(item.href)}
+              className={
+                activo
+                  ? "flex h-16 w-[116px] flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
+                  : "flex h-16 w-[116px] flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro"
+              }
+            >
+              {item.icono}
+              <span className="font-display text-[11px] font-extrabold uppercase tracking-wide">
+                {item.etiqueta}
+              </span>
+            </Link>
+          );
+        })}
 
-      <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
+        <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
 
-      <form action={cerrarSesionAction}>
-        <button
-          type="submit"
-          aria-label="Cerrar sesión"
-          className="flex h-16 w-14 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro"
-        >
-          <svg
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+        <form action={cerrarSesionAction}>
+          <button
+            type="submit"
+            aria-label="Cerrar sesión"
+            className="flex h-16 w-14 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro"
           >
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-            <polyline points="16 17 21 12 16 7" />
-            <line x1="21" y1="12" x2="9" y2="12" />
-          </svg>
-        </button>
-      </form>
-    </nav>
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
+        </form>
+      </nav>
+    </>
   );
 }
