@@ -4,8 +4,8 @@ import { useState } from "react";
 import type { HitoHistoricoAdmin } from "@/lib/admin/dal";
 import { HistoriaModal } from "@/components/admin/HistoriaModal";
 
-// Único componente cliente de /admin/historia — mismo patrón que
-// TestimoniosAdmin.tsx / CifrasConfianzaAdmin.tsx.
+// Sub-panel de la pestaña "Historia" en /admin/contenido — mismo patrón
+// que TestimoniosAdmin.tsx / CifrasConfianzaAdmin.tsx.
 export function HistoriaAdmin({
   hitos,
   crearAction,

@@ -2,7 +2,8 @@ import type { CifraConfianzaPublica } from "@/lib/cifras";
 
 // Fase 9, sección "Barra de cifras de confianza": franja angosta con
 // números grandes en Space Mono. Cifras reales entregadas por el club
-// (editables desde /admin/cifras) — no se inventan ni se recalculan acá.
+// (editables desde /admin/contenido, pestaña Cifras) — no se inventan ni
+// se recalculan acá.
 export function CifrasConfianza({
   cifras,
 }: {

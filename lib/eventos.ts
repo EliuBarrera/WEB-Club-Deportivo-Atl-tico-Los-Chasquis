@@ -1,11 +1,31 @@
 import { prisma } from "@/lib/prisma";
 
+// Cierre automático de eventos vencidos: este proyecto no tiene cron ni
+// cola (ver la nota en app/admin/(panel)/eventos/actions.ts), así que en
+// vez de un job programado, esto se dispara como efecto secundario de las
+// lecturas más visitadas (getEventosPublicados acá abajo, y
+// getEventosParaAdmin en lib/admin/dal.ts) — mismo criterio que
+// ESTADOS_PAGO_PURGABLES/checkRateLimit. Solo toca ABIERTO con `fecha` ya
+// pasada; BORRADOR nunca se publica solo, y un evento que el admin cerró
+// a mano antes de la fecha (ej. cupo lleno) se queda CERRADO, no se
+// reabre. `app/api/inscripciones/route.ts` además valida `fecha` en el
+// momento mismo de inscribirse, por si esto no alcanzó a correr todavía
+// para ese evento puntual.
+export async function cerrarEventosVencidos() {
+  await prisma.evento.updateMany({
+    where: { estado: "ABIERTO", fecha: { lt: new Date() } },
+    data: { estado: "CERRADO" },
+  });
+}
+
 // Campos necesarios para el carrusel de /eventos, la columna izquierda
 // de la vista de inscripción (Fase 2) y el panel de tabs con el detalle
 // completo del evento (Fase 3). Se trae todo en una sola consulta porque
 // la vista de inscripción alterna entre eventos del lado del cliente,
 // sin una ruta propia por evento.
 export async function getEventosPublicados() {
+  await cerrarEventosVencidos();
+
   return prisma.evento.findMany({
     where: { estado: { in: ["ABIERTO", "CERRADO"] } },
     orderBy: { fecha: "asc" },

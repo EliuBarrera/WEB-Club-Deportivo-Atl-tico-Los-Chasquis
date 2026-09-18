@@ -1,4 +1,5 @@
 import {
+  getConteoInscripcionesPurgables,
   getDashboardIngresos,
   getEventosParaFiltro,
   getInscripcionesPorEvento,
@@ -6,6 +7,9 @@ import {
 } from "@/lib/admin/dal";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
 import { ESTADOS_PAGO, ESTADO_PAGO_BADGE } from "@/lib/estadoPagoBadge";
+import { Toast } from "@/components/admin/Toast";
+import { PurgarInscripcionesButton } from "@/components/admin/PurgarInscripcionesButton";
+import { purgarInscripcionesFallidas } from "./actions";
 
 const WOMPI_LOGIN_URL = "https://comercios.wompi.co";
 
@@ -19,12 +23,15 @@ export default async function InscripcionesPage({
   await verifySession();
 
   const params = await searchParams;
-  // getEventosParaFiltro y getDashboardIngresos no dependen entre sí — se
-  // piden en paralelo para no sumar dos round-trips secuenciales a Neon
-  // (cada uno pasa por verifySession() por separado, ver lib/admin/dal.ts).
-  const [eventos, dashboard] = await Promise.all([
+  const purgadoParam = primerValor(params.purgado);
+  // getEventosParaFiltro, getDashboardIngresos y el conteo de purgables no
+  // dependen entre sí — se piden en paralelo para no sumar round-trips
+  // secuenciales a Neon (cada uno pasa por verifySession() por separado,
+  // ver lib/admin/dal.ts).
+  const [eventos, dashboard, conteoPurgables] = await Promise.all([
     getEventosParaFiltro(),
     getDashboardIngresos(),
+    getConteoInscripcionesPurgables(),
   ]);
 
   const eventoId = primerValor(params.eventoId) ?? eventos[0]?.id;
@@ -45,6 +52,16 @@ export default async function InscripcionesPage({
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+      <Toast
+        key={purgadoParam}
+        mensaje={
+          purgadoParam
+            ? `Se purgaron ${purgadoParam} inscripcion${purgadoParam === "1" ? "" : "es"} fallida${purgadoParam === "1" ? "" : "s"}`
+            : null
+        }
+        paramsALimpiar={["purgado"]}
+      />
+
       <section className="flex flex-col gap-4">
         <h2 className="font-display text-2xl font-extrabold uppercase text-white">
           Dashboard de ingresos
@@ -110,9 +127,16 @@ export default async function InscripcionesPage({
       </section>
 
       <div className="flex flex-col gap-6">
-        <h1 className="font-display text-4xl font-extrabold uppercase text-white">
-          Inscripciones
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-display text-4xl font-extrabold uppercase text-white">
+            Inscripciones
+          </h1>
+
+          <PurgarInscripcionesButton
+            conteo={conteoPurgables}
+            purgarAction={purgarInscripcionesFallidas}
+          />
+        </div>
 
         <form className="flex flex-wrap items-end gap-4 rounded-[20px] bg-white p-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
           <label className="flex flex-col gap-1.5">

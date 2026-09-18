@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LoaderTransicion, useLoaderTransicion } from "./LoaderTransicion";
+import { FormularioCargando } from "./FormularioCargando";
 
 const NAV_ITEMS = [
   {
@@ -171,6 +172,7 @@ export function PublicDock({
             <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
 
             <form action={cerrarSesionAction}>
+              <FormularioCargando mensaje="Cerrando sesión…" />
               <button
                 type="submit"
                 aria-label="Cerrar sesión"

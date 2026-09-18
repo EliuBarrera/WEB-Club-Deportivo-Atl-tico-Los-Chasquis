@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { CifraConfianzaAdmin } from "@/lib/admin/dal";
 import { CifraConfianzaModal } from "@/components/admin/CifraConfianzaModal";
 
-// Único componente cliente de /admin/cifras — mismo patrón que
+// Sub-panel de la pestaña "Cifras" en /admin/contenido — mismo patrón que
 // DocumentosLegalesAdmin.tsx.
 export function CifrasConfianzaAdmin({
   cifras,

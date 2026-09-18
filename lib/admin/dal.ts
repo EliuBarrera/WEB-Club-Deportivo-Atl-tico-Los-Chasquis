@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import type { EstadoPago } from "@prisma/client";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { ESTADOS_PAGO_PURGABLES } from "@/lib/estadoPagoBadge";
+import { cerrarEventosVencidos } from "@/lib/eventos";
 
 // Data Access Layer del panel admin (Fase 6, incremento 1). Cada función
 // que lee/escribe datos de admin pasa por aquí y repite la verificación de
@@ -142,10 +144,26 @@ export type DashboardIngresos = Awaited<
   ReturnType<typeof getDashboardIngresos>
 >;
 
+// Cuántas inscripciones son candidatas a purgar ahora mismo (ver
+// ESTADOS_PAGO_PURGABLES): se muestra en /admin/inscripciones antes de que
+// el admin confirme el borrado real (purgarInscripcionesFallidas, en
+// app/admin/(panel)/inscripciones/actions.ts), para que no dispare la
+// acción a ciegas.
+export async function getConteoInscripcionesPurgables() {
+  await verifySession();
+  return prisma.inscripcion.count({
+    where: {
+      estadoPago: { in: [...ESTADOS_PAGO_PURGABLES] },
+      evento: { fecha: { lt: new Date() } },
+    },
+  });
+}
+
 // CRUD de eventos (Fase 6)
 
 export async function getEventosParaAdmin() {
   await verifySession();
+  await cerrarEventosVencidos();
   return prisma.evento.findMany({
     orderBy: { fecha: "desc" },
     select: {

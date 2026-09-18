@@ -2,7 +2,8 @@ import Image from "next/image";
 import type { HitoHistoricoPublico } from "@/lib/historia";
 
 // Fase 9, sección "Nuestra historia / línea de tiempo": recorrido
-// cronológico por la historia del club, editable desde /admin/historia.
+// cronológico por la historia del club, editable desde /admin/contenido
+// (pestaña Historia).
 // Hoy es un BORRADOR a propósito (ver PLAN_DESARROLLO.md) — solo tiene los
 // dos hitos entregados por el club (fundación en 1980 y Personería
 // Jurídica No. 086), a la espera de que el club entregue más hitos (fotos

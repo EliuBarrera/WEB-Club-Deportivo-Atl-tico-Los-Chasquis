@@ -18,3 +18,16 @@ export const ESTADO_PAGO_BADGE: Record<EstadoPago, string> = {
   RECHAZADO: "bg-casi-negro/[0.06] text-casi-negro",
   DECLINADO: "bg-casi-negro/[0.06] text-casi-negro",
 };
+
+// Estados fallidos y definitivos (nunca se van a reintentar): candidatos a
+// purgar una vez el evento ya pasó, para no dejar crecer la tabla
+// Inscripcion con intentos muertos. PENDIENTE queda afuera a propósito —
+// podría reconciliarse manualmente después — y APROBADO nunca se toca.
+// Compartido entre lib/admin/dal.ts (conteo) y
+// app/admin/(panel)/inscripciones/actions.ts (borrado), para que ambos
+// usen exactamente el mismo criterio.
+export const ESTADOS_PAGO_PURGABLES = [
+  "ERROR",
+  "RECHAZADO",
+  "DECLINADO",
+] as const satisfies readonly EstadoPago[];

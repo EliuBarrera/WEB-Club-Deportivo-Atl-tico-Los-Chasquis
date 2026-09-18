@@ -4,9 +4,9 @@ import { useState } from "react";
 import type { DocumentoLegalAdmin } from "@/lib/admin/dal";
 import { DocumentoLegalModal } from "@/components/admin/DocumentoLegalModal";
 
-// Único componente cliente de /admin/documentos: mantiene qué fila está en
-// edición (o "nueva") y arma las Server Actions ligadas al id, mismo patrón
-// que la pestaña de noticias en EventoEditor.tsx.
+// Sub-panel de la pestaña "Documentos" en /admin/legal: mantiene qué fila
+// está en edición (o "nueva") y arma las Server Actions ligadas al id,
+// mismo patrón que la pestaña de noticias en EventoEditor.tsx.
 export function DocumentosLegalesAdmin({
   documentos,
   crearAction,

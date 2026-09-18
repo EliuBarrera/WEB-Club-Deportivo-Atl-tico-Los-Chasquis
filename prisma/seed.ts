@@ -1347,7 +1347,7 @@ async function main() {
 
   // Documentos legales (Fase 9): igual que TerminosBase, se usa `upsert` por
   // `url` (no delete+recreate) para no pisar ediciones que el admin ya haya
-  // hecho desde /admin/documentos. Lista real tomada de
+  // hecho desde /admin/legal (pestaña Documentos). Lista real tomada de
   // Documentation/reglamento-legal-section.html (subido por Alejandro).
   console.log("Sembrando documentos legales...");
   for (const [index, documento] of documentosLegales.entries()) {
@@ -1360,7 +1360,7 @@ async function main() {
 
   // Cifras de confianza (Fase 9): mismo criterio que documentos legales —
   // `upsert` por `etiqueta` para no pisar ediciones que el admin ya haya
-  // hecho desde /admin/cifras.
+  // hecho desde /admin/contenido (pestaña Cifras).
   console.log("Sembrando cifras de confianza...");
   for (const [index, cifra] of cifrasConfianza.entries()) {
     await prisma.cifraConfianza.upsert({

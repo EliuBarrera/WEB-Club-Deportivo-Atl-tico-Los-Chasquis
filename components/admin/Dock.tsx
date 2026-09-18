@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LoaderTransicion, useLoaderTransicion } from "../LoaderTransicion";
+import { FormularioCargando } from "../FormularioCargando";
 
 const NAV_ITEMS = [
   {
@@ -62,8 +63,8 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/terminos",
-    etiqueta: "Términos",
+    href: "/admin/legal",
+    etiqueta: "Legal",
     icono: (
       <svg
         width="22"
@@ -83,8 +84,8 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/admin/documentos",
-    etiqueta: "Documentos",
+    href: "/admin/contenido",
+    etiqueta: "Contenido",
     icono: (
       <svg
         width="22"
@@ -96,45 +97,10 @@ const NAV_ITEMS = [
         strokeLinecap="round"
         strokeLinejoin="round"
       >
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/cifras",
-    etiqueta: "Cifras",
-    icono: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <line x1="18" y1="20" x2="18" y2="10" />
-        <line x1="12" y1="20" x2="12" y2="4" />
-        <line x1="6" y1="20" x2="6" y2="14" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/testimonios",
-    etiqueta: "Testimonios",
-    icono: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        <rect x="3" y="3" width="8" height="8" rx="1.5" />
+        <rect x="13" y="3" width="8" height="8" rx="1.5" />
+        <rect x="3" y="13" width="8" height="8" rx="1.5" />
+        <rect x="13" y="13" width="8" height="8" rx="1.5" />
       </svg>
     ),
   },
@@ -156,25 +122,6 @@ const NAV_ITEMS = [
         <path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2" />
         <path d="M17 3.13a4 4 0 0 1 0 7.75" />
         <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      </svg>
-    ),
-  },
-  {
-    href: "/admin/historia",
-    etiqueta: "Historia",
-    icono: (
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <circle cx="12" cy="12" r="10" />
-        <polyline points="12 6 12 12 16 14" />
       </svg>
     ),
   },
@@ -223,6 +170,7 @@ export function Dock({
         <div className="mx-0.5 w-px self-stretch bg-casi-negro/10" />
 
         <form action={cerrarSesionAction}>
+          <FormularioCargando mensaje="Cerrando sesión…" />
           <button
             type="submit"
             aria-label="Cerrar sesión"

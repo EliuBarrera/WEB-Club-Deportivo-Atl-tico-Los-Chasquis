@@ -1,8 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
 import { AuthError } from "next-auth";
 import { redirect } from "next/navigation";
 import { signIn } from "@/auth";
-import { LoginCargando } from "@/components/admin/LoginCargando";
+import { FormularioCargando } from "@/components/FormularioCargando";
 
 async function iniciarSesion(formData: FormData) {
   "use server";
@@ -46,6 +47,26 @@ export default async function LoginPage({
           borde recto). */}
       <div className="relative z-10 flex w-full flex-1 items-center bg-white px-6 py-16 sm:px-10 md:w-[45%] md:flex-none md:[clip-path:polygon(0_0,76%_0,100%_23%,84%_90%,0_100%)] lg:w-[42%]">
         <div className="flex w-full max-w-sm flex-col gap-5 md:ml-[10%]">
+          <Link
+            href="/"
+            className="inline-flex w-fit items-center gap-1.5 font-display text-sm font-bold uppercase text-gris-oscuro transition-colors hover:text-naranja"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M19 12H5" />
+              <path d="m12 19-7-7 7-7" />
+            </svg>
+            Ir al inicio
+          </Link>
+
           <h1 className="font-display text-4xl font-extrabold uppercase tracking-tight">
             Panel admin
           </h1>
@@ -57,7 +78,7 @@ export default async function LoginPage({
           )}
 
           <form action={iniciarSesion} className="flex flex-col gap-5">
-            <LoginCargando />
+            <FormularioCargando mensaje="Iniciando sesión…" />
             <label className="flex flex-col gap-1.5">
               <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
                 Email

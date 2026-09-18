@@ -90,7 +90,12 @@ export async function POST(request: NextRequest) {
       { status: 404 }
     );
   }
-  if (evento.estado !== "ABIERTO") {
+  // `evento.fecha` se valida acá además de `estado`: el cierre automático
+  // de eventos vencidos (cerrarEventosVencidos, en lib/eventos.ts) corre
+  // como efecto secundario de las lecturas del listado público/admin, no
+  // en cada request — así que un evento vencido que nadie listó todavía
+  // puede seguir marcado ABIERTO en la base al momento de este POST.
+  if (evento.estado !== "ABIERTO" || evento.fecha < new Date()) {
     return NextResponse.json(
       { error: "Este evento no tiene inscripciones abiertas" },
       { status: 400 }

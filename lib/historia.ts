@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
 // Lectura pública para la línea de tiempo de la home (Fase 9). El admin
-// gestiona la lista desde /admin/historia — ver lib/admin/dal.ts para la
+// gestiona la lista desde /admin/contenido (pestaña Historia) — ver
+// lib/admin/dal.ts para la
 // variante que usa el panel.
 export async function getHitosHistoricos() {
   return prisma.hitoHistorico.findMany({

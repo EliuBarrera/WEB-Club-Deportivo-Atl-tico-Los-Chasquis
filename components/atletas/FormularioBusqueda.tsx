@@ -99,7 +99,7 @@ export function FormularioBusqueda() {
   }
 
   return (
-    <div className="flex w-full max-w-md flex-col gap-5 rounded-[20px] bg-white p-6 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+    <div className="flex w-full max-w-sm flex-col gap-5 md:ml-[10%]">
       <LoaderTransicion activo={enviando} mensaje="Buscando…" />
 
       <Script

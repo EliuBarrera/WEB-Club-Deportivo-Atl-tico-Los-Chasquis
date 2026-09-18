@@ -248,7 +248,7 @@ declaración de aceptación) del documento de referencia de un evento real
 lo específico de esa carrera. La sección de **tratamiento de datos
 personales queda como `[TODO]`** dentro del contenido: ese documento no
 traía ese texto y el proyecto no inventa contenido legal — el club debe
-redactarlo y actualizarlo desde `/admin/terminos`.
+redactarlo y actualizarlo desde `/admin/legal` (pestaña Términos).
 
 `components/eventos/ModalTerminos.tsx` es el único componente de modal,
 usado tanto desde el checkbox de `FormularioInscripcion.tsx` (con las
@@ -551,7 +551,8 @@ participantes", "15+ categorías para participar") vía `upsert` por
 `etiqueta` en `prisma/seed.ts` — mismo criterio que `DocumentoLegal`, un
 reseed no pisa ediciones del admin. `componentes/home/CifrasConfianza.tsx`
 la muestra como franja oscura justo debajo del Hero, en Space Mono; CRUD
-completo en `/admin/cifras` (mismo patrón modal que `DocumentoLegal`).
+completo en `/admin/contenido` (pestaña Cifras, mismo patrón modal que
+`DocumentoLegal`).
 Verificado con `npm run build`, `npm run lint` y revisión visual con
 Playwright en desktop y móvil.
 
@@ -570,7 +571,7 @@ de otro club". Sembrado vía `upsert` por `cita` en `prisma/seed.ts`
 `components/home/Testimonios.tsx` los muestra en grid de 3 columnas
 (1 en móvil); si `nombre`/`rol` vienen ambos vacíos, la tarjeta no
 muestra ninguna etiqueta de autoría en vez de inventar una. CRUD completo
-en `/admin/testimonios` (mismo patrón modal que las secciones anteriores,
+en `/admin/contenido` (pestaña Testimonios, mismo patrón modal que las secciones anteriores,
 con nota en la página recordándole al admin confirmar autorización antes
 de cargar uno nuevo). Verificado con `npm run build`, `npm run lint` y
 revisión visual con Playwright en desktop y móvil.
@@ -717,7 +718,7 @@ histórico por año — se usaron 2 de las 6 (`/Historia/2.jpg` en el hito de
 fundación, `/Historia/6.jpg` en el de reconocimiento) como acompañamiento
 visual del relato, sin dar a entender que son fotos de época; las 4
 restantes quedan sin usar hasta que haya más hitos o se decida un uso
-distinto. CRUD completo en `/admin/historia` (mismo patrón modal que
+distinto. CRUD completo en `/admin/contenido` (pestaña Historia, mismo patrón modal que
 testimonios/socios/cifras), con año opcional en el formulario. Verificado
 con `npx tsc --noEmit`, `npm run build`, `npm run lint` (los tres sin
 errores) y un `curl` a `/` confirmando que el HTML renderizado trae los

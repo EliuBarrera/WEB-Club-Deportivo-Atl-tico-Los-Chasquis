@@ -4,8 +4,8 @@ import { useState } from "react";
 import type { TestimonioAdmin } from "@/lib/admin/dal";
 import { TestimonioModal } from "@/components/admin/TestimonioModal";
 
-// Único componente cliente de /admin/testimonios — mismo patrón que
-// DocumentosLegalesAdmin.tsx / CifrasConfianzaAdmin.tsx.
+// Sub-panel de la pestaña "Testimonios" en /admin/contenido — mismo
+// patrón que DocumentosLegalesAdmin.tsx / CifrasConfianzaAdmin.tsx.
 export function TestimoniosAdmin({
   testimonios,
   crearAction,
