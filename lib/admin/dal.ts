@@ -15,6 +15,18 @@ export async function verifySession() {
   return session;
 }
 
+// Variante de verifySession() para Server Actions que además exigen rol
+// ADMIN (no EDITOR) — a diferencia de requireAdmin(), que lanza (pensada
+// para Route Handlers), esta redirige, consistente con el resto de
+// acciones del panel de eventos (Fase 11: difusión masiva).
+export async function verifySessionAdmin() {
+  const session = await verifySession();
+  if (session.user.rol !== "ADMIN") {
+    redirect("/admin/eventos?error=no-autorizado");
+  }
+  return session;
+}
+
 export class NoAutorizadoError extends Error {
   constructor() {
     super("No autorizado");
@@ -126,7 +138,9 @@ export async function getDashboardIngresos() {
   };
 }
 
-export type DashboardIngresos = Awaited<ReturnType<typeof getDashboardIngresos>>;
+export type DashboardIngresos = Awaited<
+  ReturnType<typeof getDashboardIngresos>
+>;
 
 // CRUD de eventos (Fase 6)
 
@@ -134,11 +148,19 @@ export async function getEventosParaAdmin() {
   await verifySession();
   return prisma.evento.findMany({
     orderBy: { fecha: "desc" },
-    select: { id: true, titulo: true, fecha: true, estado: true, imagenUrl: true },
+    select: {
+      id: true,
+      titulo: true,
+      fecha: true,
+      estado: true,
+      imagenUrl: true,
+    },
   });
 }
 
-export type EventoAdmin = Awaited<ReturnType<typeof getEventosParaAdmin>>[number];
+export type EventoAdmin = Awaited<
+  ReturnType<typeof getEventosParaAdmin>
+>[number];
 
 // Trae el evento completo para el editor por pestañas. Solo incluye lo que
 // las pestañas Información/Recorrido/Contacto/Resultados usan en este
@@ -353,7 +375,9 @@ export type HitoHistoricoAdmin = Awaited<
 
 // Usado solo por el Route Handler de export (Fase 6: el CSV incluye datos
 // personales de menores, de ahí requireAdmin() en vez de verifySession()).
-export async function getInscripcionesParaExport(filtros: FiltrosInscripciones) {
+export async function getInscripcionesParaExport(
+  filtros: FiltrosInscripciones,
+) {
   return prisma.inscripcion.findMany({
     where: {
       eventoId: filtros.eventoId,

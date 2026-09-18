@@ -43,3 +43,8 @@ export const IMAGEN_TIPOS_PERMITIDOS = [
 ] as const;
 
 export const IMAGEN_TAMANO_MAXIMO = 5 * 1024 * 1024; // 5 MB
+
+// Archivo de importación de evento (Fase 11): es solo texto, así que un
+// límite generoso ya cubre cualquier caso real y evita leer un archivo
+// gigante por error antes de siquiera intentar parsearlo como JSON.
+export const EVENTO_JSON_TAMANO_MAXIMO = 200 * 1024; // 200 KB

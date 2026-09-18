@@ -1,13 +1,11 @@
-import Image from "next/image";
 import {
   getEventoCompleto,
   getEventosParaAdmin,
   getPruebasCatalogo,
   verifySession,
 } from "@/lib/admin/dal";
-import { cloudinaryThumb } from "@/lib/cloudinary";
-import { formatFechaBadge } from "@/lib/format";
-import { EliminarEventoButton } from "@/components/admin/EliminarEventoButton";
+import { getAtletasUnicos } from "@/lib/admin/atletas";
+import { EventosLista } from "@/components/admin/EventosLista";
 import { EventoEditor } from "@/components/admin/EventoEditor";
 import { Toast } from "@/components/admin/Toast";
 import {
@@ -16,15 +14,23 @@ import {
   actualizarNoticia,
   crearCategoria,
   crearEvento,
+  crearEventoDesdeJson,
   crearNoticia,
   eliminarCategoria,
   eliminarEvento,
   eliminarNoticia,
+  enviarResumenEvento,
   guardarLogistica,
   guardarPremios,
   guardarReglamento,
   publicarResultados,
 } from "./actions";
+
+// La Server Action enviarResumenEvento (difusión masiva, Fase 11) hereda
+// este límite: un loop con concurrencia acotada a varios cientos de
+// destinatarios reales termina en segundos, pero se sube el límite por
+// defecto de la función serverless de todos modos.
+export const maxDuration = 300;
 
 const MENSAJES_ERROR: Record<string, string> = {
   "tiene-inscripciones":
@@ -33,11 +39,18 @@ const MENSAJES_ERROR: Record<string, string> = {
     "No se puede eliminar: esta categoría ya tiene inscripciones registradas.",
   "imagen-formato": "Formato de imagen no permitido (solo JPEG, PNG o WEBP).",
   "imagen-tamano": "La imagen supera el tamaño máximo de 5 MB.",
+  "json-vacio": "Selecciona un archivo JSON para crear el evento.",
+  "json-tamano": "El archivo JSON supera el tamaño máximo de 200 KB.",
+  "json-invalido":
+    "El archivo no es un JSON válido o no tiene los campos esperados — revisa la plantilla de ejemplo.",
+  "no-autorizado": "Solo un administrador puede enviar difusiones.",
 };
 
 const MENSAJES_GUARDADO: Record<string, string> = {
   evento: "Cambios del evento guardados",
   "evento-creado": "Evento creado",
+  "evento-creado-json":
+    "Evento creado desde JSON — completa las demás pestañas",
   categoria: "Categoría actualizada",
   "categoria-creada": "Categoría creada",
   premios: "Premios guardados",
@@ -51,23 +64,22 @@ function primerValor(valor: string | string[] | undefined): string | undefined {
   return Array.isArray(valor) ? valor[0] : valor;
 }
 
-const ESTADO_ETIQUETA: Record<string, string> = {
-  BORRADOR: "Borrador",
-  ABIERTO: "Abierto",
-  CERRADO: "Cerrado",
-};
-
 export default async function EventosPage({
   searchParams,
 }: PageProps<"/admin/eventos">) {
-  await verifySession();
+  const session = await verifySession();
+  const esAdmin = session.user.rol === "ADMIN";
 
   const params = await searchParams;
-  // Igual que en inscripciones/page.tsx: estas dos no dependen entre sí, se
-  // piden en paralelo en vez de sumar dos round-trips secuenciales a Neon.
-  const [eventos, pruebasCatalogo] = await Promise.all([
+  // Igual que en inscripciones/page.tsx: no dependen entre sí, se piden en
+  // paralelo en vez de sumar round-trips secuenciales a Neon. `atletas`
+  // solo se necesita para los botones de difusión (ADMIN, ver más abajo,
+  // junto al evento seleccionado); una sesión EDITOR no los ve, así que no
+  // vale la pena traerla.
+  const [eventos, pruebasCatalogo, atletas] = await Promise.all([
     getEventosParaAdmin(),
     getPruebasCatalogo(),
+    esAdmin ? getAtletasUnicos() : Promise.resolve([]),
   ]);
 
   const eventoId = primerValor(params.eventoId) ?? eventos[0]?.id;
@@ -76,11 +88,39 @@ export default async function EventosPage({
   const guardadoTs = primerValor(params.t);
   const evento = eventoId ? await getEventoCompleto(eventoId) : null;
 
+  const difusionCanal = primerValor(params.difusionCanal);
+  const difusionExitosos = primerValor(params.difusionExitosos);
+  const difusionFallidos = primerValor(params.difusionFallidos);
+  const difusionTotal = primerValor(params.difusionTotal);
+  const canalEtiqueta = difusionCanal === "WHATSAPP" ? "WhatsApp" : "correo";
+  const mensajeDifusionExito =
+    difusionCanal && difusionFallidos === "0"
+      ? `Enviado por ${canalEtiqueta} a los ${difusionTotal} atletas`
+      : null;
+  const mensajeDifusionParcial =
+    difusionCanal && difusionFallidos && difusionFallidos !== "0"
+      ? `Enviado por ${canalEtiqueta} a ${difusionExitosos} de ${difusionTotal} (${difusionFallidos} fallaron)`
+      : null;
+
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
       <Toast
         key={guardadoTs}
-        mensaje={guardado ? (MENSAJES_GUARDADO[guardado] ?? null) : null}
+        mensaje={
+          mensajeDifusionExito ??
+          (guardado ? (MENSAJES_GUARDADO[guardado] ?? null) : null)
+        }
+        paramsALimpiar={
+          mensajeDifusionExito
+            ? [
+                "difusionCanal",
+                "difusionExitosos",
+                "difusionFallidos",
+                "difusionTotal",
+                "t",
+              ]
+            : ["guardado", "t"]
+        }
       />
 
       <h1 className="font-display text-4xl font-extrabold uppercase text-white">
@@ -93,112 +133,23 @@ export default async function EventosPage({
         </p>
       )}
 
-      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
-        <div className="flex flex-col gap-2.5">
-          {eventos.map((item) => {
-            const activo = item.id === eventoId;
-            return (
-              <div
-                key={item.id}
-                className={
-                  activo
-                    ? "flex flex-col gap-2 rounded-2xl bg-naranja p-3 shadow-[0_8px_20px_rgba(241,88,8,0.35)]"
-                    : "flex flex-col gap-2 rounded-2xl bg-white p-3 shadow-[0_6px_16px_rgba(28,13,10,0.08)]"
-                }
-              >
-                <div className="flex items-center gap-2.5">
-                  <a
-                    href={`/admin/eventos?eventoId=${item.id}`}
-                    className="flex flex-1 items-center gap-2.5 overflow-hidden"
-                  >
-                    <div
-                      className={
-                        "flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-[10px] " +
-                        (activo ? "bg-white/20" : "bg-casi-negro/[0.06]")
-                      }
-                    >
-                      {item.imagenUrl ? (
-                        <Image
-                          src={cloudinaryThumb(item.imagenUrl, "c_fill,w_96,h_96")}
-                          alt=""
-                          width={48}
-                          height={48}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke={activo ? "#ffffff" : "#1c0d0a"}
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <rect x="3" y="3" width="18" height="18" rx="2" />
-                          <circle cx="8.5" cy="8.5" r="1.5" />
-                          <polyline points="21 15 16 10 5 21" />
-                        </svg>
-                      )}
-                    </div>
-                    <div
-                      className={
-                        "flex min-w-0 flex-1 flex-col gap-0.5 " +
-                        (activo ? "text-white" : "text-casi-negro")
-                      }
-                    >
-                      <span className="truncate font-display text-[15px] font-extrabold uppercase">
-                        {item.titulo}
-                      </span>
-                      <span
-                        className={
-                          "text-xs font-semibold uppercase tracking-wide " +
-                          (activo ? "text-white" : "text-gris-oscuro")
-                        }
-                      >
-                        {formatFechaBadge(item.fecha)} ·{" "}
-                        {ESTADO_ETIQUETA[item.estado]}
-                      </span>
-                    </div>
-                  </a>
-                  <EliminarEventoButton
-                    eventoId={item.id}
-                    eventoTitulo={item.titulo}
-                    eliminarEventoAction={eliminarEvento}
-                    claseBoton={
-                      "flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full " +
-                      (activo
-                        ? "bg-white/20 text-white"
-                        : "bg-casi-negro/[0.06] text-casi-negro")
-                    }
-                  />
-                </div>
-              </div>
-            );
-          })}
+      {mensajeDifusionParcial && (
+        <p className="rounded-lg bg-naranja/10 px-4 py-2 font-bold text-naranja">
+          {mensajeDifusionParcial}
+        </p>
+      )}
 
-          <form action={crearEvento}>
-            <button
-              type="submit"
-              className="mt-1.5 flex w-full items-center justify-center gap-2 rounded-full bg-naranja py-3 font-display font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="#ffffff"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Agregar evento
-            </button>
-          </form>
-        </div>
+      <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-[320px_minmax(0,1fr)]">
+        <EventosLista
+          eventos={eventos}
+          eventoIdActivo={eventoId}
+          esAdmin={esAdmin}
+          totalAtletas={atletas.length}
+          crearEventoAction={crearEvento}
+          crearEventoDesdeJsonAction={crearEventoDesdeJson}
+          eliminarEventoAction={eliminarEvento}
+          enviarResumenAction={enviarResumenEvento}
+        />
 
         {evento ? (
           <EventoEditor

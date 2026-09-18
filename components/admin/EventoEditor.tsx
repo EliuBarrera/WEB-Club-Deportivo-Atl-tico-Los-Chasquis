@@ -22,8 +22,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const campoClase = "rounded-lg bg-white px-3 py-2 text-lg outline-none";
-const labelClase =
-  "text-sm font-bold uppercase tracking-wide text-gris-oscuro";
+const labelClase = "text-sm font-bold uppercase tracking-wide text-gris-oscuro";
 
 export function EventoEditor({
   evento,
@@ -48,38 +47,35 @@ export function EventoEditor({
   actualizarCategoriaAction: (
     categoriaId: string,
     eventoId: string,
-    formData: FormData
+    formData: FormData,
   ) => Promise<void>;
   eliminarCategoriaAction: (
     categoriaId: string,
-    eventoId: string
+    eventoId: string,
   ) => Promise<void>;
   guardarPremiosAction: (eventoId: string, formData: FormData) => Promise<void>;
   guardarReglamentoAction: (
     eventoId: string,
-    formData: FormData
+    formData: FormData,
   ) => Promise<void>;
   guardarLogisticaAction: (
     eventoId: string,
-    formData: FormData
+    formData: FormData,
   ) => Promise<void>;
   crearNoticiaAction: (eventoId: string, formData: FormData) => Promise<void>;
   actualizarNoticiaAction: (
     noticiaId: string,
     eventoId: string,
-    formData: FormData
+    formData: FormData,
   ) => Promise<void>;
-  eliminarNoticiaAction: (
-    noticiaId: string,
-    eventoId: string
-  ) => Promise<void>;
+  eliminarNoticiaAction: (noticiaId: string, eventoId: string) => Promise<void>;
 }) {
   const [tab, setTab] = useState<TabId>("informacion");
   const [modalCategoria, setModalCategoria] = useState<"nueva" | string | null>(
-    null
+    null,
   );
   const [modalNoticia, setModalNoticia] = useState<"nueva" | string | null>(
-    null
+    null,
   );
 
   const mostrarFormPrincipal =
@@ -269,7 +265,7 @@ export function EventoEditor({
                               : "Cerrado"}
                         </span>
                       </label>
-                    )
+                    ),
                   )}
                 </div>
               </fieldset>
@@ -399,7 +395,10 @@ export function EventoEditor({
           </form>
 
           {tab === "resultados" && (
-            <form action={publicarResultadosAction} className="flex flex-col gap-5">
+            <form
+              action={publicarResultadosAction}
+              className="flex flex-col gap-5"
+            >
               <div className="flex items-center justify-between">
                 <span className="font-display text-lg font-extrabold uppercase">
                   Resultados
@@ -411,7 +410,9 @@ export function EventoEditor({
                       : "rounded-full bg-casi-negro/[0.06] px-3 py-1 text-xs font-bold uppercase text-casi-negro"
                   }
                 >
-                  {evento.resultadosUrl ? "Publicados" : "Pendientes de publicar"}
+                  {evento.resultadosUrl
+                    ? "Publicados"
+                    : "Pendientes de publicar"}
                 </span>
               </div>
 
@@ -434,8 +435,8 @@ export function EventoEditor({
                   Publicar resultados
                 </button>
                 <span className="text-sm italic text-gris-oscuro">
-                  Al publicar, &quot;Ver resultados&quot; aparecerá en la tarjeta
-                  pública del evento.
+                  Al publicar, &quot;Ver resultados&quot; aparecerá en la
+                  tarjeta pública del evento.
                 </span>
               </div>
             </form>
@@ -445,8 +446,8 @@ export function EventoEditor({
             <div className="flex flex-col gap-4">
               {evento.categorias.length === 0 ? (
                 <p className="italic text-gris-oscuro">
-                  Este evento aún no tiene categorías. Si maneja costos
-                  únicos en vez de categorías (ej. &quot;Individual&quot;,
+                  Este evento aún no tiene categorías. Si maneja costos únicos
+                  en vez de categorías (ej. &quot;Individual&quot;,
                   &quot;Pareja&quot;), no hace falta crear ninguna aquí.
                 </p>
               ) : (
@@ -561,7 +562,7 @@ export function EventoEditor({
                     ? actualizarCategoriaAction.bind(
                         null,
                         modalCategoria,
-                        evento.id
+                        evento.id,
                       )
                     : crearCategoriaAction.bind(null, evento.id)
                 }
@@ -570,7 +571,7 @@ export function EventoEditor({
                     ? eliminarCategoriaAction.bind(
                         null,
                         modalCategoria,
-                        evento.id
+                        evento.id,
                       )
                     : undefined
                 }
@@ -724,7 +725,9 @@ export function EventoEditor({
               <ListaTextoEditable
                 nombreCampo="kit"
                 etiqueta="Kit del corredor"
-                valoresIniciales={evento.logistica?.kit.map((k) => k.texto) ?? []}
+                valoresIniciales={
+                  evento.logistica?.kit.map((k) => k.texto) ?? []
+                }
               />
 
               <div className="flex justify-end gap-3">
@@ -849,17 +852,13 @@ export function EventoEditor({
                     ? actualizarNoticiaAction.bind(
                         null,
                         modalNoticia,
-                        evento.id
+                        evento.id,
                       )
                     : crearNoticiaAction.bind(null, evento.id)
                 }
                 eliminarAction={
                   modalNoticia && modalNoticia !== "nueva"
-                    ? eliminarNoticiaAction.bind(
-                        null,
-                        modalNoticia,
-                        evento.id
-                      )
+                    ? eliminarNoticiaAction.bind(null, modalNoticia, evento.id)
                     : undefined
                 }
                 onCerrar={() => setModalNoticia(null)}

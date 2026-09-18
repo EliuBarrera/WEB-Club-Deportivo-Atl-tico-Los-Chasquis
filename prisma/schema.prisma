@@ -52,12 +52,13 @@ enum RolUsuario {
 // ==========================================
 
 model Usuario {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  passwordHash String
-  nombre       String
-  rol          RolUsuario @default(EDITOR)
-  createdAt    DateTime   @default(now())
+  id            String        @id @default(cuid())
+  email         String        @unique
+  passwordHash  String
+  nombre        String
+  rol           RolUsuario    @default(EDITOR)
+  createdAt     DateTime      @default(now())
+  enviosMasivos EnvioMasivo[]
 }
 
 // ==========================================
@@ -66,13 +67,13 @@ model Usuario {
 // ==========================================
 
 model PruebaCatalogo {
-  id          String   @id @default(cuid())
-  key         String   @unique // ej: "100_m", "salto_largo"
-  nombre      String   // ej: "100 m planos"
-  icon        String?  // emoji o nombre de icono
-  genero      Genero?  // null = aplica a ambos
+  id     String  @id @default(cuid())
+  key    String  @unique // ej: "100_m", "salto_largo"
+  nombre String // ej: "100 m planos"
+  icon   String? // emoji o nombre de icono
+  genero Genero? // null = aplica a ambos
 
-  categorias  CategoriaPrueba[]
+  categorias CategoriaPrueba[]
 }
 
 // ==========================================
@@ -80,50 +81,78 @@ model PruebaCatalogo {
 // ==========================================
 
 model Evento {
-  id                String       @id @default(cuid())
-  titulo            String
-  subtitulo         String?
-  lema              String?
-  precio            Int
-  descuento         Int          @default(0)
-  descuentoLabel    String?      // ej: "Pagando antes del 20 de febrero"
+  id                   String       @id @default(cuid())
+  titulo               String
+  subtitulo            String?
+  lema                 String?
+  precio               Int
+  descuento            Int          @default(0)
+  descuentoLabel       String? // ej: "Pagando antes del 20 de febrero"
   fechaLimiteDescuento DateTime?
-  estado            EstadoEvento @default(BORRADOR)
-  fecha             DateTime
-  horario           String?      // texto libre, ej: "7:00 AM - 5:00 PM"
-  ubicacion         String
-  mapUrl            String?
-  descripcion       String?      @db.Text
-  imagenUrl         String?
-  resultadosUrl     String?
-  terminosUrl       String?
-  cierreInscripciones String?    // texto libre, ej: "10 de abril de 2026"
-  aval              String?
-  organizador       String?
-  lemaInstitucional String?
+  estado               EstadoEvento @default(BORRADOR)
+  fecha                DateTime
+  horario              String? // texto libre, ej: "7:00 AM - 5:00 PM"
+  ubicacion            String
+  mapUrl               String?
+  descripcion          String?      @db.Text
+  imagenUrl            String?
+  resultadosUrl        String?
+  terminosUrl          String?
+  cierreInscripciones  String? // texto libre, ej: "10 de abril de 2026"
+  aval                 String?
+  organizador          String?
+  lemaInstitucional    String?
 
   // Relaciones 1:1
-  recorrido         Recorrido?
-  premios           Premios?
-  reglamento        Reglamento?
-  logistica         Logistica?
+  recorrido  Recorrido?
+  premios    Premios?
+  reglamento Reglamento?
+  logistica  Logistica?
 
   // Relaciones 1:N
-  categorias        Categoria[]
-  noticias          Noticia[]
-  objetivos         Objetivo[]
-  convocatoria      ConvocatoriaItem[]
-  costos            Costo[]
-  inscripciones     Inscripcion[]
+  categorias    Categoria[]
+  noticias      Noticia[]
+  objetivos     Objetivo[]
+  convocatoria  ConvocatoriaItem[]
+  costos        Costo[]
+  inscripciones Inscripcion[]
+  enviosMasivos EnvioMasivo[]
 
   // Integración pagos / e-commerce (si se mantiene puente con WooCommerce en transición)
-  wompiProductRef   String?
+  wompiProductRef String?
 
-  createdAt         DateTime     @default(now())
-  updatedAt         DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([fecha])
   @@index([estado])
+}
+
+// Auditoría de la difusión masiva por WhatsApp/Correo (Fase 11): un admin
+// dispara un envío a todos los atletas únicos del club (ver
+// lib/admin/atletas.ts) desde la ficha de un evento. Solo guarda conteos
+// agregados y una muestra acotada de errores — nunca cuerpos de mensaje ni
+// datos de contacto nuevos (numeroDocumento ya es un identificador interno
+// usado en toda la app).
+enum CanalEnvioMasivo {
+  WHATSAPP
+  EMAIL
+}
+
+model EnvioMasivo {
+  id                 String           @id @default(cuid())
+  eventoId           String
+  evento             Evento           @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  canal              CanalEnvioMasivo
+  usuarioId          String
+  usuario            Usuario          @relation(fields: [usuarioId], references: [id])
+  totalDestinatarios Int
+  totalExitosos      Int
+  totalFallidos      Int
+  erroresMuestra     Json? // hasta 20 { numeroDocumento, motivo }
+  createdAt          DateTime         @default(now())
+
+  @@index([eventoId])
 }
 
 // ==========================================
@@ -131,9 +160,9 @@ model Evento {
 // ==========================================
 
 model Categoria {
-  id         String @id @default(cuid())
-  eventoId   String
-  evento     Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  eventoId String
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 
   nombre     String // ej: "SUB 14", "MAYORES"
   edad       String // ej: "12-13 años"
@@ -141,19 +170,19 @@ model Categoria {
   rama       String @default("MASCULINA Y FEMENINA")
   orden      Int    @default(0)
 
-  pruebas         CategoriaPrueba[]
-  inscripciones   Inscripcion[]
+  pruebas       CategoriaPrueba[]
+  inscripciones Inscripcion[]
 
   @@index([eventoId])
 }
 
 // Tabla puente: qué pruebas del catálogo aplican a cada categoría de cada evento
 model CategoriaPrueba {
-  id            String         @id @default(cuid())
-  categoriaId   String
-  categoria     Categoria      @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
-  pruebaId      String
-  prueba        PruebaCatalogo @relation(fields: [pruebaId], references: [id])
+  id          String         @id @default(cuid())
+  categoriaId String
+  categoria   Categoria      @relation(fields: [categoriaId], references: [id], onDelete: Cascade)
+  pruebaId    String
+  prueba      PruebaCatalogo @relation(fields: [pruebaId], references: [id])
 
   @@unique([categoriaId, pruebaId])
 }
@@ -163,19 +192,19 @@ model CategoriaPrueba {
 // ==========================================
 
 model Recorrido {
-  id             String   @id @default(cuid())
-  eventoId       String   @unique
-  evento         Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  eventoId String @unique
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 
-  mapaUrl        String?
-  distancia      String?  // ej: "6 kilómetros"
-  desnivel       String?  // ej: "+250 metros"
-  salida         String?
-  meta           String?
-  modalidad      String?
-  terreno        String?
+  mapaUrl   String?
+  distancia String? // ej: "6 kilómetros"
+  desnivel  String? // ej: "+250 metros"
+  salida    String?
+  meta      String?
+  modalidad String?
+  terreno   String?
 
-  programacion   ImagenProgramacion[]
+  programacion ImagenProgramacion[]
 }
 
 model ImagenProgramacion {
@@ -192,15 +221,15 @@ model ImagenProgramacion {
 // ==========================================
 
 model Premios {
-  id             String   @id @default(cuid())
-  eventoId       String   @unique
-  evento         Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  id       String @id @default(cuid())
+  eventoId String @unique
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
 
-  efectivoUrl    String?  // imagen de tabla de premiación en efectivo
+  efectivoUrl    String? // imagen de tabla de premiación en efectivo
   ceremoniaHora  String?
   ceremoniaLugar String?
 
-  condiciones    CondicionPremio[]
+  condiciones CondicionPremio[]
 }
 
 model CondicionPremio {
@@ -296,7 +325,7 @@ model Noticia {
   eventoId  String
   evento    Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
   titulo    String
-  fecha     String   // texto libre, ej: "15 de enero, 2026"
+  fecha     String // texto libre, ej: "15 de enero, 2026"
   contenido String   @db.Text
   orden     Int      @default(0)
   createdAt DateTime @default(now())
@@ -333,49 +362,49 @@ model Costo {
 // ==========================================
 
 model Inscripcion {
-  id                  String        @id @default(cuid())
-  eventoId            String
-  evento              Evento        @relation(fields: [eventoId], references: [id])
+  id          String     @id @default(cuid())
+  eventoId    String
+  evento      Evento     @relation(fields: [eventoId], references: [id])
   // Opcional: eventos sin categorías (ej. carreras que solo usan `Costo`,
   // como "adultos"/"ninos") no tienen una Categoria a la que enlazar.
-  categoriaId         String?
-  categoria           Categoria?    @relation(fields: [categoriaId], references: [id])
+  categoriaId String?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
   // Alternativa a categoria+pruebas para eventos que cobran por tipo de
   // costo (ej. "adultos"/"ninos") en vez de por categoría de competencia.
-  costoId             String?
-  costo               Costo?        @relation(fields: [costoId], references: [id])
+  costoId     String?
+  costo       Costo?     @relation(fields: [costoId], references: [id])
 
   // Atleta
-  nombres             String
-  apellidos           String
-  tipoDocumento       TipoDocumento
-  numeroDocumento     String
-  fechaNacimiento     DateTime
-  edad                Int
-  genero              Genero
+  nombres         String
+  apellidos       String
+  tipoDocumento   TipoDocumento
+  numeroDocumento String
+  fechaNacimiento DateTime
+  edad            Int
+  genero          Genero
 
   // Pruebas seleccionadas (máx. 2) — se guardan como keys de PruebaCatalogo
-  pruebasIds          String[]
+  pruebasIds String[]
 
   // Contacto
-  celular             String
-  email               String
-  ciudad              String
-  departamento        String
-  club                String?
+  celular      String
+  email        String
+  ciudad       String
+  departamento String
+  club         String?
 
   // Adicional
-  condicionesMedicas  String?
+  condicionesMedicas String?
 
   // Acudiente (si es menor de edad)
-  nombresAcudiente    String?
-  apellidosAcudiente  String?
-  documentoAcudiente  String?
-  celularAcudiente    String?
+  nombresAcudiente   String?
+  apellidosAcudiente String?
+  documentoAcudiente String?
+  celularAcudiente   String?
 
   // Legal
-  aceptaTerminos      Boolean       @default(false)
-  aceptaImagenes      Boolean       @default(false)
+  aceptaTerminos      Boolean   @default(false)
+  aceptaImagenes      Boolean   @default(false)
   // Trazabilidad legal (Fase 4): qué versión de TerminosBase estaba vigente
   // cuando el atleta aceptó, y en qué momento — nunca se sobrescribe si el
   // texto cambia después. Se calculan en servidor al crear la inscripción,
@@ -384,13 +413,13 @@ model Inscripcion {
   terminosAceptadosEn DateTime?
 
   // Pago
-  totalPago           Int
-  estadoPago          EstadoPago    @default(PENDIENTE)
-  wompiTransactionId  String?
-  wompiReference      String?       @unique
+  totalPago          Int
+  estadoPago         EstadoPago @default(PENDIENTE)
+  wompiTransactionId String?
+  wompiReference     String?    @unique
 
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([eventoId])
   @@index([numeroDocumento])

@@ -9,7 +9,13 @@ import { useEffect, useState } from "react";
 // guardar dos veces seguidas el mismo tipo de cambio no remontaría este
 // componente porque `mensaje` sería idéntico al anterior, y el efecto no
 // volvería a dispararse.
-export function Toast({ mensaje }: { mensaje: string | null }) {
+export function Toast({
+  mensaje,
+  paramsALimpiar = ["guardado", "t"],
+}: {
+  mensaje: string | null;
+  paramsALimpiar?: string[];
+}) {
   const [visible, setVisible] = useState(Boolean(mensaje));
 
   useEffect(() => {
@@ -18,12 +24,18 @@ export function Toast({ mensaje }: { mensaje: string | null }) {
     // Limpia los parámetros de la URL para que un refresh no vuelva a
     // mostrar el mismo aviso.
     const url = new URL(window.location.href);
-    url.searchParams.delete("guardado");
-    url.searchParams.delete("t");
+    for (const param of paramsALimpiar) {
+      url.searchParams.delete(param);
+    }
     window.history.replaceState(null, "", url);
 
     const temporizador = setTimeout(() => setVisible(false), 3500);
     return () => clearTimeout(temporizador);
+    // paramsALimpiar cambia de referencia en cada render del padre; el
+    // componente se remonta por completo vía `key` cuando `mensaje` cambia
+    // (ver comentario de arriba), así que solo `mensaje` debe disparar el
+    // efecto.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mensaje]);
 
   if (!mensaje || !visible) return null;

@@ -1,0 +1,22 @@
+{
+  "titulo": "Carrera Atlética Los Chasquis 10K",
+  "subtitulo": "Edición aniversario",
+  "fecha": "2026-11-15",
+  "horario": "6:00 AM - 11:00 AM",
+  "cierreInscripciones": "10 de noviembre de 2026",
+  "ubicacion": "Parque Santander, Tunja, Boyacá",
+  "precio": 60000,
+  "descuento": 10000,
+  "descuentoLabel": "Pagando antes del 1 de noviembre",
+  "estado": "BORRADOR",
+  "descripcion": "Carrera de calle de 10 kilómetros por las principales calles de Tunja, con categorías competitivas y recreativas.",
+  "distancia": "10 km",
+  "desnivel": "120 m",
+  "salida": "Parque Santander",
+  "meta": "Parque Santander",
+  "modalidad": "Carrera de calle",
+  "terreno": "Pavimento",
+  "organizador": "Club Atlético Los Chasquis",
+  "aval": "Liga de Atletismo de Boyacá",
+  "terminosUrl": ""
+}

@@ -2,18 +2,28 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { verifySession } from "@/lib/admin/dal";
+import { verifySession, verifySessionAdmin } from "@/lib/admin/dal";
+import { getAtletasUnicos } from "@/lib/admin/atletas";
+import { enviarResumenALista } from "@/lib/admin/difusion";
 import cloudinary from "@/lib/cloudinary";
 import {
   eventoSchema,
   resultadosSchema,
   IMAGEN_TIPOS_PERMITIDOS,
   IMAGEN_TAMANO_MAXIMO,
+  EVENTO_JSON_TAMANO_MAXIMO,
 } from "@/lib/validation/evento";
 import { categoriaSchema } from "@/lib/validation/categoria";
 import { listaTextoSchema } from "@/lib/validation/listaTexto";
 import { noticiaSchema } from "@/lib/validation/noticia";
+
+// `maxDuration` no se puede exportar desde un archivo "use server" (Next.js
+// exige que todo export de un módulo de Server Actions sea una función
+// async) — la Server Action enviarResumenEvento de más abajo hereda el
+// límite configurado en app/admin/(panel)/eventos/page.tsx, que es la
+// página que la invoca.
 
 function campoTexto(formData: FormData, campo: string): string {
   const valor = formData.get(campo);
@@ -41,7 +51,73 @@ export async function crearEvento() {
   });
 
   revalidatePath("/admin/eventos");
-  redirect(`/admin/eventos?eventoId=${evento.id}&guardado=evento-creado&t=${Date.now()}`);
+  redirect(
+    `/admin/eventos?eventoId=${evento.id}&guardado=evento-creado&t=${Date.now()}`,
+  );
+}
+
+// Crea un evento a partir de un archivo JSON con los campos básicos
+// (Fase 11) — mismo alcance que eventoSchema (Información + Recorrido +
+// Contacto), Categorías/Premios/Reglamento/Logística/Noticias se siguen
+// llenando a mano en el editor, igual que con crearEvento(). El JSON se
+// parsea y valida siempre en el servidor, nunca se confía en el cliente.
+export async function crearEventoDesdeJson(formData: FormData) {
+  await verifySession();
+
+  const archivo = formData.get("archivo");
+  if (!(archivo instanceof File) || archivo.size === 0) {
+    redirect("/admin/eventos?error=json-vacio");
+  }
+  if (archivo.size > EVENTO_JSON_TAMANO_MAXIMO) {
+    redirect("/admin/eventos?error=json-tamano");
+  }
+
+  let contenido: unknown;
+  try {
+    contenido = JSON.parse(await archivo.text());
+  } catch {
+    redirect("/admin/eventos?error=json-invalido");
+  }
+
+  const resultado = eventoSchema.safeParse(contenido);
+  if (!resultado.success) {
+    redirect("/admin/eventos?error=json-invalido");
+  }
+  const datos = resultado.data;
+
+  const evento = await prisma.evento.create({
+    data: {
+      titulo: datos.titulo,
+      subtitulo: datos.subtitulo ?? null,
+      fecha: new Date(datos.fecha),
+      horario: datos.horario ?? null,
+      cierreInscripciones: datos.cierreInscripciones ?? null,
+      ubicacion: datos.ubicacion,
+      precio: datos.precio,
+      descuento: datos.descuento,
+      descuentoLabel: datos.descuentoLabel ?? null,
+      estado: datos.estado,
+      descripcion: datos.descripcion ?? null,
+      organizador: datos.organizador ?? null,
+      aval: datos.aval ?? null,
+      terminosUrl: datos.terminosUrl || null,
+      recorrido: {
+        create: {
+          distancia: datos.distancia ?? null,
+          desnivel: datos.desnivel ?? null,
+          salida: datos.salida ?? null,
+          meta: datos.meta ?? null,
+          modalidad: datos.modalidad ?? null,
+          terreno: datos.terreno ?? null,
+        },
+      },
+    },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${evento.id}&guardado=evento-creado-json&t=${Date.now()}`,
+  );
 }
 
 // Guarda las pestañas Información + Recorrido + Contacto en una sola
@@ -82,12 +158,10 @@ export async function actualizarEvento(eventoId: string, formData: FormData) {
   if (imagen instanceof File && imagen.size > 0) {
     if (
       !IMAGEN_TIPOS_PERMITIDOS.includes(
-        imagen.type as (typeof IMAGEN_TIPOS_PERMITIDOS)[number]
+        imagen.type as (typeof IMAGEN_TIPOS_PERMITIDOS)[number],
       )
     ) {
-      redirect(
-        `/admin/eventos?eventoId=${eventoId}&error=imagen-formato`
-      );
+      redirect(`/admin/eventos?eventoId=${eventoId}&error=imagen-formato`);
     }
     if (imagen.size > IMAGEN_TAMANO_MAXIMO) {
       redirect(`/admin/eventos?eventoId=${eventoId}&error=imagen-tamano`);
@@ -145,7 +219,9 @@ export async function actualizarEvento(eventoId: string, formData: FormData) {
   ]);
 
   revalidatePath("/admin/eventos");
-  redirect(`/admin/eventos?eventoId=${eventoId}&guardado=evento&t=${Date.now()}`);
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=evento&t=${Date.now()}`,
+  );
 }
 
 export async function publicarResultados(eventoId: string, formData: FormData) {
@@ -215,14 +291,14 @@ export async function crearCategoria(eventoId: string, formData: FormData) {
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=categoria-creada&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=categoria-creada&t=${Date.now()}`,
   );
 }
 
 export async function actualizarCategoria(
   categoriaId: string,
   eventoId: string,
-  formData: FormData
+  formData: FormData,
 ) {
   await verifySession();
 
@@ -247,7 +323,7 @@ export async function actualizarCategoria(
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=categoria&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=categoria&t=${Date.now()}`,
   );
 }
 
@@ -261,7 +337,7 @@ export async function eliminarCategoria(categoriaId: string, eventoId: string) {
   const inscritos = await prisma.inscripcion.count({ where: { categoriaId } });
   if (inscritos > 0) {
     redirect(
-      `/admin/eventos?eventoId=${eventoId}&error=categoria-tiene-inscripciones`
+      `/admin/eventos?eventoId=${eventoId}&error=categoria-tiene-inscripciones`,
     );
   }
 
@@ -278,14 +354,14 @@ async function subirImagenSiExiste(
   formData: FormData,
   campo: string,
   eventoId: string,
-  folder: string
+  folder: string,
 ): Promise<string | undefined> {
   const imagen = formData.get(campo);
   if (!(imagen instanceof File) || imagen.size === 0) return undefined;
 
   if (
     !IMAGEN_TIPOS_PERMITIDOS.includes(
-      imagen.type as (typeof IMAGEN_TIPOS_PERMITIDOS)[number]
+      imagen.type as (typeof IMAGEN_TIPOS_PERMITIDOS)[number],
     )
   ) {
     redirect(`/admin/eventos?eventoId=${eventoId}&error=imagen-formato`);
@@ -309,7 +385,7 @@ function datosListaTexto(formData: FormData, campo: string): string[] {
       .getAll(campo)
       .map(String)
       .map((texto) => texto.trim())
-      .filter(Boolean)
+      .filter(Boolean),
   );
 }
 
@@ -323,7 +399,7 @@ export async function guardarPremios(eventoId: string, formData: FormData) {
     formData,
     "efectivoImagen",
     eventoId,
-    "chasquis/premios"
+    "chasquis/premios",
   );
 
   const premios = await prisma.premios.upsert({
@@ -354,7 +430,7 @@ export async function guardarPremios(eventoId: string, formData: FormData) {
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=premios&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=premios&t=${Date.now()}`,
   );
 }
 
@@ -404,7 +480,7 @@ export async function guardarReglamento(eventoId: string, formData: FormData) {
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=reglamento&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=reglamento&t=${Date.now()}`,
   );
 }
 
@@ -454,7 +530,7 @@ export async function guardarLogistica(eventoId: string, formData: FormData) {
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=logistica&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=logistica&t=${Date.now()}`,
   );
 }
 
@@ -478,14 +554,14 @@ export async function crearNoticia(eventoId: string, formData: FormData) {
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=noticia-creada&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=noticia-creada&t=${Date.now()}`,
   );
 }
 
 export async function actualizarNoticia(
   noticiaId: string,
   eventoId: string,
-  formData: FormData
+  formData: FormData,
 ) {
   await verifySession();
 
@@ -498,7 +574,7 @@ export async function actualizarNoticia(
 
   revalidatePath("/admin/eventos");
   redirect(
-    `/admin/eventos?eventoId=${eventoId}&guardado=noticia&t=${Date.now()}`
+    `/admin/eventos?eventoId=${eventoId}&guardado=noticia&t=${Date.now()}`,
   );
 }
 
@@ -512,4 +588,66 @@ export async function eliminarNoticia(noticiaId: string, eventoId: string) {
 
   revalidatePath("/admin/eventos");
   redirect(`/admin/eventos?eventoId=${eventoId}`);
+}
+
+// Difusión masiva (Fase 11): manda un resumen del evento a todos los
+// atletas únicos del club (no solo a los inscritos a este evento — a
+// pedido del club), por WhatsApp o por correo. Requiere rol ADMIN, no
+// EDITOR (verifySessionAdmin). Sin cola ni cron (no existen en este
+// proyecto): a volúmenes reales de un club, un loop con concurrencia
+// acotada dentro de la misma request termina en segundos — mismo
+// criterio que ya usa el export de CSV.
+export async function enviarResumenEvento(
+  eventoId: string,
+  canal: "WHATSAPP" | "EMAIL",
+) {
+  const session = await verifySessionAdmin();
+
+  const evento = await prisma.evento.findUniqueOrThrow({
+    where: { id: eventoId },
+    select: {
+      id: true,
+      titulo: true,
+      fecha: true,
+      ubicacion: true,
+      horario: true,
+      precio: true,
+      cierreInscripciones: true,
+    },
+  });
+
+  const atletas = await getAtletasUnicos();
+  const resultados = await enviarResumenALista(atletas, canal, evento);
+
+  const exitosos = resultados.filter((r) => r.ok).length;
+  const fallidos = resultados.length - exitosos;
+  const erroresMuestra = resultados
+    .filter((r) => !r.ok)
+    .slice(0, 20)
+    .map((r) => ({
+      numeroDocumento: r.numeroDocumento,
+      motivo: r.error ?? "",
+    }));
+
+  const usuario = await prisma.usuario.findUniqueOrThrow({
+    where: { email: session.user.email! },
+    select: { id: true },
+  });
+
+  await prisma.envioMasivo.create({
+    data: {
+      eventoId,
+      canal,
+      usuarioId: usuario.id,
+      totalDestinatarios: resultados.length,
+      totalExitosos: exitosos,
+      totalFallidos: fallidos,
+      erroresMuestra: erroresMuestra as Prisma.InputJsonValue,
+    },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&difusionCanal=${canal}&difusionExitosos=${exitosos}&difusionFallidos=${fallidos}&difusionTotal=${resultados.length}&t=${Date.now()}`,
+  );
 }
