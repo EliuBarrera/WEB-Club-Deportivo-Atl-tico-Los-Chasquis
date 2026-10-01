@@ -9,6 +9,10 @@ import { EventosLista } from "@/components/admin/EventosLista";
 import { EventoEditor } from "@/components/admin/EventoEditor";
 import { Toast } from "@/components/admin/Toast";
 import {
+  ErroresJsonModal,
+  type ErrorJsonDetalle,
+} from "@/components/admin/ErroresJsonModal";
+import {
   actualizarCategoria,
   actualizarEvento,
   actualizarNoticia,
@@ -64,6 +68,24 @@ function primerValor(valor: string | string[] | undefined): string | undefined {
   return Array.isArray(valor) ? valor[0] : valor;
 }
 
+// `jsonDetalle` lo arma crearEventoDesdeJson (actions.ts) con
+// traducirErroresEventoJson — se parsea con cuidado porque viaja por la
+// URL: si alguien la edita a mano o queda truncada, el modal simplemente
+// no se abre y queda el aviso genérico de MENSAJES_ERROR como respaldo.
+function parsearErroresJson(valor: string | undefined): ErrorJsonDetalle[] | null {
+  if (!valor) return null;
+  try {
+    const datos: unknown = JSON.parse(valor);
+    if (!Array.isArray(datos) || datos.length === 0) return null;
+    return datos.filter(
+      (item): item is ErrorJsonDetalle =>
+        typeof item?.campo === "string" && typeof item?.mensaje === "string",
+    );
+  } catch {
+    return null;
+  }
+}
+
 export default async function EventosPage({
   searchParams,
 }: PageProps<"/admin/eventos">) {
@@ -86,6 +108,8 @@ export default async function EventosPage({
   const error = primerValor(params.error);
   const guardado = primerValor(params.guardado);
   const guardadoTs = primerValor(params.t);
+  const erroresJson =
+    error === "json-invalido" ? parsearErroresJson(primerValor(params.jsonDetalle)) : null;
   const evento = eventoId ? await getEventoCompleto(eventoId) : null;
 
   const difusionCanal = primerValor(params.difusionCanal);
@@ -123,11 +147,13 @@ export default async function EventosPage({
         }
       />
 
+      <ErroresJsonModal key={erroresJson ? guardadoTs : undefined} errores={erroresJson} />
+
       <h1 className="font-display text-4xl font-extrabold uppercase text-white">
         Eventos
       </h1>
 
-      {error && MENSAJES_ERROR[error] && (
+      {error && MENSAJES_ERROR[error] && !erroresJson?.length && (
         <p className="rounded-lg bg-rojo/10 px-4 py-2 font-bold text-rojo">
           {MENSAJES_ERROR[error]}
         </p>

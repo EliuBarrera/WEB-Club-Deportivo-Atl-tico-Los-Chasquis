@@ -14,6 +14,8 @@ import {
   IMAGEN_TIPOS_PERMITIDOS,
   IMAGEN_TAMANO_MAXIMO,
   EVENTO_JSON_TAMANO_MAXIMO,
+  traducirErroresEventoJson,
+  type ErrorEventoJson,
 } from "@/lib/validation/evento";
 import { categoriaSchema } from "@/lib/validation/categoria";
 import { listaTextoSchema } from "@/lib/validation/listaTexto";
@@ -33,6 +35,21 @@ function campoTexto(formData: FormData, campo: string): string {
 function campoOpcional(formData: FormData, campo: string): string | undefined {
   const limpio = campoTexto(formData, campo);
   return limpio === "" ? undefined : limpio;
+}
+
+// El detalle campo-por-campo del error de "Crear desde JSON" viaja en la
+// propia URL de redirect (igual que `guardado`/`error` en el resto de este
+// archivo) para que ErroresJsonModal lo lea en page.tsx sin necesitar
+// sesión/cookie nueva. Se recorta a 20 entradas como tope defensivo —
+// eventoSchema hoy no llega ni a la mitad de eso — para no mandar una URL
+// larga de más si algún día el schema crece.
+function redireccionJsonInvalido(detalle: ErrorEventoJson[]): never {
+  const recortado = detalle.slice(0, 20);
+  redirect(
+    `/admin/eventos?error=json-invalido&jsonDetalle=${encodeURIComponent(
+      JSON.stringify(recortado),
+    )}&t=${Date.now()}`,
+  );
 }
 
 // Crea un evento BORRADOR mínimo y lleva directo a su editor — evita un
@@ -75,13 +92,21 @@ export async function crearEventoDesdeJson(formData: FormData) {
   let contenido: unknown;
   try {
     contenido = JSON.parse(await archivo.text());
-  } catch {
-    redirect("/admin/eventos?error=json-invalido");
+  } catch (error) {
+    redireccionJsonInvalido([
+      {
+        campo: "Archivo",
+        mensaje:
+          error instanceof Error
+            ? error.message
+            : "El archivo no contiene JSON válido.",
+      },
+    ]);
   }
 
   const resultado = eventoSchema.safeParse(contenido);
   if (!resultado.success) {
-    redirect("/admin/eventos?error=json-invalido");
+    redireccionJsonInvalido(traducirErroresEventoJson(resultado.error));
   }
   const datos = resultado.data;
 
