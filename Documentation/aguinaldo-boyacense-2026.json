@@ -1,0 +1,22 @@
+{
+  "titulo": "Carrera Atlética Aguinaldo Boyacense",
+  "subtitulo": "",
+  "fecha": "2026-12-19",
+  "horario": "8:00 AM - 11:00 AM (varía según categoría, ver tabla de horarios de salida)",
+  "cierreInscripciones": "20 de noviembre de 2026 (I Ronda) / 10 de diciembre de 2026 (II Ronda)",
+  "ubicacion": "Plaza de Bolívar, Tunja, Boyacá",
+  "precio": 90000,
+  "descuento": 0,
+  "descuentoLabel": "Inscripción I Ronda ($90.000) hasta el 20 de noviembre; sube a $100.000 en la II Ronda",
+  "estado": "ABIERTO",
+  "descripcion": "La gran fiesta deportiva del Aguinaldo Boyacense. El Club Deportivo Atlético Los Chasquis invita a atletas, familias, niños, jóvenes y amantes del deporte a vivir una jornada inolvidable por las calles de Tunja. Evento avalado según las normas de World Athletics, la Federación Colombiana de Atletismo y la Liga de Atletismo de Boyacá.",
+  "distancia": "10 km (Mayores/Veteranos) — evento multi-distancia: también 8K, 4K, 2K, 1.5K, 1K y 800m según categoría",
+  "desnivel": "No especificado (circuito urbano en el centro histórico de Tunja)",
+  "salida": "Plaza de Bolívar (varía según categoría: también Esquina del Éxito, Esquina Electrificadora e Iglesia San Laureano)",
+  "meta": "Plaza de Bolívar",
+  "modalidad": "Carrera de calle",
+  "terreno": "Pavimento",
+  "organizador": "Club Deportivo Atlético Los Chasquis",
+  "aval": "World Athletics, Federación Colombiana de Atletismo y Liga de Atletismo de Boyacá",
+  "terminosUrl": "https://www.clubloschasquis.com/eventos/"
+}
