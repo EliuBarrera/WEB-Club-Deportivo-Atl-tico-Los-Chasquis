@@ -72,6 +72,15 @@ en la base de datos usando el modelo de Prisma. Los eventos existentes son:
 - III Cronoescalada Atlética Siral–Cruz Blanca–Tres Cruces (18 julio 2026)
 - 6K Running de Fuego (5 julio 2026)
 
+**Evento nuevo, pendiente de cargar:** Carrera Atlética Aguinaldo
+Boyacense (19 diciembre 2026). Los datos ya están extraídos y
+estructurados en `aguinaldo-boyacense-2026.json`. **No cargarlo todavía
+con el schema actual** — requiere primero los cambios de la Fase 12
+(rondas de precio, tarifa por grupo de categoría, distancia por
+categoría, premiación estructurada). El JSON trae al final un bloque
+`_inconsistencias_detectadas` con datos que deben confirmarse con el
+club antes de publicar.
+
 También hay un archivo de referencia `CalendarEvents.html/js` con la
 versión actual embebida en WordPress: úsalo como referencia de qué
 información y flujo debe existir (calendario, tarjeta de evento, tabs de
@@ -821,7 +830,9 @@ los 30 minutos. No se crea ningún modelo de cuentas/usuarios nuevo.
       pago en tiempo real (se vuelve a consultar la base en cada carga,
       así que refleja el webhook de Wompi de la Fase 5 sin caché),
       monto, fecha de inscripción
-- [ ] Comprobante de pago descargable
+- [x] Comprobante de pago descargable — `lib/atletas/certificado.ts`
+      genera el PDF con `pdf-lib`, diseño "A" (dorsal de competencia)
+      elegido por el club entre 3 mockups
 - [ ] Versión de los Términos y Condiciones que aceptó (Fase 4)
 **Modelo de datos:** no hizo falta ninguna tabla nueva para el listado
 en sí — sí se agregó `contexto` a `IntentoInscripcion` (rate limiting)
@@ -964,8 +975,184 @@ entran más adelante:**
       salida), reutilizando los datos que ya existen en `Logistica`
 - [ ] Enlace a resultados/tiempos oficiales una vez el juez los publique
 - [ ] Historial acumulado: cuántos eventos del club ha corrido en total
-- [ ] Notificación automática por correo y por whatsapp cuando el pago se aprueba
+- [x] Notificación automática por correo y por whatsapp cuando el pago
+      se aprueba — implementado, ver Fase 11
 
+
+### Fase 11 — CRM básico de atletas y comunicaciones (WhatsApp/correo)
+
+**Objetivo:** que el club tenga un directorio de sus atletas y pueda
+avisarles de nuevos eventos o de que su pago fue aprobado, sin
+depender de escribir uno por uno por WhatsApp.
+
+**Todo lo de abajo ya está escrito y en `main`** (commits `d004345`,
+`f3ee7ac`, `8d4ed6a`). Lo único que falta para que funcione de verdad
+es la configuración externa marcada al final — sin eso, el código
+corre pero cada envío falla en silencio (`no-configurado` /
+`RESEND_API_KEY o RESEND_FROM_EMAIL no están configuradas`) y no rompe
+nada más porque estas funciones nunca lanzan.
+
+- [x] **Directorio de atletas únicos** (`lib/admin/atletas.ts`,
+      `getAtletasUnicos()`) — deduplica todas las `Inscripcion` por
+      `numeroDocumento`, usa la más reciente como datos de contacto
+      "canónicos" y cuenta cuántos eventos ha corrido cada quien.
+      Visible en `/admin/atletas`. Es la única fuente de "quiénes son
+      nuestros atletas" — la difusión masiva lee de esta misma función
+- [x] **Importar evento por JSON** (`app/admin/(panel)/eventos/actions.ts`) —
+      crea un evento a partir de un archivo `.json` con los campos
+      básicos en vez de llenar el formulario a mano; pensado para volcar
+      ahí eventos ya extraídos de un PDF/otra fuente (ej.
+      `aguinaldo-boyacense-2026.json`, aunque ese cargue específico
+      espera a la Fase 12)
+- [x] **Difusión masiva por WhatsApp/correo** (`lib/admin/difusion.ts`)
+      — desde la ficha de un evento, el admin dispara un resumen
+      (fecha, ubicación, precio, cierre de inscripciones, link al
+      evento) a todo el directorio de atletas por los dos canales.
+      Auditoría agregada en `EnvioMasivo` (`schema.prisma`): solo
+      guarda conteos y una muestra acotada de errores, nunca cuerpos de
+      mensaje ni datos de contacto nuevos
+- [x] **Notificación automática al aprobar un pago** (`lib/notificacionPago.ts`)
+      — el webhook de Wompi (`app/api/webhooks/wompi/route.ts`) la
+      dispara con `after()` al pasar `estadoPago` a `APROBADO`;
+      best-effort a propósito, sin tabla de auditoría (a diferencia de
+      `EnvioMasivo`), porque el webhook debe responder rápido y el
+      atleta igual puede consultar su estado en `/atletas`
+- [x] Envío de WhatsApp vía **Brevo** (Business Solution Provider oficial
+      de Meta), `lib/brevoWhatsapp.ts` — normaliza el celular a formato
+      colombiano (`57` + 10 dígitos), usa plantillas ya aprobadas por
+      Meta (obligatorio: no se puede mandar texto libre fuera de una
+      conversación de 24h) y nunca registra el teléfono/nombre del
+      destinatario en los logs de error
+- [x] Envío de correo vía **Resend** (`lib/resend.ts`)
+- [ ] **Configurar credenciales reales y probar el envío end-to-end** —
+      nada de lo anterior ha enviado un mensaje real todavía:
+      - [ ] Crear cuenta en Brevo, activar WhatsApp Business API y
+            crear+esperar aprobación de Meta para las dos plantillas
+            (`BREVO_WHATSAPP_TEMPLATE_ID_RESUMEN`,
+            `BREVO_WHATSAPP_TEMPLATE_ID_PAGO`)
+      - [ ] Poner `BREVO_API_KEY` y los dos template ID en `.env`
+            (local) y en Vercel (producción)
+      - [ ] Crear cuenta en Resend, verificar el dominio de envío y
+            poner `RESEND_API_KEY` + `RESEND_FROM_EMAIL` en `.env`
+            y en Vercel
+      - [ ] Probar con un número/correo real: difusión masiva desde
+            `/admin/atletas` o `/admin/eventos`, y un pago aprobado de
+            prueba en Wompi (sandbox) para confirmar que
+            `enviarNotificacionPagoAprobado` sí llega
+
+
+### Fase 12 — Modelo de precios por rondas y carreras por distancia
+
+**Origen:** la Carrera Atlética Aguinaldo Boyacense (19 dic 2026) no cabe
+en el modelo actual. Los datos completos ya están extraídos en
+`aguinaldo-boyacense-2026.json`. Este evento obliga a cambiar cuatro
+cosas del schema antes de cargarlo, y conviene hacerlo antes de que las
+Fases 4 y 5 queden amarradas al modelo viejo.
+
+**Qué cambia respecto de lo que hay hoy**
+
+Los eventos actuales son festivales de pista: un precio único, un
+descuento por pronto pago, y cada categoría elige *pruebas* de un
+catálogo. El Aguinaldo es una carrera de calle: el precio **sube** según
+se acerca la fecha, varía según la categoría, y cada categoría corre una
+**distancia** fija con su propia hora y punto de salida. Ambos modelos
+deben convivir — no reemplazar uno por el otro.
+
+#### 12.1 Precios por rondas (reemplaza `discount`)
+
+- [ ] Eliminar del modelo `Evento` los campos `discount` y `descuento`
+      (texto libre), y eliminar el objeto `fechasLimiteDescuento` que hoy
+      está **quemado en el JavaScript** — esa es la deuda técnica real
+- [ ] Crear:
+      ```
+      RondaInscripcion  { id, eventoId, orden, nombre, fechaCierre }
+      GrupoTarifa       { id, eventoId, nombre, derechos[] }
+      TarifaInscripcion { id, rondaId, grupoTarifaId, valor }
+      ```
+- [ ] `Categoria` gana `grupoTarifaId` — así un grupo ("adultos") agrupa
+      Mayores, Veteranos A/B/C y Recreativa, y otro ("menores") agrupa
+      Sub 16 hacia abajo
+- [ ] **La regla de resolución de precio vive en un solo lugar del
+      servidor:** buscar la primera ronda del evento cuyo `fechaCierre`
+      no haya pasado, y tomar la `TarifaInscripcion` de esa ronda para el
+      `grupoTarifa` de la categoría elegida. Si ninguna ronda aplica, las
+      inscripciones están cerradas — sin lógica especial de "descuento
+      vencido"
+- [ ] Un descuento y un aumento son el mismo modelo visto al revés: esto
+      cubre los eventos viejos (precio que "sube" al vencer el pronto
+      pago) sin casos particulares. Migrar los 4 eventos ya sembrados a
+      rondas dentro del mismo script
+- [ ] Mantiene la regla de la Fase 4: el precio **nunca** se acepta del
+      cliente, siempre se recalcula aquí
+
+#### 12.2 Inscripción gratuita (camino nuevo, no existe hoy)
+
+- [ ] En el Aguinaldo, Sub 16 / 14 / 12 / 10 / 8 pagan **$0** pero sí
+      reciben kit y sí compiten por premiación en efectivo
+- [ ] Cuando la tarifa resuelta es `0`, la inscripción **no debe pasar
+      por Wompi en absoluto**: se crea directamente con
+      `estadoPago = APROBADO` y sin `wompiReference`
+- [ ] Verificar que el portal del atleta (Fase 10) y el dashboard de
+      ingresos (Fase 6) manejen bien estas inscripciones: cuentan como
+      inscrito, suman $0 al recaudo, y no deben romper el conteo
+- [ ] Probar explícitamente que no se pueda forzar una inscripción
+      gratuita en una categoría de pago manipulando el body
+
+#### 12.3 Carreras por distancia (convive con "pruebas")
+
+- [ ] Hoy `Evento` tiene un solo `time` y una sola `location`. En una
+      carrera de calle cada categoría sale a hora distinta desde un punto
+      distinto de la ciudad. Mover a `Categoria`:
+      `distanciaKm`, `distanciaLabel`, `vueltas`, `sitioSalida`,
+      `sitioLlegada`, `horaSalida` (todos opcionales — los festivales de
+      pista los dejan en null y siguen usando `pruebasPorCategoria`)
+- [ ] Añadir a `Evento` un discriminador (ej. `tipo: PISTA | CALLE`) para
+      que la UI sepa si mostrar el selector de pruebas o la distancia fija
+      de la categoría
+- [ ] `Recorrido` pasa de uno por evento a **varios por evento**, uno por
+      grupo de distancia (10K, 8K/4K, 1.5K, 1K), cada uno asociado a las
+      categorías que lo corren
+
+#### 12.4 Premiación estructurada (reemplaza la imagen)
+
+- [ ] Hoy `premios.efectivo` es una URL de imagen (PNG). Sustituir por:
+      `PremioCategoria { id, categoriaId, puesto, valor }`
+- [ ] Mayores premia hasta el puesto 10; el resto de categorías hasta el
+      5 — el modelo debe soportar distinta profundidad por categoría
+- [ ] Beneficio concreto: el atleta ve en su portal cuánto se premia en
+      **su** categoría, sin abrir una imagen y buscar su fila; y no hay
+      que regenerar un PNG cada vez que cambia un monto
+- [ ] Mantener compatibilidad: si un evento sólo tiene la imagen, seguir
+      mostrándola hasta que se carguen los datos estructurados
+
+#### 12.5 Datos a confirmar con el club antes de publicar
+
+Detectados al cruzar las diapositivas del Aguinaldo entre sí. **No
+corregir por cuenta propia — son decisiones del club:**
+
+- [ ] **Veteranos C**: figura 60-99 años → 1986-1927. Para 2026 debería
+      ser 1966-1927; tal como está se solapa con Veteranos A (1986-1977).
+      Casi seguro error de digitación
+- [ ] **Sub 10**: la tabla de distancias dice 1 K, el croquis lo agrupa
+      en el recorrido de 1.5 KM
+- [ ] **Sub 8**: la tabla dice 800 mts, el croquis titula ese recorrido
+      como 1 KM
+- [ ] **Mayores**: aquí es 17-39 años; en el documento de Políticas de
+      Participación de otros eventos figura como 20-39
+- [ ] **Lugar de entrega de kits**: sigue "por definir" (fecha sí está:
+      18 dic 2026, 8:00 a.m.)
+- [ ] Croquis de recorridos: las imágenes están sólo dentro del PDF, hay
+      que exportarlas y subirlas a Cloudinary
+
+#### 12.6 Efecto sobre el modal de Términos y Condiciones (Fase 4)
+
+- [ ] El bloque condicional de "Entrega de Kits" ahora depende del
+      `grupoTarifa`, no del evento: en el mismo evento los adultos reciben
+      tula/camiseta/chip/diploma y los menores sólo número y medalla
+- [ ] Añadir bloque condicional para las **Notas de categoría**
+      (Recreativa sin fines competitivos, reubicación de federados,
+      participantes de ediciones anteriores) — aplican a este evento y
+      probablemente a las demás carreras de calle
 
 ## Fuera de alcance por ahora
 
