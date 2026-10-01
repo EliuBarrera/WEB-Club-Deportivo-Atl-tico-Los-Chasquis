@@ -22,6 +22,7 @@ export function ErroresJsonModal({
   paramsALimpiar?: string[];
 }) {
   const [visible, setVisible] = useState(Boolean(errores?.length));
+  const [copiado, setCopiado] = useState(false);
 
   useEffect(() => {
     if (!errores?.length) return;
@@ -50,6 +51,21 @@ export function ErroresJsonModal({
 
   function cerrar() {
     setVisible(false);
+  }
+
+  // Para pegar en un mensaje al club o a quien preparó el archivo, sin
+  // tener que transcribir cada fila a mano. Si el navegador no permite
+  // Clipboard API (contexto no seguro, permisos), simplemente no hay
+  // feedback de "copiado" — no hay nada más que hacer salvo copiar a mano.
+  async function copiarErrores() {
+    const texto = errores!.map((e) => `${e.campo}: ${e.mensaje}`).join("\n");
+    try {
+      await navigator.clipboard.writeText(texto);
+      setCopiado(true);
+      setTimeout(() => setCopiado(false), 2000);
+    } catch {
+      // ver comentario de arriba
+    }
   }
 
   return (
@@ -96,6 +112,47 @@ export function ErroresJsonModal({
             </svg>
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={copiarErrores}
+          className="flex w-fit items-center gap-1.5 self-start rounded-full bg-casi-negro/[0.06] px-3 py-1.5 text-xs font-bold uppercase tracking-wide text-casi-negro"
+        >
+          {copiado ? (
+            <>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              Copiado
+            </>
+          ) : (
+            <>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="9" y="9" width="12" height="12" rx="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+              Copiar errores
+            </>
+          )}
+        </button>
 
         <ul className="flex flex-col gap-2">
           {errores.map((error, indice) => (

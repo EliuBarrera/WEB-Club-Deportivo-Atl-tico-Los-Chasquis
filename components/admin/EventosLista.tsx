@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useState, type ChangeEvent } from "react";
 import type { EventoAdmin } from "@/lib/admin/dal";
 import { cloudinaryThumb } from "@/lib/cloudinaryThumb";
 import { formatFechaBadge } from "@/lib/format";
@@ -50,9 +51,14 @@ export function EventosLista({
   ) => Promise<void>;
 }) {
   const { navegando, irA } = useLoaderTransicion(eventoIdActivo ?? "");
+  const [archivoNombre, setArchivoNombre] = useState<string | null>(null);
 
   function mostrarLoader() {
     irA(`cargando-${Date.now()}`);
+  }
+
+  function manejarArchivoSeleccionado(evento: ChangeEvent<HTMLInputElement>) {
+    setArchivoNombre(evento.target.files?.[0]?.name ?? null);
   }
 
   return (
@@ -204,26 +210,61 @@ export function EventosLista({
             Crear desde JSON
           </span>
 
-          <label className="flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-casi-negro/[0.06] py-2 font-display text-sm font-bold uppercase text-casi-negro">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#1c0d0a"
-              strokeWidth="3"
-              strokeLinecap="round"
-            >
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Seleccionar archivo
+          <label
+            className={
+              archivoNombre
+                ? "flex w-full cursor-pointer flex-col gap-1 rounded-2xl bg-casi-negro/[0.06] px-3 py-2"
+                : "flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-casi-negro/[0.06] py-2 font-display text-sm font-bold uppercase text-casi-negro"
+            }
+          >
+            {archivoNombre ? (
+              <>
+                <span className="flex w-fit items-center gap-1 rounded-full bg-verde/10 px-2.5 py-1 font-display text-xs font-bold uppercase text-verde">
+                  <svg
+                    width="11"
+                    height="11"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="3"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                  Documento cargado
+                </span>
+                <span
+                  className="truncate text-xs font-semibold text-gris-oscuro"
+                  title={archivoNombre}
+                >
+                  {archivoNombre}
+                </span>
+              </>
+            ) : (
+              <>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#1c0d0a"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                Seleccionar archivo
+              </>
+            )}
             <input
               type="file"
               name="archivo"
               accept="application/json,.json"
               required
               className="sr-only"
+              onChange={manejarArchivoSeleccionado}
             />
           </label>
 
