@@ -48,3 +48,83 @@ export const IMAGEN_TAMANO_MAXIMO = 5 * 1024 * 1024; // 5 MB
 // límite generoso ya cubre cualquier caso real y evita leer un archivo
 // gigante por error antes de siquiera intentar parsearlo como JSON.
 export const EVENTO_JSON_TAMANO_MAXIMO = 200 * 1024; // 200 KB
+
+export type ErrorEventoJson = { campo: string; mensaje: string };
+
+// Nombres de campo legibles, los mismos que usan las etiquetas del
+// formulario en EventoEditor.tsx — para que el mensaje de un campo del
+// JSON coincida con lo que el admin ve al llenarlo a mano.
+const ETIQUETAS_CAMPO: Record<string, string> = {
+  titulo: "Título",
+  subtitulo: "Subtítulo",
+  fecha: "Fecha",
+  horario: "Horario",
+  cierreInscripciones: "Cierre de inscripciones",
+  ubicacion: "Ubicación",
+  precio: "Precio",
+  descuento: "Descuento",
+  descuentoLabel: "Etiqueta de descuento",
+  estado: "Estado",
+  descripcion: "Descripción",
+  distancia: "Distancia",
+  desnivel: "Desnivel",
+  salida: "Salida",
+  meta: "Meta",
+  modalidad: "Modalidad",
+  terreno: "Terreno",
+  organizador: "Organiza",
+  aval: "Aval",
+  terminosUrl: "Enlace de términos y condiciones",
+};
+
+// Traduce cada issue de Zod a un mensaje en español, campo por campo, para
+// el modal de "Crear desde JSON" (ver crearEventoDesdeJson en
+// app/admin/(panel)/eventos/actions.ts) — antes el admin solo veía "el
+// archivo no tiene los campos esperados" y tenía que adivinar cuál era.
+// Solo traduce los códigos que de hecho puede producir eventoSchema, no
+// pretende cubrir cualquier schema de Zod.
+export function traducirErroresEventoJson(error: z.ZodError): ErrorEventoJson[] {
+  return error.issues.map((issue) => {
+    const campo = issue.path.join(".") || "(raíz del JSON)";
+    const etiqueta = ETIQUETAS_CAMPO[campo] ?? campo;
+
+    let mensaje: string;
+    switch (issue.code) {
+      case "invalid_type":
+        // Cubre tanto el campo ausente como uno con el tipo equivocado —
+        // con z.coerce de por medio (precio, descuento) Zod no siempre
+        // distingue "no vino" de "vino pero no se pudo convertir".
+        mensaje = "Falta este campo o tiene un tipo de dato incorrecto.";
+        break;
+      case "too_small":
+        mensaje =
+          issue.origin === "number"
+            ? `Debe ser mayor o igual a ${issue.minimum}.`
+            : issue.minimum === 1
+              ? "No puede estar vacío."
+              : `Debe tener al menos ${issue.minimum} caracteres.`;
+        break;
+      case "too_big":
+        mensaje =
+          issue.origin === "number"
+            ? `Debe ser menor o igual a ${issue.maximum}.`
+            : `No puede superar los ${issue.maximum} caracteres.`;
+        break;
+      case "invalid_format":
+        mensaje =
+          issue.format === "date"
+            ? "Formato de fecha inválido — usa AAAA-MM-DD."
+            : issue.format === "url"
+              ? "Debe ser una URL válida (o dejarse vacío)."
+              : "Formato inválido.";
+        break;
+      case "invalid_value":
+        mensaje = `Valor no permitido — debe ser uno de: ${issue.values.join(", ")}.`;
+        break;
+      default:
+        mensaje = issue.message;
+    }
+
+    return { campo: etiqueta, mensaje };
+  });
+}
