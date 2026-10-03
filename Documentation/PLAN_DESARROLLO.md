@@ -1100,7 +1100,7 @@ categorías eligen un grupo de tarifa en vez de un `Costo`
 escribir, idempotente) dejó cada evento existente con una ronda única
 que cierra en la fecha del evento y el precio que realmente se cobraba
 (`precio - descuento`; `fechaLimiteDescuento` estaba vacío en todos, el
-código anterior restaba el descuento siempre). Los 7 eventos reales eran
+código anterior restaba el descuento siempre). Los eventos reales eran
 7, no 4: el Aguinaldo ya existe `ABIERTO` sin categorías ni costos, y se
 omite hasta configurarlo. **Pendiente al desplegar:** correr las dos
 migraciones de `fase12_1_*` y luego el script con `--aplicar` contra
@@ -1108,16 +1108,31 @@ producción, en ese orden y antes del deploy del código.
 
 #### 12.2 Inscripción gratuita (camino nuevo, no existe hoy)
 
-- [ ] En el Aguinaldo, Sub 16 / 14 / 12 / 10 / 8 pagan **$0** pero sí
+- [x] En el Aguinaldo, Sub 16 / 14 / 12 / 10 / 8 pagan **$0** pero sí
       reciben kit y sí compiten por premiación en efectivo
-- [ ] Cuando la tarifa resuelta es `0`, la inscripción **no debe pasar
+- [x] Cuando la tarifa resuelta es `0`, la inscripción **no debe pasar
       por Wompi en absoluto**: se crea directamente con
       `estadoPago = APROBADO` y sin `wompiReference`
-- [ ] Verificar que el portal del atleta (Fase 10) y el dashboard de
+- [x] Verificar que el portal del atleta (Fase 10) y el dashboard de
       ingresos (Fase 6) manejen bien estas inscripciones: cuentan como
       inscrito, suman $0 al recaudo, y no deben romper el conteo
-- [ ] Probar explícitamente que no se pueda forzar una inscripción
+- [x] Probar explícitamente que no se pueda forzar una inscripción
       gratuita en una categoría de pago manipulando el body
+
+**Implementado (2026-10-03, rama de desarrollo):** en `POST
+/api/inscripciones`, si `resolverTarifa` devuelve `0` la inscripción se
+crea `APROBADO`, sin `wompiReference` ni firma, y dispara con `after()` la
+misma notificación del webhook (`lib/notificacionPago.ts`, que en ese caso
+dice "Inscripción confirmada" y monto "Gratis"). El formulario no carga
+el widget de Wompi y muestra "¡Inscripción confirmada!". El portal del
+atleta ya no ofrecía "Reintentar pago" para `APROBADO` y sí el
+certificado; los listados muestran "Gratis" en vez de "$0". El dashboard
+suma $0 al recaudo y cuenta la inscripción (su etiqueta pasó a
+"inscripciones aprobadas"). Probado contra la rama: categoría gratis →
+`APROBADO`/$0; categoría de pago enviando `totalPago: 0`,
+`estadoPago: "APROBADO"` o el `grupoTarifaId` real del grupo gratis →
+igual cobra $80.000 `PENDIENTE` (el grupo sale de la categoría, no del
+body). **Sin revisión visual** del formulario en navegador.
 
 #### 12.3 Carreras por distancia (convive con "pruebas")
 
@@ -1174,6 +1189,31 @@ corregir por cuenta propia — son decisiones del club:**
       (Recreativa sin fines competitivos, reubicación de federados,
       participantes de ediciones anteriores) — aplican a este evento y
       probablemente a las demás carreras de calle
+
+#### 12.7 Pendientes para cerrar la Fase 12 (después de 12.1–12.6)
+
+Surgieron durante la implementación; se hacen al terminar las
+subsecciones de arriba, no antes:
+
+- [ ] **CRUD de rondas, grupos de tarifa y tarifas en el admin**
+      (`EventoEditor.tsx`): hoy solo se crean por script o a mano en la
+      base. Sin esto no se puede configurar el Aguinaldo
+- [ ] **Quitar `Evento.precio`, `descuento`, `descuentoLabel`,
+      `fechaLimiteDescuento` y el modelo `Costo`** una vez exista ese CRUD
+      (el editor de eventos todavía los usa). `Inscripcion.costoId` se
+      conserva o se migra a `grupoTarifaId` para no perder el histórico
+- [ ] **Configurar el Aguinaldo** (categorías, grupos, rondas, tarifas)
+      con los datos confirmados en 12.5 — hoy está `ABIERTO` sin
+      categorías ni costos, así que nadie puede inscribirse
+- [ ] **Despliegue a producción, en este orden:** (1) `npx prisma migrate
+      deploy` con las migraciones `fase12_*`; (2) `npx tsx
+      prisma/migrar-precios-rondas.ts` (simulación), revisar, y luego con
+      `--aplicar`; (3) desplegar el código. Si el código sube antes que
+      el script, los eventos sin rondas quedan sin inscripción
+- [ ] **Borrar la rama de Neon de desarrollo** (`ep-plain-dust-…`) al
+      terminar: tiene copia de inscripciones reales con datos de menores.
+      Volver `DATABASE_URL` de `.env` a producción (la URL quedó
+      comentada en el mismo archivo)
 
 ## Fuera de alcance por ahora
 

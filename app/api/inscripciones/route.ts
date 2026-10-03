@@ -1,9 +1,10 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { resolverTarifa } from "@/lib/precios";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { inscripcionSchema } from "@/lib/validation/inscripcion";
+import { enviarNotificacionPagoAprobado } from "@/lib/notificacionPago";
 import { generarFirmaIntegridad } from "@/lib/wompi";
 
 // Endpoint de inscripción (Fase 4). El precio, la elegibilidad de
@@ -175,6 +176,10 @@ export async function POST(request: NextRequest) {
     );
   }
   const totalPago = tarifa.valor;
+  // Inscripción gratuita (Fase 12.2): no hay nada que cobrar, así que no
+  // pasa por Wompi — queda APROBADO de una vez y sin wompiReference. El
+  // monto sale de resolverTarifa, así que no se puede forzar desde el body.
+  const gratuita = totalPago === 0;
 
   const fechaNacimiento = new Date(datos.fechaNacimiento);
   const edad = calcularEdad(fechaNacimiento, evento.fecha);
@@ -235,10 +240,25 @@ export async function POST(request: NextRequest) {
         terminosVersion: terminosVigente?.version ?? null,
         terminosAceptadosEn: terminosVigente ? new Date() : null,
         totalPago,
-        estadoPago: "PENDIENTE",
+        estadoPago: gratuita ? "APROBADO" : "PENDIENTE",
       },
-      select: { id: true },
+      select: {
+        id: true,
+        nombres: true,
+        celular: true,
+        email: true,
+        totalPago: true,
+        evento: { select: { titulo: true, fecha: true, ubicacion: true } },
+      },
     });
+
+    if (gratuita) {
+      after(() => enviarNotificacionPagoAprobado(inscripcion));
+      return NextResponse.json(
+        { id: inscripcion.id, totalPago, estadoPago: "APROBADO" },
+        { status: 201 }
+      );
+    }
 
     // La referencia que se le manda a Wompi es el id de la inscripción: ya
     // es único, así que no hace falta generar ni guardar otro valor aparte.
@@ -249,7 +269,7 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(
-      { id: inscripcion.id, totalPago, firmaIntegridad },
+      { id: inscripcion.id, totalPago, estadoPago: "PENDIENTE", firmaIntegridad },
       { status: 201 }
     );
   } catch (error) {

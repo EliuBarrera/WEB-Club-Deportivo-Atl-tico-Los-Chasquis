@@ -219,7 +219,7 @@ export function CalendarioProximosEventos({
           </p>
 
           <p className="font-display text-lg font-extrabold">
-            {formatPrecio(seleccionada.totalPago)}
+            {seleccionada.totalPago === 0 ? "Gratis" : formatPrecio(seleccionada.totalPago)}
           </p>
 
           <p className="text-xs text-gris-oscuro/70">

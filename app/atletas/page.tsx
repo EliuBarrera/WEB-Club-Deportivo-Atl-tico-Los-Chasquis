@@ -178,7 +178,7 @@ export default async function AtletasPage() {
 
                               <div className="flex flex-col items-start gap-2 sm:items-end">
                                 <span className="font-display text-lg font-extrabold">
-                                  {formatPrecio(inscripcion.totalPago)}
+                                  {inscripcion.totalPago === 0 ? "Gratis" : formatPrecio(inscripcion.totalPago)}
                                 </span>
                                 <AccionesInscripcion
                                   inscripcionId={inscripcion.id}

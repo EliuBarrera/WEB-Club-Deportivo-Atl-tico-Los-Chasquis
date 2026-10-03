@@ -27,6 +27,15 @@ export async function enviarNotificacionPagoAprobado(inscripcion: {
 }): Promise<void> {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
   const link = `${base}/atletas`;
+  // Inscripción gratuita (Fase 12.2): también se confirma, sin hablar de
+  // "pago". La plantilla de WhatsApp es fija (aprobada por Meta), así que
+  // ahí solo cambia el valor del monto.
+  const gratuita = inscripcion.totalPago === 0;
+  const monto = gratuita ? "Gratis" : formatPrecio(inscripcion.totalPago);
+  const asunto = gratuita ? "Inscripción confirmada" : "Pago aprobado";
+  const frase = gratuita
+    ? "¡Tu inscripción gratuita quedó confirmada! Ya estás inscrito/a en:"
+    : "¡Tu pago fue aprobado! Ya estás inscrito/a en:";
 
   const templateId = process.env.BREVO_WHATSAPP_TEMPLATE_ID_PAGO;
   if (templateId) {
@@ -37,7 +46,7 @@ export async function enviarNotificacionPagoAprobado(inscripcion: {
         variables: [
           inscripcion.nombres,
           inscripcion.evento.titulo,
-          formatPrecio(inscripcion.totalPago),
+          monto,
           link,
         ],
       });
@@ -51,13 +60,13 @@ export async function enviarNotificacionPagoAprobado(inscripcion: {
   try {
     await enviarCorreo({
       to: inscripcion.email,
-      subject: `Pago aprobado: ${inscripcion.evento.titulo}`,
+      subject: `${asunto}: ${inscripcion.evento.titulo}`,
       html: `
         <div style="font-family: sans-serif; color: #1c0d0a; max-width: 480px; margin: 0 auto;">
           <p>Hola ${inscripcion.nombres},</p>
-          <p>¡Tu pago fue aprobado! Ya estás inscrito/a en:</p>
+          <p>${frase}</p>
           <h2 style="color: #f15808; text-transform: uppercase;">${inscripcion.evento.titulo}</h2>
-          <p><strong>Monto pagado:</strong> ${formatPrecio(inscripcion.totalPago)}</p>
+          <p><strong>Monto pagado:</strong> ${monto}</p>
           <p>
             <a href="${link}" style="display: inline-block; background: #f15808; color: white; padding: 12px 24px; border-radius: 999px; text-decoration: none; font-weight: bold;">
               Ver mis inscripciones
@@ -69,8 +78,8 @@ export async function enviarNotificacionPagoAprobado(inscripcion: {
       text: [
         `Hola ${inscripcion.nombres},`,
         "",
-        `¡Tu pago fue aprobado! Ya estás inscrito/a en: ${inscripcion.evento.titulo}`,
-        `Monto pagado: ${formatPrecio(inscripcion.totalPago)}`,
+        `${frase} ${inscripcion.evento.titulo}`,
+        `Monto pagado: ${monto}`,
         "",
         `Ver mis inscripciones: ${link}`,
         "",

@@ -186,7 +186,7 @@ export function FormularioInscripcion({
   // `window.WidgetCheckout` nunca quedaba definido y el botón de pago se
   // quedaba en "Cargando pasarela de pago..." para siempre.
   useEffect(() => {
-    if (!inscripcionId) return;
+    if (!inscripcionId || totalPago === 0) return;
     if (window.WidgetCheckout) {
       queueMicrotask(() => setWidgetWompiListo(true));
       return;
@@ -200,7 +200,7 @@ export function FormularioInscripcion({
         "No se pudo cargar la pasarela de pago. Si tienes un bloqueador de anuncios activo, desactívalo para este sitio e intenta de nuevo."
       );
     document.body.appendChild(script);
-  }, [inscripcionId]);
+  }, [inscripcionId, totalPago]);
 
   const categoriaSugerida = useMemo(() => {
     if (!fechaNacimiento) return undefined;
@@ -318,8 +318,8 @@ export function FormularioInscripcion({
 
       setInscripcionId(datos.id);
       setTotalPago(datos.totalPago);
-      setFirmaIntegridad(datos.firmaIntegridad);
-      setEstadoPago("PENDIENTE");
+      setFirmaIntegridad(datos.firmaIntegridad ?? null);
+      setEstadoPago(datos.estadoPago);
     } catch {
       setError("No se pudo conectar con el servidor, intenta de nuevo.");
     } finally {
@@ -394,7 +394,9 @@ export function FormularioInscripcion({
       <div className="flex flex-col gap-4 rounded-[20px] bg-white p-6 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
         <h3 className="font-display text-2xl font-extrabold uppercase">
           {estadoPago === "APROBADO"
-            ? "¡Pago aprobado!"
+            ? totalPago === 0
+              ? "¡Inscripción confirmada!"
+              : "¡Pago aprobado!"
             : "¡Inscripción registrada!"}
         </h3>
 
@@ -407,8 +409,10 @@ export function FormularioInscripcion({
 
         {estadoPago === "APROBADO" && (
           <p className="rounded-xl bg-green-50 p-4 text-lg font-bold text-green-800">
-            Tu pago de {totalPago !== null && formatPrecio(totalPago)} fue
-            aprobado. ¡Nos vemos en la línea de salida!
+            {totalPago === 0
+              ? "Tu inscripción es gratuita y ya quedó confirmada."
+              : `Tu pago de ${totalPago !== null ? formatPrecio(totalPago) : ""} fue aprobado.`}{" "}
+            ¡Nos vemos en la línea de salida!
           </p>
         )}
         <div className="flex flex-wrap items-center justify-center gap-4">
@@ -825,7 +829,9 @@ export function FormularioInscripcion({
 
           {precioPreview !== null ? (
             <p className="font-display text-2xl font-extrabold">
-              Total a pagar: {formatPrecio(precioPreview)}
+              {precioPreview === 0
+                ? "Inscripción gratuita"
+                : `Total a pagar: ${formatPrecio(precioPreview)}`}
             </p>
           ) : null}
 

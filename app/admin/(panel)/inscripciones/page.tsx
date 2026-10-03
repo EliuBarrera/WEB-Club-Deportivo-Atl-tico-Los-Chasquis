@@ -76,7 +76,7 @@ export default async function InscripcionesPage({
               {formatPrecio(dashboard.totalRecaudado)}
             </span>
             <span className="text-sm text-white/70">
-              Todos los eventos · {dashboard.totalPagos} pagos aprobados
+              Todos los eventos · {dashboard.totalPagos} inscripciones aprobadas
             </span>
             <a
               href={WOMPI_LOGIN_URL}
@@ -237,7 +237,7 @@ export default async function InscripcionesPage({
                       {inscripcion.estadoPago}
                     </span>
                   </td>
-                  <td className="px-4 py-3">{formatPrecio(inscripcion.totalPago)}</td>
+                  <td className="px-4 py-3">{inscripcion.totalPago === 0 ? "Gratis" : formatPrecio(inscripcion.totalPago)}</td>
                 </tr>
               ))}
 
