@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import type { EventoPublicado } from "@/lib/eventos";
+import { DatosCarrera } from "@/components/eventos/DatosCarrera";
 import { formatFechaBadge, formatFechaCierre, formatPrecio } from "@/lib/format";
 
 const TABS = [
@@ -174,7 +175,9 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
 
       {evento.categorias.length > 0 ? (
         <div>
-          <TituloSeccion>Categorías y pruebas</TituloSeccion>
+          <TituloSeccion>
+            {evento.tipo === "CALLE" ? "Categorías y distancias" : "Categorías y pruebas"}
+          </TituloSeccion>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
             {evento.categorias.map((categoria) => {
               return (
@@ -186,6 +189,7 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
                     <span className="font-display text-lg font-extrabold uppercase capitalize">
                       {categoria.nombre.toLowerCase()}
                     </span>
+                    {categoria.pruebas.length > 0 && (
                     <div className="group relative">
                       <button
                         type="button"
@@ -211,6 +215,7 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
                         </div>
                       </div>
                     </div>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-0.5">
@@ -220,6 +225,9 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
                     <span className="text-sm">{categoria.edad}</span>
                   </div>
 
+                  {evento.tipo === "CALLE" ? (
+                    <DatosCarrera categoria={categoria} />
+                  ) : (
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
                       Pruebas
@@ -239,6 +247,7 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
                       )}
                     </div>
                   </div>
+                  )}
 
                 </div>
               );
@@ -258,63 +267,100 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
 }
 
 function TabRecorridos({ evento }: { evento: EventoPublicado }) {
-  const recorrido = evento.recorrido;
-
-  const datosTecnicos = recorrido
-    ? [
+  const recorridos = evento.recorridos
+    .map((recorrido) => ({
+      ...recorrido,
+      datosTecnicos: [
         ["Distancia", recorrido.distancia],
         ["Desnivel", recorrido.desnivel],
         ["Salida", recorrido.salida],
         ["Meta", recorrido.meta],
         ["Modalidad", recorrido.modalidad],
         ["Terreno", recorrido.terreno],
-      ].filter((par): par is [string, string] => Boolean(par[1]))
-    : [];
+      ].filter((par): par is [string, string] => Boolean(par[1])),
+    }))
+    .filter(
+      (r) =>
+        r.datosTecnicos.length > 0 ||
+        r.programacion.length > 0 ||
+        r.mapaUrl ||
+        r.categorias.length > 0
+    );
 
-  if (
-    !recorrido ||
-    (datosTecnicos.length === 0 && recorrido.programacion.length === 0)
-  ) {
+  if (recorridos.length === 0) {
     return <SinDatos>Este evento aún no tiene recorrido publicado.</SinDatos>;
   }
 
   return (
-    <div className="flex flex-col gap-4">
-      {datosTecnicos.length > 0 ? (
-        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          {datosTecnicos.map(([etiqueta, valor]) => (
-            <div key={etiqueta}>
-              <dt className="text-base font-bold uppercase text-gris-oscuro">
-                {etiqueta}
-              </dt>
-              <dd className="text-xl">{valor}</dd>
-            </div>
-          ))}
-        </dl>
-      ) : null}
+    <div className="flex flex-col gap-8">
+      {recorridos.map((recorrido) => (
+        <section key={recorrido.id} className="flex flex-col gap-4">
+          {recorridos.length > 1 || recorrido.nombre ? (
+            <TituloSeccion>{recorrido.nombre ?? "Recorrido"}</TituloSeccion>
+          ) : null}
 
-      {recorrido.programacion.length > 0 ? (
-        <div>
-          <TituloSeccion>Programación</TituloSeccion>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {recorrido.programacion.map((img) => (
-              <div
-                key={img.id}
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
-              >
-                <Image
-                  src={img.url}
-                  alt={img.alt}
-                  fill
-                  sizes="(min-width: 640px) 45vw, 90vw"
-                  className="object-cover"
-                  unoptimized
-                />
+          {recorrido.categorias.length > 0 ? (
+            <p className="text-base">
+              <span className="font-bold uppercase text-gris-oscuro">Lo corren: </span>
+              {recorrido.categorias.map((c) => c.nombre).join(", ")}
+            </p>
+          ) : null}
+
+          {recorrido.datosTecnicos.length > 0 ? (
+            <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {recorrido.datosTecnicos.map(([etiqueta, valor]) => (
+                <div key={etiqueta}>
+                  <dt className="text-base font-bold uppercase text-gris-oscuro">
+                    {etiqueta}
+                  </dt>
+                  <dd className="text-xl">{valor}</dd>
+                </div>
+              ))}
+            </dl>
+          ) : null}
+
+          {recorrido.mapaUrl ? (
+            <a
+              href={recorrido.mapaUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative block aspect-[4/3] w-full overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
+            >
+              <Image
+                src={recorrido.mapaUrl}
+                alt={`Croquis ${recorrido.nombre ?? "del recorrido"}`}
+                fill
+                sizes="(min-width: 640px) 60vw, 90vw"
+                className="object-contain bg-white"
+                unoptimized
+              />
+            </a>
+          ) : null}
+
+          {recorrido.programacion.length > 0 ? (
+            <div>
+              <TituloSeccion>Programación</TituloSeccion>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {recorrido.programacion.map((img) => (
+                  <div
+                    key={img.id}
+                    className="relative aspect-[4/3] w-full overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
+                  >
+                    <Image
+                      src={img.url}
+                      alt={img.alt}
+                      fill
+                      sizes="(min-width: 640px) 45vw, 90vw"
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      ) : null}
+            </div>
+          ) : null}
+        </section>
+      ))}
     </div>
   );
 }

@@ -22,6 +22,8 @@ export function CategoriaModal({
   categoria,
   pruebasCatalogo,
   gruposTarifa,
+  tipoEvento,
+  recorridos,
   guardarAction,
   eliminarAction,
   onCerrar,
@@ -30,6 +32,8 @@ export function CategoriaModal({
   categoria?: CategoriaExistente;
   pruebasCatalogo: PruebaCatalogoAdmin[];
   gruposTarifa: EventoCompleto["gruposTarifa"];
+  tipoEvento: EventoCompleto["tipo"];
+  recorridos: EventoCompleto["recorridos"];
   guardarAction: (formData: FormData) => Promise<void>;
   eliminarAction?: (formData: FormData) => Promise<void>;
   onCerrar: () => void;
@@ -169,6 +173,86 @@ export function CategoriaModal({
             )}
           </label>
 
+          {tipoEvento === "CALLE" ? (
+            <div className="flex flex-col gap-3">
+              <span className={labelClase}>Carrera</span>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_80px_minmax(0,1fr)]">
+                <label className="flex min-w-0 flex-col gap-1">
+                  <span className={labelClase}>Recorrido</span>
+                  <select
+                    name="recorridoId"
+                    defaultValue={categoria?.recorridoId ?? ""}
+                    className={campoClase}
+                  >
+                    <option value="">Sin recorrido</option>
+                    {recorridos.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.nombre ?? r.distancia ?? "Recorrido sin nombre"}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex min-w-0 flex-col gap-1">
+                  <span className={labelClase}>Distancia</span>
+                  <input
+                    type="text"
+                    name="distancia"
+                    placeholder="ej. 10 km"
+                    defaultValue={categoria?.distancia ?? ""}
+                    className={campoClase}
+                  />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1">
+                  <span className={labelClase}>Vueltas</span>
+                  <input
+                    type="number"
+                    name="vueltas"
+                    min={1}
+                    defaultValue={categoria?.vueltas ?? ""}
+                    className={campoClase}
+                  />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1">
+                  <span className={labelClase}>Hora de salida</span>
+                  <input
+                    type="text"
+                    name="horaSalida"
+                    placeholder="ej. 8:00 a.m."
+                    defaultValue={categoria?.horaSalida ?? ""}
+                    className={campoClase}
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <label className="flex min-w-0 flex-col gap-1">
+                  <span className={labelClase}>Sitio de salida</span>
+                  <input
+                    type="text"
+                    name="sitioSalida"
+                    placeholder="ej. Plaza de Bolívar"
+                    defaultValue={categoria?.sitioSalida ?? ""}
+                    className={campoClase}
+                  />
+                </label>
+                <label className="flex min-w-0 flex-col gap-1">
+                  <span className={labelClase}>Sitio de llegada</span>
+                  <input
+                    type="text"
+                    name="sitioLlegada"
+                    placeholder="ej. Plaza de Bolívar"
+                    defaultValue={categoria?.sitioLlegada ?? ""}
+                    className={campoClase}
+                  />
+                </label>
+              </div>
+              {recorridos.length === 0 && (
+                <span className="text-sm text-gris-oscuro">
+                  Crea los recorridos en la pestaña Recorridos para poder
+                  asignarlos.
+                </span>
+              )}
+            </div>
+          ) : (
           <div className="flex flex-col gap-3">
             <span className={labelClase}>Pruebas habilitadas</span>
             {grupos.map(({ grupo, pruebas }) => (
@@ -200,6 +284,7 @@ export function CategoriaModal({
               </div>
             ))}
           </div>
+          )}
 
           <div className="flex items-center justify-between">
             {eliminarAction ? (

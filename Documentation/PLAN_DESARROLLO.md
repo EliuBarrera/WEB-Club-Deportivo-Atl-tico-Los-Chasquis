@@ -1136,18 +1136,40 @@ body). **Sin revisión visual** del formulario en navegador.
 
 #### 12.3 Carreras por distancia (convive con "pruebas")
 
-- [ ] Hoy `Evento` tiene un solo `time` y una sola `location`. En una
+- [x] Hoy `Evento` tiene un solo `time` y una sola `location`. En una
       carrera de calle cada categoría sale a hora distinta desde un punto
       distinto de la ciudad. Mover a `Categoria`:
       `distanciaKm`, `distanciaLabel`, `vueltas`, `sitioSalida`,
       `sitioLlegada`, `horaSalida` (todos opcionales — los festivales de
       pista los dejan en null y siguen usando `pruebasPorCategoria`)
-- [ ] Añadir a `Evento` un discriminador (ej. `tipo: PISTA | CALLE`) para
+- [x] Añadir a `Evento` un discriminador (ej. `tipo: PISTA | CALLE`) para
       que la UI sepa si mostrar el selector de pruebas o la distancia fija
       de la categoría
-- [ ] `Recorrido` pasa de uno por evento a **varios por evento**, uno por
+- [x] `Recorrido` pasa de uno por evento a **varios por evento**, uno por
       grupo de distancia (10K, 8K/4K, 1.5K, 1K), cada uno asociado a las
       categorías que lo corren
+
+**Implementado (2026-10-03, rama de desarrollo):** migración
+`fase12_3_recorridos_por_distancia` (solo agrega; quita la restricción de
+un recorrido por evento — el que ya tenía cada evento se conserva).
+`Evento.tipo` (PISTA por defecto); `Categoria` gana `recorridoId`,
+`distancia` (texto, ej. "10 km"), `vueltas`, `horaSalida`, `sitioSalida`,
+`sitioLlegada` — no se agregó `distanciaKm` numérico porque nada lo usa
+todavía. Admin: selector Pista/Calle en Información; la pestaña
+"Recorridos" pasó a ser una lista con `RecorridoModal` (croquis a
+Cloudinary) y los campos del recorrido único salieron del formulario
+principal; el modal de categoría muestra pruebas (pista) o recorrido/
+distancia/vueltas/hora/sitios (calle), validando en servidor que el
+recorrido sea del mismo evento. Público: el tab Recorridos lista cada
+recorrido con su croquis y "Lo corren: …"; en carreras de calle,
+Información muestra "Categorías y distancias" y el formulario de
+inscripción muestra distancia/hora/lugar de la categoría elegida
+(`components/eventos/DatosCarrera.tsx`). Probado con `next start` contra
+la rama: Información de un evento de calle con sus distancias, datos de
+los dos recorridos presentes, inscripción a categoría de calle → 201, y
+los eventos de pista conservan su recorrido. **Sin revisión visual** del
+tab Recorridos ni del admin (no hay navegador ni credenciales en la
+sesión).
 
 #### 12.4 Premiación estructurada (reemplaza la imagen)
 

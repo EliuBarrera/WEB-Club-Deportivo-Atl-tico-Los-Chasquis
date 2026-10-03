@@ -47,6 +47,14 @@ enum RolUsuario {
   EDITOR
 }
 
+// Fase 12.3: PISTA = festivales donde cada categoría elige pruebas del
+// catálogo; CALLE = carreras donde cada categoría corre una distancia fija
+// con su propia hora y sitio de salida.
+enum TipoEvento {
+  PISTA
+  CALLE
+}
+
 // ==========================================
 // USUARIOS DEL PANEL ADMIN
 // ==========================================
@@ -90,6 +98,7 @@ model Evento {
   descuentoLabel       String? // ej: "Pagando antes del 20 de febrero"
   fechaLimiteDescuento DateTime?
   estado               EstadoEvento @default(BORRADOR)
+  tipo                 TipoEvento   @default(PISTA)
   fecha                DateTime
   horario              String? // texto libre, ej: "7:00 AM - 5:00 PM"
   ubicacion            String
@@ -104,12 +113,12 @@ model Evento {
   lemaInstitucional    String?
 
   // Relaciones 1:1
-  recorrido  Recorrido?
   premios    Premios?
   reglamento Reglamento?
   logistica  Logistica?
 
   // Relaciones 1:N
+  recorridos    Recorrido[]
   categorias    Categoria[]
   noticias      Noticia[]
   objetivos     Objetivo[]
@@ -176,6 +185,16 @@ model Categoria {
   // precio en cada ronda. Null mientras el evento no use rondas.
   grupoTarifaId String?
   grupoTarifa   GrupoTarifa? @relation(fields: [grupoTarifaId], references: [id], onDelete: SetNull)
+
+  // Carreras de calle (Fase 12.3): qué recorrido corre la categoría y con
+  // qué distancia/hora/sitio. Null en festivales de pista.
+  recorridoId  String?
+  recorrido    Recorrido? @relation(fields: [recorridoId], references: [id], onDelete: SetNull)
+  distancia    String? // ej: "10 km", "800 m"
+  vueltas      Int?
+  horaSalida   String? // ej: "8:00 a.m."
+  sitioSalida  String?
+  sitioLlegada String?
 
   pruebas       CategoriaPrueba[]
   inscripciones Inscripcion[]
@@ -249,10 +268,15 @@ model CategoriaPrueba {
 // RECORRIDO
 // ==========================================
 
+// Un evento puede tener varios recorridos (Fase 12.3: ej. 10K, 8K/4K,
+// 1.5K, 1K en una carrera de calle), cada uno con las categorías que lo
+// corren. Los festivales de pista siguen teniendo uno o ninguno.
 model Recorrido {
-  id       String @id @default(cuid())
-  eventoId String @unique
-  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  id       String  @id @default(cuid())
+  eventoId String
+  evento   Evento  @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  nombre   String? // ej: "Recorrido 10K"
+  orden    Int     @default(0)
 
   mapaUrl   String?
   distancia String? // ej: "6 kilómetros"
@@ -263,6 +287,9 @@ model Recorrido {
   terreno   String?
 
   programacion ImagenProgramacion[]
+  categorias   Categoria[]
+
+  @@index([eventoId])
 }
 
 model ImagenProgramacion {

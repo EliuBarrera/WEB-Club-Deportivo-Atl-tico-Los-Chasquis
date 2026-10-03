@@ -1220,7 +1220,7 @@ async function main() {
           })),
         },
 
-        recorrido: {
+        recorridos: {
           create: {
             mapaUrl: orNull(d.recorridos.mapa),
             distancia: orNull(d.recorridos.datos_tecnicos?.distancia),

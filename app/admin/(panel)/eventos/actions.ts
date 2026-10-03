@@ -21,6 +21,7 @@ import {
 import { categoriaSchema } from "@/lib/validation/categoria";
 import { listaTextoSchema } from "@/lib/validation/listaTexto";
 import { noticiaSchema } from "@/lib/validation/noticia";
+import { recorridoSchema } from "@/lib/validation/recorrido";
 import { preciosSchema } from "@/lib/validation/precios";
 import { guardarPreciosEvento } from "@/lib/admin/precios";
 
@@ -125,11 +126,12 @@ export async function crearEventoDesdeJson(formData: FormData) {
       descuento: datos.descuento,
       descuentoLabel: datos.descuentoLabel ?? null,
       estado: datos.estado,
+      tipo: datos.tipo,
       descripcion: datos.descripcion ?? null,
       organizador: datos.organizador ?? null,
       aval: datos.aval ?? null,
       terminosUrl: datos.terminosUrl || null,
-      recorrido: {
+      recorridos: {
         create: {
           distancia: datos.distancia ?? null,
           desnivel: datos.desnivel ?? null,
@@ -164,13 +166,8 @@ export async function actualizarEvento(eventoId: string, formData: FormData) {
     cierreInscripciones: campoOpcional(formData, "cierreInscripciones"),
     ubicacion: campoTexto(formData, "ubicacion"),
     estado: campoTexto(formData, "estado"),
+    tipo: campoOpcional(formData, "tipo"),
     descripcion: campoOpcional(formData, "descripcion"),
-    distancia: campoOpcional(formData, "distancia"),
-    desnivel: campoOpcional(formData, "desnivel"),
-    salida: campoOpcional(formData, "salida"),
-    meta: campoOpcional(formData, "meta"),
-    modalidad: campoOpcional(formData, "modalidad"),
-    terreno: campoOpcional(formData, "terreno"),
     organizador: campoOpcional(formData, "organizador"),
     aval: campoOpcional(formData, "aval"),
     terminosUrl: campoOpcional(formData, "terminosUrl") ?? "",
@@ -201,45 +198,24 @@ export async function actualizarEvento(eventoId: string, formData: FormData) {
     imagenUrl = resultado.secure_url;
   }
 
-  await prisma.$transaction([
-    prisma.evento.update({
-      where: { id: eventoId },
-      data: {
-        titulo: datos.titulo,
-        subtitulo: datos.subtitulo ?? null,
-        fecha: new Date(datos.fecha),
-        horario: datos.horario ?? null,
-        cierreInscripciones: datos.cierreInscripciones ?? null,
-        ubicacion: datos.ubicacion,
-        estado: datos.estado,
-        descripcion: datos.descripcion ?? null,
-        organizador: datos.organizador ?? null,
-        aval: datos.aval ?? null,
-        terminosUrl: datos.terminosUrl || null,
-        ...(imagenUrl ? { imagenUrl } : {}),
-      },
-    }),
-    prisma.recorrido.upsert({
-      where: { eventoId },
-      create: {
-        eventoId,
-        distancia: datos.distancia ?? null,
-        desnivel: datos.desnivel ?? null,
-        salida: datos.salida ?? null,
-        meta: datos.meta ?? null,
-        modalidad: datos.modalidad ?? null,
-        terreno: datos.terreno ?? null,
-      },
-      update: {
-        distancia: datos.distancia ?? null,
-        desnivel: datos.desnivel ?? null,
-        salida: datos.salida ?? null,
-        meta: datos.meta ?? null,
-        modalidad: datos.modalidad ?? null,
-        terreno: datos.terreno ?? null,
-      },
-    }),
-  ]);
+  await prisma.evento.update({
+    where: { id: eventoId },
+    data: {
+      titulo: datos.titulo,
+      subtitulo: datos.subtitulo ?? null,
+      fecha: new Date(datos.fecha),
+      horario: datos.horario ?? null,
+      cierreInscripciones: datos.cierreInscripciones ?? null,
+      ubicacion: datos.ubicacion,
+      estado: datos.estado,
+      tipo: datos.tipo,
+      descripcion: datos.descripcion ?? null,
+      organizador: datos.organizador ?? null,
+      aval: datos.aval ?? null,
+      terminosUrl: datos.terminosUrl || null,
+      ...(imagenUrl ? { imagenUrl } : {}),
+    },
+  });
 
   revalidatePath("/admin/eventos");
   redirect(
@@ -291,7 +267,41 @@ function datosCategoria(formData: FormData) {
     orden: campoOpcional(formData, "orden") ?? "0",
     pruebasIds: formData.getAll("pruebasIds").map(String),
     grupoTarifaId: campoOpcional(formData, "grupoTarifaId"),
+    recorridoId: campoOpcional(formData, "recorridoId"),
+    distancia: campoOpcional(formData, "distancia"),
+    vueltas: campoOpcional(formData, "vueltas"),
+    horaSalida: campoOpcional(formData, "horaSalida"),
+    sitioSalida: campoOpcional(formData, "sitioSalida"),
+    sitioLlegada: campoOpcional(formData, "sitioLlegada"),
   });
+}
+
+async function recorridoDelEvento(
+  eventoId: string,
+  recorridoId: string | undefined,
+): Promise<string | null> {
+  if (!recorridoId) return null;
+  const recorrido = await prisma.recorrido.findFirst({
+    where: { id: recorridoId, eventoId },
+    select: { id: true },
+  });
+  if (!recorrido) redirect(`/admin/eventos?eventoId=${eventoId}&error=recorrido-invalido`);
+  return recorrido.id;
+}
+
+// Campos de carrera de calle de la categoría (Fase 12.3), ya validados.
+async function datosCarreraCategoria(
+  eventoId: string,
+  datos: ReturnType<typeof datosCategoria>,
+) {
+  return {
+    recorridoId: await recorridoDelEvento(eventoId, datos.recorridoId),
+    distancia: datos.distancia ?? null,
+    vueltas: datos.vueltas ?? null,
+    horaSalida: datos.horaSalida ?? null,
+    sitioSalida: datos.sitioSalida ?? null,
+    sitioLlegada: datos.sitioLlegada ?? null,
+  };
 }
 
 // El grupo de tarifa decide el precio de la categoría: tiene que ser de
@@ -314,11 +324,13 @@ export async function crearCategoria(eventoId: string, formData: FormData) {
 
   const datos = datosCategoria(formData);
   const grupoTarifaId = await grupoTarifaDelEvento(eventoId, datos.grupoTarifaId);
+  const carrera = await datosCarreraCategoria(eventoId, datos);
 
   await prisma.categoria.create({
     data: {
       eventoId,
       grupoTarifaId,
+      ...carrera,
       nombre: datos.nombre,
       edad: datos.edad,
       nacimiento: datos.nacimiento,
@@ -345,12 +357,14 @@ export async function actualizarCategoria(
 
   const datos = datosCategoria(formData);
   const grupoTarifaId = await grupoTarifaDelEvento(eventoId, datos.grupoTarifaId);
+  const carrera = await datosCarreraCategoria(eventoId, datos);
 
   await prisma.$transaction([
     prisma.categoria.update({
       where: { id: categoriaId, eventoId },
       data: {
         grupoTarifaId,
+        ...carrera,
         nombre: datos.nombre,
         edad: datos.edad,
         nacimiento: datos.nacimiento,
@@ -385,6 +399,92 @@ export async function eliminarCategoria(categoriaId: string, eventoId: string) {
   }
 
   await prisma.categoria.delete({ where: { id: categoriaId } });
+
+  revalidatePath("/admin/eventos");
+  redirect(`/admin/eventos?eventoId=${eventoId}`);
+}
+
+function datosRecorrido(formData: FormData) {
+  return recorridoSchema.parse({
+    nombre: campoTexto(formData, "nombre"),
+    orden: campoOpcional(formData, "orden") ?? "0",
+    distancia: campoOpcional(formData, "distancia"),
+    desnivel: campoOpcional(formData, "desnivel"),
+    salida: campoOpcional(formData, "salida"),
+    meta: campoOpcional(formData, "meta"),
+    modalidad: campoOpcional(formData, "modalidad"),
+    terreno: campoOpcional(formData, "terreno"),
+  });
+}
+
+function camposRecorrido(datos: ReturnType<typeof datosRecorrido>) {
+  return {
+    nombre: datos.nombre,
+    orden: datos.orden,
+    distancia: datos.distancia ?? null,
+    desnivel: datos.desnivel ?? null,
+    salida: datos.salida ?? null,
+    meta: datos.meta ?? null,
+    modalidad: datos.modalidad ?? null,
+    terreno: datos.terreno ?? null,
+  };
+}
+
+// Recorridos (Fase 12.3): varios por evento, cada uno con su croquis
+// opcional (subido a Cloudinary, mismas validaciones que la portada).
+export async function crearRecorrido(eventoId: string, formData: FormData) {
+  await verifySession();
+
+  const datos = datosRecorrido(formData);
+  const mapaUrl = await subirImagenSiExiste(
+    formData,
+    "mapa",
+    eventoId,
+    "chasquis/recorridos",
+  );
+
+  await prisma.recorrido.create({
+    data: { eventoId, ...camposRecorrido(datos), mapaUrl: mapaUrl ?? null },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=recorrido-creado&t=${Date.now()}`,
+  );
+}
+
+export async function actualizarRecorrido(
+  recorridoId: string,
+  eventoId: string,
+  formData: FormData,
+) {
+  await verifySession();
+
+  const datos = datosRecorrido(formData);
+  const mapaUrl = await subirImagenSiExiste(
+    formData,
+    "mapa",
+    eventoId,
+    "chasquis/recorridos",
+  );
+
+  await prisma.recorrido.update({
+    where: { id: recorridoId, eventoId },
+    data: { ...camposRecorrido(datos), ...(mapaUrl ? { mapaUrl } : {}) },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=recorrido&t=${Date.now()}`,
+  );
+}
+
+// Las categorías que lo corrían quedan sin recorrido (FK SET NULL); no hay
+// inscripciones colgando de un recorrido, así que no se bloquea.
+export async function eliminarRecorrido(recorridoId: string, eventoId: string) {
+  await verifySession();
+
+  await prisma.recorrido.delete({ where: { id: recorridoId, eventoId } });
 
   revalidatePath("/admin/eventos");
   redirect(`/admin/eventos?eventoId=${eventoId}`);

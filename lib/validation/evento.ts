@@ -14,6 +14,7 @@ export const eventoSchema = z.object({
   descuento: z.coerce.number().int().nonnegative().default(0),
   descuentoLabel: z.string().trim().max(200).optional(),
   estado: z.enum(["BORRADOR", "ABIERTO", "CERRADO"]),
+  tipo: z.enum(["PISTA", "CALLE"]).default("PISTA"),
   descripcion: z.string().trim().max(5000).optional(),
 
   // Recorrido (1:1 opcional) — se upsertea junto con el evento
@@ -34,10 +35,18 @@ export type EventoInput = z.infer<typeof eventoSchema>;
 
 // Edición desde el admin: el precio ya no se edita en Información, sale de
 // la pestaña Precios (rondas y tarifas, Fase 12.1).
+// Tampoco el recorrido: desde la Fase 12.3 un evento tiene varios y se
+// editan en su propia pestaña.
 export const eventoEdicionSchema = eventoSchema.omit({
   precio: true,
   descuento: true,
   descuentoLabel: true,
+  distancia: true,
+  desnivel: true,
+  salida: true,
+  meta: true,
+  modalidad: true,
+  terreno: true,
 });
 
 export const resultadosSchema = z.object({

@@ -7,13 +7,14 @@ import { CategoriaModal } from "@/components/admin/CategoriaModal";
 import { NoticiaModal } from "@/components/admin/NoticiaModal";
 import { ListaTextoEditable } from "@/components/admin/ListaTextoEditable";
 import { PreciosEditor } from "@/components/admin/PreciosEditor";
+import { RecorridoModal } from "@/components/admin/RecorridoModal";
 import { FormularioCargando } from "@/components/FormularioCargando";
 
 const TABS = [
   { id: "informacion", label: "Información" },
   { id: "categorias", label: "Categorías" },
   { id: "precios", label: "Precios" },
-  { id: "recorrido", label: "Recorrido" },
+  { id: "recorrido", label: "Recorridos" },
   { id: "premios", label: "Premios" },
   { id: "reglamento", label: "Reglamento" },
   { id: "logistica", label: "Logística" },
@@ -42,6 +43,9 @@ export function EventoEditor({
   actualizarNoticiaAction,
   eliminarNoticiaAction,
   guardarPreciosAction,
+  crearRecorridoAction,
+  actualizarRecorridoAction,
+  eliminarRecorridoAction,
 }: {
   evento: EventoCompleto;
   pruebasCatalogo: PruebaCatalogoAdmin[];
@@ -74,6 +78,16 @@ export function EventoEditor({
   ) => Promise<void>;
   eliminarNoticiaAction: (noticiaId: string, eventoId: string) => Promise<void>;
   guardarPreciosAction: (formData: FormData) => Promise<void>;
+  crearRecorridoAction: (eventoId: string, formData: FormData) => Promise<void>;
+  actualizarRecorridoAction: (
+    recorridoId: string,
+    eventoId: string,
+    formData: FormData,
+  ) => Promise<void>;
+  eliminarRecorridoAction: (
+    recorridoId: string,
+    eventoId: string,
+  ) => Promise<void>;
 }) {
   const [tab, setTab] = useState<TabId>("informacion");
   const [modalCategoria, setModalCategoria] = useState<"nueva" | string | null>(
@@ -82,9 +96,11 @@ export function EventoEditor({
   const [modalNoticia, setModalNoticia] = useState<"nueva" | string | null>(
     null,
   );
+  const [modalRecorrido, setModalRecorrido] = useState<
+    "nuevo" | string | null
+  >(null);
 
-  const mostrarFormPrincipal =
-    tab === "informacion" || tab === "recorrido" || tab === "contacto";
+  const mostrarFormPrincipal = tab === "informacion" || tab === "contacto";
 
   const fechaValor = evento.fecha.toISOString().slice(0, 10);
 
@@ -275,78 +291,42 @@ export function EventoEditor({
                 </div>
               </fieldset>
 
+              <fieldset className="flex flex-col gap-1.5">
+                <legend className={labelClase}>Tipo de evento</legend>
+                <div className="flex gap-2">
+                  {(
+                    [
+                      ["PISTA", "Pista (pruebas)"],
+                      ["CALLE", "Calle (distancias)"],
+                    ] as const
+                  ).map(([tipo, etiqueta]) => (
+                    <label key={tipo} className="flex-1">
+                      <input
+                        type="radio"
+                        name="tipo"
+                        value={tipo}
+                        defaultChecked={evento.tipo === tipo}
+                        className="peer sr-only"
+                      />
+                      <span className="block cursor-pointer rounded-full bg-casi-negro/5 px-0 py-2 text-center font-display text-sm font-bold uppercase text-casi-negro peer-checked:bg-naranja peer-checked:text-white peer-checked:shadow-[0_4px_10px_rgba(241,88,8,0.4)]">
+                        {etiqueta}
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <span className="text-sm text-gris-oscuro">
+                  En pista cada categoría elige pruebas; en calle cada
+                  categoría corre una distancia fija con su hora y sitio de
+                  salida.
+                </span>
+              </fieldset>
+
               <label className="flex flex-col gap-1.5">
                 <span className={labelClase}>Descripción</span>
                 <textarea
                   name="descripcion"
                   rows={4}
                   defaultValue={evento.descripcion ?? ""}
-                  className={campoClase}
-                />
-              </label>
-            </div>
-
-            <div
-              className={
-                tab === "recorrido"
-                  ? "grid grid-cols-1 gap-4 sm:grid-cols-3"
-                  : "hidden"
-              }
-            >
-              <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>Distancia</span>
-                <input
-                  type="text"
-                  name="distancia"
-                  placeholder="21.097 km"
-                  defaultValue={evento.recorrido?.distancia ?? ""}
-                  className={campoClase}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>Desnivel</span>
-                <input
-                  type="text"
-                  name="desnivel"
-                  placeholder="+180 m"
-                  defaultValue={evento.recorrido?.desnivel ?? ""}
-                  className={campoClase}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>Modalidad</span>
-                <input
-                  type="text"
-                  name="modalidad"
-                  placeholder="Pavimento"
-                  defaultValue={evento.recorrido?.modalidad ?? ""}
-                  className={campoClase}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>Salida</span>
-                <input
-                  type="text"
-                  name="salida"
-                  defaultValue={evento.recorrido?.salida ?? ""}
-                  className={campoClase}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>Meta</span>
-                <input
-                  type="text"
-                  name="meta"
-                  defaultValue={evento.recorrido?.meta ?? ""}
-                  className={campoClase}
-                />
-              </label>
-              <label className="flex flex-col gap-1.5">
-                <span className={labelClase}>Terreno</span>
-                <input
-                  type="text"
-                  name="terreno"
-                  defaultValue={evento.recorrido?.terreno ?? ""}
                   className={campoClase}
                 />
               </label>
@@ -448,6 +428,107 @@ export function EventoEditor({
             </form>
           )}
 
+          {tab === "recorrido" && (
+            <div className="flex flex-col gap-4">
+              {evento.recorridos.length === 0 ? (
+                <p className="italic text-gris-oscuro">
+                  Este evento aún no tiene recorridos.
+                </p>
+              ) : (
+                <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+                  <table className="w-full min-w-[560px] table-auto text-left">
+                    <thead>
+                      <tr className="border-b border-casi-negro/10 text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+                        <th className="px-4 py-3">Nombre</th>
+                        <th className="px-4 py-3">Distancia</th>
+                        <th className="px-4 py-3">Salida → Meta</th>
+                        <th className="px-4 py-3">Croquis</th>
+                        <th className="px-4 py-3">Categorías</th>
+                        <th className="px-4 py-3">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {evento.recorridos.map((recorrido) => (
+                        <tr
+                          key={recorrido.id}
+                          className="border-b border-casi-negro/[0.06] last:border-none"
+                        >
+                          <td className="px-4 py-3 font-bold">
+                            {recorrido.nombre ?? (
+                              <span className="italic text-gris-oscuro">
+                                Sin nombre
+                              </span>
+                            )}
+                          </td>
+                          <td className="px-4 py-3">
+                            {recorrido.distancia ?? "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {recorrido.salida || recorrido.meta
+                              ? `${recorrido.salida ?? "—"} → ${recorrido.meta ?? "—"}`
+                              : "—"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {recorrido.mapaUrl ? "Sí" : "No"}
+                          </td>
+                          <td className="px-4 py-3">
+                            {recorrido._count.categorias}
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              type="button"
+                              onClick={() => setModalRecorrido(recorrido.id)}
+                              className="rounded-full bg-casi-negro/[0.06] px-4 py-1.5 font-display text-sm font-bold uppercase"
+                            >
+                              Editar
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setModalRecorrido("nuevo")}
+                className="self-start rounded-full bg-naranja px-6 py-2.5 font-display font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
+              >
+                + Agregar recorrido
+              </button>
+
+              <RecorridoModal
+                key={modalRecorrido ?? "cerrado"}
+                abierto={modalRecorrido !== null}
+                recorrido={
+                  modalRecorrido && modalRecorrido !== "nuevo"
+                    ? evento.recorridos.find((r) => r.id === modalRecorrido)
+                    : undefined
+                }
+                guardarAction={
+                  modalRecorrido && modalRecorrido !== "nuevo"
+                    ? actualizarRecorridoAction.bind(
+                        null,
+                        modalRecorrido,
+                        evento.id,
+                      )
+                    : crearRecorridoAction.bind(null, evento.id)
+                }
+                eliminarAction={
+                  modalRecorrido && modalRecorrido !== "nuevo"
+                    ? eliminarRecorridoAction.bind(
+                        null,
+                        modalRecorrido,
+                        evento.id,
+                      )
+                    : undefined
+                }
+                onCerrar={() => setModalRecorrido(null)}
+              />
+            </div>
+          )}
+
           {tab === "precios" && (
             <PreciosEditor
               // Remonta con lo recién guardado: sin esto, las rondas y grupos
@@ -475,7 +556,9 @@ export function EventoEditor({
                         <th className="px-4 py-3">Nombre</th>
                         <th className="px-4 py-3">Edad</th>
                         <th className="px-4 py-3">Nacimiento</th>
-                        <th className="px-4 py-3">Pruebas</th>
+                        <th className="px-4 py-3">
+                          {evento.tipo === "CALLE" ? "Distancia / salida" : "Pruebas"}
+                        </th>
                         <th className="px-4 py-3">Grupo de tarifa</th>
                         <th className="px-4 py-3">Acciones</th>
                       </tr>
@@ -492,7 +575,11 @@ export function EventoEditor({
                           <td className="px-4 py-3">{categoria.edad}</td>
                           <td className="px-4 py-3">{categoria.nacimiento}</td>
                           <td className="px-4 py-3">
-                            {categoria.pruebas.length}
+                            {evento.tipo === "CALLE"
+                              ? [categoria.distancia, categoria.horaSalida]
+                                  .filter(Boolean)
+                                  .join(" · ") || "—"
+                              : categoria.pruebas.length}
                           </td>
                           <td className="px-4 py-3">
                             {evento.gruposTarifa.find(
@@ -585,6 +672,8 @@ export function EventoEditor({
                 }
                 pruebasCatalogo={pruebasCatalogo}
                 gruposTarifa={evento.gruposTarifa}
+                tipoEvento={evento.tipo}
+                recorridos={evento.recorridos}
                 guardarAction={
                   modalCategoria && modalCategoria !== "nueva"
                     ? actualizarCategoriaAction.bind(

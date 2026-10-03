@@ -36,6 +36,7 @@ export async function getEventosPublicados() {
       subtitulo: true,
       lema: true,
       estado: true,
+      tipo: true,
       fecha: true,
       horario: true,
       ubicacion: true,
@@ -56,6 +57,12 @@ export async function getEventosPublicados() {
           nacimiento: true,
           rama: true,
           grupoTarifaId: true,
+          recorridoId: true,
+          distancia: true,
+          vueltas: true,
+          horaSalida: true,
+          sitioSalida: true,
+          sitioLlegada: true,
           pruebas: {
             select: {
               prueba: {
@@ -77,8 +84,13 @@ export async function getEventosPublicados() {
       gruposTarifa: {
         select: { id: true, nombre: true, derechos: true, orden: true },
       },
-      recorrido: {
+      recorridos: {
+        orderBy: { orden: "asc" },
         select: {
+          id: true,
+          nombre: true,
+          mapaUrl: true,
+          categorias: { orderBy: { orden: "asc" }, select: { nombre: true } },
           distancia: true,
           desnivel: true,
           salida: true,

@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
 import { formatPrecio } from "@/lib/format";
+import { DatosCarrera } from "./DatosCarrera";
 import { ModalTerminos } from "./ModalTerminos";
 
 type ResultadoWidgetWompi = {
@@ -585,7 +586,7 @@ export function FormularioInscripcion({
           {usaCategorias ? (
             <fieldset className="flex flex-col gap-4">
               <legend className="mb-1 font-display text-lg font-bold uppercase">
-                Categoría y pruebas
+                {evento.tipo === "CALLE" ? "Categoría" : "Categoría y pruebas"}
               </legend>
               <Campo etiqueta="Categoría" error={fieldErrors.categoriaId?.[0]}>
                 <select
@@ -611,6 +612,12 @@ export function FormularioInscripcion({
                   </span>
                 ) : null}
               </Campo>
+
+              {evento.tipo === "CALLE" && categoriaSeleccionada ? (
+                <div className="rounded-xl bg-crema p-4">
+                  <DatosCarrera categoria={categoriaSeleccionada} />
+                </div>
+              ) : null}
 
               {categoriaSeleccionada && pruebasDisponibles.length > 0 ? (
                 <div className="flex flex-col gap-2">

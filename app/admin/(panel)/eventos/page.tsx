@@ -24,6 +24,9 @@ import {
   eliminarEvento,
   eliminarNoticia,
   guardarPrecios,
+  crearRecorrido,
+  actualizarRecorrido,
+  eliminarRecorrido,
   enviarResumenEvento,
   guardarLogistica,
   guardarPremios,
@@ -51,6 +54,7 @@ const MENSAJES_ERROR: Record<string, string> = {
   "no-autorizado": "Solo un administrador puede enviar difusiones.",
   "precios-invalidos": "No se guardaron los precios.",
   "grupo-invalido": "El grupo de tarifa no pertenece a este evento.",
+  "recorrido-invalido": "El recorrido no pertenece a este evento.",
 };
 
 const MENSAJES_GUARDADO: Record<string, string> = {
@@ -66,6 +70,8 @@ const MENSAJES_GUARDADO: Record<string, string> = {
   noticia: "Noticia actualizada",
   "noticia-creada": "Noticia creada",
   precios: "Precios guardados",
+  recorrido: "Recorrido actualizado",
+  "recorrido-creado": "Recorrido creado",
 };
 
 function primerValor(valor: string | string[] | undefined): string | undefined {
@@ -199,6 +205,9 @@ export default async function EventosPage({
             actualizarNoticiaAction={actualizarNoticia}
             eliminarNoticiaAction={eliminarNoticia}
             guardarPreciosAction={guardarPrecios.bind(null, evento.id)}
+            crearRecorridoAction={crearRecorrido}
+            actualizarRecorridoAction={actualizarRecorrido}
+            eliminarRecorridoAction={eliminarRecorrido}
           />
         ) : (
           <div className="rounded-[20px] bg-white p-7 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
