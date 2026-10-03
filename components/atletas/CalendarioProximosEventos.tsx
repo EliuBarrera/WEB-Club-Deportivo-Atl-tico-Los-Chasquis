@@ -212,7 +212,7 @@ export function CalendarioProximosEventos({
           <p className="text-sm text-gris-oscuro">
             {formatFechaBadge(seleccionada.evento.fecha)}
             {" · "}
-            {seleccionada.categoria?.nombre ?? seleccionada.costo?.tipo ?? "—"}
+            {seleccionada.categoria?.nombre ?? seleccionada.costo?.tipo ?? seleccionada.grupoTarifa?.nombre ?? "—"}
             {seleccionada.pruebasIds.length > 0
               ? ` · ${seleccionada.pruebasIds.join(", ")}`
               : ""}

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { preciosDelEvento } from "@/lib/precios";
 
 // Cierre automático de eventos vencidos: este proyecto no tiene cron ni
 // cola (ver la nota en app/admin/(panel)/eventos/actions.ts), así que en
@@ -26,7 +27,7 @@ export async function cerrarEventosVencidos() {
 export async function getEventosPublicados() {
   await cerrarEventosVencidos();
 
-  return prisma.evento.findMany({
+  const eventos = await prisma.evento.findMany({
     where: { estado: { in: ["ABIERTO", "CERRADO"] } },
     orderBy: { fecha: "asc" },
     select: {
@@ -34,9 +35,6 @@ export async function getEventosPublicados() {
       titulo: true,
       subtitulo: true,
       lema: true,
-      precio: true,
-      descuento: true,
-      descuentoLabel: true,
       estado: true,
       fecha: true,
       horario: true,
@@ -57,6 +55,7 @@ export async function getEventosPublicados() {
           edad: true,
           nacimiento: true,
           rama: true,
+          grupoTarifaId: true,
           pruebas: {
             select: {
               prueba: {
@@ -66,8 +65,17 @@ export async function getEventosPublicados() {
           },
         },
       },
-      costos: {
-        select: { id: true, tipo: true, valor: true },
+      rondas: {
+        select: {
+          id: true,
+          orden: true,
+          nombre: true,
+          fechaCierre: true,
+          tarifas: { select: { grupoTarifaId: true, valor: true } },
+        },
+      },
+      gruposTarifa: {
+        select: { id: true, nombre: true, derechos: true, orden: true },
       },
       recorrido: {
         select: {
@@ -132,6 +140,11 @@ export async function getEventosPublicados() {
       },
     },
   });
+
+  return eventos.map(({ rondas, gruposTarifa, ...evento }) => ({
+    ...evento,
+    precios: preciosDelEvento({ rondas, gruposTarifa }),
+  }));
 }
 
 export type EventoPublicado = Awaited<

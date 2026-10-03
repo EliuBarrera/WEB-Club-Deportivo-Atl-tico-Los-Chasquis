@@ -25,6 +25,18 @@ export function formatFechaBadge(fecha: Date): string {
   return `${dia} de ${mes} ${anio}`;
 }
 
+// "20 de noviembre" — cierres de ronda, que son instantes reales (ej.
+// 23:59 hora de Colombia), no fechas de calendario guardadas a medianoche UTC.
+const formateadorDiaMesBogota = new Intl.DateTimeFormat("es-CO", {
+  day: "numeric",
+  month: "long",
+  timeZone: "America/Bogota",
+});
+
+export function formatFechaCierre(fecha: Date): string {
+  return formateadorDiaMesBogota.format(fecha);
+}
+
 function capitalizarPalabras(texto: string): string {
   return texto
     .toLowerCase()

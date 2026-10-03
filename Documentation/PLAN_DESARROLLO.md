@@ -1063,29 +1063,48 @@ deben convivir — no reemplazar uno por el otro.
 #### 12.1 Precios por rondas (reemplaza `discount`)
 
 - [ ] Eliminar del modelo `Evento` los campos `discount` y `descuento`
+      *(pendiente: el admin aún los edita; se quitan junto con el CRUD de
+      rondas)*
       (texto libre), y eliminar el objeto `fechasLimiteDescuento` que hoy
       está **quemado en el JavaScript** — esa es la deuda técnica real
-- [ ] Crear:
+- [x] Crear:
       ```
       RondaInscripcion  { id, eventoId, orden, nombre, fechaCierre }
       GrupoTarifa       { id, eventoId, nombre, derechos[] }
       TarifaInscripcion { id, rondaId, grupoTarifaId, valor }
       ```
-- [ ] `Categoria` gana `grupoTarifaId` — así un grupo ("adultos") agrupa
+- [x] `Categoria` gana `grupoTarifaId` — así un grupo ("adultos") agrupa
       Mayores, Veteranos A/B/C y Recreativa, y otro ("menores") agrupa
       Sub 16 hacia abajo
-- [ ] **La regla de resolución de precio vive en un solo lugar del
+- [x] **La regla de resolución de precio vive en un solo lugar del
       servidor:** buscar la primera ronda del evento cuyo `fechaCierre`
       no haya pasado, y tomar la `TarifaInscripcion` de esa ronda para el
       `grupoTarifa` de la categoría elegida. Si ninguna ronda aplica, las
       inscripciones están cerradas — sin lógica especial de "descuento
       vencido"
-- [ ] Un descuento y un aumento son el mismo modelo visto al revés: esto
+- [x] Un descuento y un aumento son el mismo modelo visto al revés: esto
       cubre los eventos viejos (precio que "sube" al vencer el pronto
       pago) sin casos particulares. Migrar los 4 eventos ya sembrados a
       rondas dentro del mismo script
-- [ ] Mantiene la regla de la Fase 4: el precio **nunca** se acepta del
+- [x] Mantiene la regla de la Fase 4: el precio **nunca** se acepta del
       cliente, siempre se recalcula aquí
+
+**Implementado (2026-10-03, rama de Neon de desarrollo):** `lib/precios.ts`
+(`rondaVigente`, `resolverTarifa`, `preciosDelEvento`) es la única regla de
+precio: `POST /api/inscripciones` cobra con ella y guarda `rondaId` y
+`grupoTarifaId`; la tarjeta, el tab Información y el formulario muestran
+`evento.precios`, calculado en `lib/eventos.ts`. Los eventos sin
+categorías eligen un grupo de tarifa en vez de un `Costo`
+(`Inscripcion.costoId` queda solo para las inscripciones históricas).
+`prisma/migrar-precios-rondas.ts` (simula por defecto, `--aplicar` para
+escribir, idempotente) dejó cada evento existente con una ronda única
+que cierra en la fecha del evento y el precio que realmente se cobraba
+(`precio - descuento`; `fechaLimiteDescuento` estaba vacío en todos, el
+código anterior restaba el descuento siempre). Los 7 eventos reales eran
+7, no 4: el Aguinaldo ya existe `ABIERTO` sin categorías ni costos, y se
+omite hasta configurarlo. **Pendiente al desplegar:** correr las dos
+migraciones de `fase12_1_*` y luego el script con `--aplicar` contra
+producción, en ese orden y antes del deploy del código.
 
 #### 12.2 Inscripción gratuita (camino nuevo, no existe hoy)
 

@@ -2,7 +2,7 @@ import { z } from "zod";
 
 // Forma de la petición al endpoint de inscripción (Fase 4). Solo valida
 // tipos y formato — la elegibilidad real (¿existe la categoría/prueba/
-// costo en ESTE evento?, ¿el evento admite inscripciones?, ¿hace falta
+// grupo de tarifa en ESTE evento? ¿hay ronda vigente?, ¿el evento admite inscripciones?, ¿hace falta
 // acudiente?) se resuelve en el route handler contra la base de datos,
 // porque depende de datos que Zod no conoce por sí solo.
 export const inscripcionSchema = z
@@ -18,10 +18,10 @@ export const inscripcionSchema = z
     fechaNacimiento: z.iso.date(),
     genero: z.enum(["MASCULINO", "FEMENINO"]),
 
-    // Categoría/pruebas o costo (uno de los dos según el evento)
+    // Categoría/pruebas o grupo de tarifa (uno de los dos según el evento)
     categoriaId: z.string().min(1).optional(),
     pruebasIds: z.array(z.string().min(1)).max(2).default([]),
-    costoId: z.string().min(1).optional(),
+    grupoTarifaId: z.string().min(1).optional(),
 
     // Contacto
     celular: z.string().trim().min(7).max(20),
@@ -44,8 +44,8 @@ export const inscripcionSchema = z
     aceptaTerminos: z.literal(true),
     aceptaImagenes: z.boolean().default(false),
   })
-  .refine((datos) => Boolean(datos.categoriaId) || Boolean(datos.costoId), {
-    message: "Debe indicar una categoría o un tipo de costo",
+  .refine((datos) => Boolean(datos.categoriaId) || Boolean(datos.grupoTarifaId), {
+    message: "Debe indicar una categoría o un tipo de inscripción",
     path: ["categoriaId"],
   });
 

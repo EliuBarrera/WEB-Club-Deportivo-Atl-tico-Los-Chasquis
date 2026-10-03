@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
 import type { EventoPublicado } from "@/lib/eventos";
-import { formatFechaBadge, formatPrecio } from "@/lib/format";
+import { formatFechaBadge, formatFechaCierre, formatPrecio } from "@/lib/format";
 
 const TABS = [
   "Información",
@@ -129,31 +129,45 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
         </div>
       ) : null}
 
-      {evento.costos.length > 0 ? (
+      {evento.precios.grupos.some((g) => g.valor !== null) ? (
         <div>
           <TituloSeccion>Valor de inscripción</TituloSeccion>
+          {evento.precios.ronda && evento.precios.totalRondas > 1 ? (
+            <p className="mb-3 text-base font-semibold text-naranja">
+              {evento.precios.ronda.vigente
+                ? `${evento.precios.ronda.nombre}: hasta el ${formatFechaCierre(evento.precios.ronda.fechaCierre)}`
+                : `${evento.precios.ronda.nombre} (cerrada)`}
+            </p>
+          ) : null}
           <div className="flex flex-col gap-3">
-            {evento.costos.map((costo) => (
-              <div
-                key={costo.id}
-                className="flex overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
-              >
+            {evento.precios.grupos.map((grupo) =>
+              grupo.valor === null ? null : (
                 <div
-                  style={{ writingMode: "vertical-rl" }}
-                  className="flex w-14 shrink-0 items-center justify-center border-r-2 border-dashed border-crema bg-casi-negro py-3 font-display text-xs font-bold uppercase tracking-wider text-crema capitalize"
+                  key={grupo.id}
+                  className="flex overflow-hidden rounded-2xl bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]"
                 >
-                  {costo.tipo}
+                  <div
+                    style={{ writingMode: "vertical-rl" }}
+                    className="flex w-14 shrink-0 items-center justify-center border-r-2 border-dashed border-crema bg-casi-negro py-3 font-display text-xs font-bold uppercase tracking-wider text-crema capitalize"
+                  >
+                    {grupo.nombre}
+                  </div>
+                  <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-3">
+                    <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+                      Inscripción
+                    </span>
+                    <span className="font-display text-2xl font-extrabold">
+                      {grupo.valor === 0 ? "Gratis" : formatPrecio(grupo.valor)}
+                    </span>
+                    {grupo.derechos.length > 0 ? (
+                      <span className="text-sm text-gris-oscuro">
+                        Incluye: {grupo.derechos.join(", ")}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
-                <div className="flex flex-1 flex-col justify-center gap-1 px-4 py-3">
-                  <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
-                    Inscripción
-                  </span>
-                  <span className="font-display text-2xl font-extrabold">
-                    {formatPrecio(costo.valor)}
-                  </span>
-                </div>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
       ) : null}

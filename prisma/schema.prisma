@@ -215,8 +215,9 @@ model GrupoTarifa {
   derechos String[]
   orden    Int      @default(0)
 
-  categorias Categoria[]
-  tarifas    TarifaInscripcion[]
+  categorias    Categoria[]
+  tarifas       TarifaInscripcion[]
+  inscripciones Inscripcion[]
 
   @@unique([eventoId, nombre])
 }
@@ -419,20 +420,24 @@ model Costo {
 // ==========================================
 
 model Inscripcion {
-  id          String            @id @default(cuid())
-  eventoId    String
-  evento      Evento            @relation(fields: [eventoId], references: [id])
+  id            String            @id @default(cuid())
+  eventoId      String
+  evento        Evento            @relation(fields: [eventoId], references: [id])
   // Opcional: eventos sin categorías (ej. carreras que solo usan `Costo`,
   // como "adultos"/"ninos") no tienen una Categoria a la que enlazar.
-  categoriaId String?
-  categoria   Categoria?        @relation(fields: [categoriaId], references: [id])
+  categoriaId   String?
+  categoria     Categoria?        @relation(fields: [categoriaId], references: [id])
   // Alternativa a categoria+pruebas para eventos que cobran por tipo de
   // costo (ej. "adultos"/"ninos") en vez de por categoría de competencia.
-  costoId     String?
-  costo       Costo?            @relation(fields: [costoId], references: [id])
+  costoId       String?
+  costo         Costo?            @relation(fields: [costoId], references: [id])
   // Ronda cuyo precio se cobró (trazabilidad; el monto queda en totalPago).
-  rondaId     String?
-  ronda       RondaInscripcion? @relation(fields: [rondaId], references: [id], onDelete: SetNull)
+  rondaId       String?
+  ronda         RondaInscripcion? @relation(fields: [rondaId], references: [id], onDelete: SetNull)
+  // Grupo de tarifa elegido directamente (eventos sin categorías); en
+  // eventos con categorías se deriva de la categoría.
+  grupoTarifaId String?
+  grupoTarifa   GrupoTarifa?      @relation(fields: [grupoTarifaId], references: [id], onDelete: SetNull)
 
   // Atleta
   nombres         String

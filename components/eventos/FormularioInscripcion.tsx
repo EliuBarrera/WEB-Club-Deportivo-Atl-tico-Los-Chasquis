@@ -128,7 +128,8 @@ export function FormularioInscripcion({
   onCancelar: () => void;
 }) {
   const usaCategorias = evento.categorias.length > 0;
-  const usaCostos = !usaCategorias && evento.costos.length > 0;
+  const usaGrupos = !usaCategorias && evento.precios.grupos.length > 0;
+  const rondaAbierta = evento.precios.ronda?.vigente ?? false;
 
   const [nombres, setNombres] = useState("");
   const [apellidos, setApellidos] = useState("");
@@ -145,7 +146,7 @@ export function FormularioInscripcion({
     null
   );
   const [pruebasIds, setPruebasIds] = useState<string[]>([]);
-  const [costoId, setCostoId] = useState("");
+  const [grupoTarifaId, setGrupoTarifaId] = useState("");
 
   const [celular, setCelular] = useState("");
   const [email, setEmail] = useState("");
@@ -228,11 +229,12 @@ export function FormularioInscripcion({
   );
   const esMenorDeEdad = edad !== null && edad < 18;
 
-  const precioPreview = usaCategorias
-    ? Math.max(0, evento.precio - evento.descuento)
-    : usaCostos
-      ? (evento.costos.find((c) => c.id === costoId)?.valor ?? null)
-      : null;
+  // Solo referencia visual: el servidor recalcula el precio al inscribir.
+  const grupoPreviewId = usaCategorias
+    ? categoriaSeleccionada?.grupoTarifaId
+    : grupoTarifaId;
+  const precioPreview =
+    evento.precios.grupos.find((g) => g.id === grupoPreviewId)?.valor ?? null;
 
   function alternarPrueba(key: string) {
     setPruebasIds((actual) => {
@@ -258,7 +260,7 @@ export function FormularioInscripcion({
     });
   }
 
-  const puedeInscribirse = usaCategorias || usaCostos;
+  const puedeInscribirse = (usaCategorias || usaGrupos) && rondaAbierta;
 
   async function enviar(evt: React.FormEvent) {
     evt.preventDefault();
@@ -286,7 +288,7 @@ export function FormularioInscripcion({
           genero,
           categoriaId: usaCategorias ? categoriaId : undefined,
           pruebasIds: usaCategorias ? pruebasIds : [],
-          costoId: usaCostos ? costoId : undefined,
+          grupoTarifaId: usaGrupos ? grupoTarifaId : undefined,
           celular,
           email,
           ciudad,
@@ -493,7 +495,9 @@ export function FormularioInscripcion({
 
       {!puedeInscribirse ? (
         <p className="rounded-xl border-2 border-dashed border-gris-oscuro p-4 text-lg italic text-gris-oscuro">
-          Este evento aún no tiene inscripciones configuradas.
+          {usaCategorias || usaGrupos
+            ? "Las inscripciones para este evento están cerradas."
+            : "Este evento aún no tiene inscripciones configuradas."}
         </p>
       ) : (
         <form onSubmit={enviar} className="flex flex-col gap-6">
@@ -643,31 +647,33 @@ export function FormularioInscripcion({
             </fieldset>
           ) : null}
 
-          {usaCostos ? (
+          {usaGrupos ? (
             <fieldset className="flex flex-col gap-3">
               <legend className="mb-1 font-display text-lg font-bold uppercase">
                 Tipo de inscripción
               </legend>
-              {evento.costos.map((c) => (
-                <label
-                  key={c.id}
-                  className="flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-white px-4 py-3 shadow-[0_6px_16px_rgba(28,13,10,0.08)]"
-                >
-                  <span className="flex items-center gap-2 font-semibold capitalize">
-                    <input
-                      type="radio"
-                      name="costo"
-                      required
-                      checked={costoId === c.id}
-                      onChange={() => setCostoId(c.id)}
-                    />
-                    {c.tipo}
-                  </span>
-                  <span className="font-display text-xl font-extrabold">
-                    {formatPrecio(c.valor)}
-                  </span>
-                </label>
-              ))}
+              {evento.precios.grupos.map((g) =>
+                g.valor === null ? null : (
+                  <label
+                    key={g.id}
+                    className="flex cursor-pointer items-center justify-between gap-4 rounded-xl bg-white px-4 py-3 shadow-[0_6px_16px_rgba(28,13,10,0.08)]"
+                  >
+                    <span className="flex items-center gap-2 font-semibold capitalize">
+                      <input
+                        type="radio"
+                        name="grupoTarifa"
+                        required
+                        checked={grupoTarifaId === g.id}
+                        onChange={() => setGrupoTarifaId(g.id)}
+                      />
+                      {g.nombre}
+                    </span>
+                    <span className="font-display text-xl font-extrabold">
+                      {g.valor === 0 ? "Gratis" : formatPrecio(g.valor)}
+                    </span>
+                  </label>
+                )
+              )}
             </fieldset>
           ) : null}
 

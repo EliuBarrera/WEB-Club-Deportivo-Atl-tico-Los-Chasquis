@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { resolverTarifa } from "@/lib/precios";
 import { checkRateLimit, getClientIp } from "@/lib/rate-limit";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { inscripcionSchema } from "@/lib/validation/inscripcion";
@@ -70,17 +71,25 @@ export async function POST(request: NextRequest) {
       id: true,
       estado: true,
       fecha: true,
-      precio: true,
-      descuento: true,
       categorias: {
         select: {
           id: true,
+          grupoTarifaId: true,
           pruebas: {
             select: { prueba: { select: { key: true, genero: true } } },
           },
         },
       },
-      costos: { select: { id: true, valor: true } },
+      gruposTarifa: { select: { id: true } },
+      rondas: {
+        select: {
+          id: true,
+          orden: true,
+          nombre: true,
+          fechaCierre: true,
+          tarifas: { select: { grupoTarifaId: true, valor: true } },
+        },
+      },
     },
   });
 
@@ -103,9 +112,8 @@ export async function POST(request: NextRequest) {
   }
 
   let categoriaId: string | null = null;
-  let costoId: string | null = null;
+  let grupoTarifaId: string | null = null;
   let pruebasIds: string[] = [];
-  let totalPago: number;
 
   if (evento.categorias.length > 0) {
     const categoria = evento.categorias.find(
@@ -138,23 +146,35 @@ export async function POST(request: NextRequest) {
 
     categoriaId = categoria.id;
     pruebasIds = datos.pruebasIds;
-    totalPago = Math.max(0, evento.precio - evento.descuento);
-  } else if (evento.costos.length > 0) {
-    const costo = evento.costos.find((c) => c.id === datos.costoId);
-    if (!costo) {
+    grupoTarifaId = categoria.grupoTarifaId;
+  } else if (evento.gruposTarifa.length > 0) {
+    const grupo = evento.gruposTarifa.find((g) => g.id === datos.grupoTarifaId);
+    if (!grupo) {
       return NextResponse.json(
-        { error: "El tipo de costo no pertenece a este evento" },
+        { error: "El tipo de inscripción no pertenece a este evento" },
         { status: 400 }
       );
     }
-    costoId = costo.id;
-    totalPago = costo.valor;
+    grupoTarifaId = grupo.id;
   } else {
     return NextResponse.json(
       { error: "Este evento aún no tiene inscripciones configuradas" },
       { status: 400 }
     );
   }
+
+  // Precio resuelto siempre en servidor (Fase 12.1, lib/precios.ts): ronda
+  // vigente + tarifa del grupo. Nunca se acepta un monto del cliente.
+  const tarifa = grupoTarifaId
+    ? resolverTarifa(evento.rondas, grupoTarifaId)
+    : null;
+  if (!tarifa) {
+    return NextResponse.json(
+      { error: "Las inscripciones para esta categoría están cerradas" },
+      { status: 400 }
+    );
+  }
+  const totalPago = tarifa.valor;
 
   const fechaNacimiento = new Date(datos.fechaNacimiento);
   const edad = calcularEdad(fechaNacimiento, evento.fecha);
@@ -190,7 +210,8 @@ export async function POST(request: NextRequest) {
       data: {
         eventoId: evento.id,
         categoriaId,
-        costoId,
+        grupoTarifaId,
+        rondaId: tarifa.rondaId,
         nombres: datos.nombres,
         apellidos: datos.apellidos,
         tipoDocumento: datos.tipoDocumento,

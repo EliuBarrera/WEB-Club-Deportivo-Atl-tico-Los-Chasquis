@@ -52,7 +52,7 @@ function filaDe(inscripcion: InscripcionExport): string {
     String(inscripcion.edad),
     inscripcion.genero,
     inscripcion.categoria?.nombre ?? "",
-    inscripcion.costo?.tipo ?? "",
+    inscripcion.costo?.tipo ?? inscripcion.grupoTarifa?.nombre ?? "",
     inscripcion.pruebasIds.join(" / "),
     inscripcion.celular,
     inscripcion.email,

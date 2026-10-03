@@ -1,6 +1,11 @@
 import Image from "next/image";
 import type { EventoPublicado } from "@/lib/eventos";
-import { formatFechaBadge, formatPrecio, rangoCategorias } from "@/lib/format";
+import {
+  formatFechaBadge,
+  formatFechaCierre,
+  formatPrecio,
+  rangoCategorias,
+} from "@/lib/format";
 
 export function TarjetaEvento({
   evento,
@@ -15,8 +20,12 @@ export function TarjetaEvento({
 }) {
   const cerrado = evento.estado === "CERRADO";
   const badgeCategoria = rangoCategorias(evento.categorias);
-  const tieneDescuento = evento.descuento > 0;
-  const precioFinal = evento.precio - evento.descuento;
+  const { ronda, totalRondas, grupos } = evento.precios;
+  const valores = grupos
+    .map((g) => g.valor)
+    .filter((v): v is number => v !== null);
+  const precioMinimo = valores.length > 0 ? Math.min(...valores) : null;
+  const variosPrecios = new Set(valores).size > 1;
 
   return (
     <article className="flex h-full w-full flex-col overflow-hidden rounded-[20px] border border-casi-negro/10 bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
@@ -55,20 +64,20 @@ export function TarjetaEvento({
           </p>
 
           <div className="flex flex-wrap items-center gap-2">
-            {tieneDescuento ? (
+            {precioMinimo !== null ? (
               <span className="flex items-baseline gap-2">
-                <span className="font-display text-xl font-bold text-gris-oscuro line-through">
-                  {formatPrecio(evento.precio)}
-                </span>
+                {variosPrecios ? (
+                  <span className="text-lg font-semibold text-gris-oscuro">
+                    Desde
+                  </span>
+                ) : null}
                 <span className="font-display text-3xl font-extrabold">
-                  {formatPrecio(precioFinal)}
+                  {precioMinimo === 0 && !variosPrecios
+                    ? "Gratis"
+                    : formatPrecio(precioMinimo)}
                 </span>
               </span>
-            ) : (
-              <span className="font-display text-3xl font-extrabold">
-                {formatPrecio(evento.precio)}
-              </span>
-            )}
+            ) : null}
             {badgeCategoria ? (
               <span className="rounded-full bg-casi-negro/10 px-3 py-1 text-base font-semibold">
                 {badgeCategoria}
@@ -76,9 +85,9 @@ export function TarjetaEvento({
             ) : null}
           </div>
 
-          {tieneDescuento && evento.descuentoLabel ? (
+          {!cerrado && ronda?.vigente && totalRondas > 1 ? (
             <p className="text-base font-semibold text-naranja">
-              {evento.descuentoLabel}
+              {ronda.nombre}: hasta el {formatFechaCierre(ronda.fechaCierre)}
             </p>
           ) : null}
 

@@ -217,7 +217,7 @@ export default async function InscripcionesPage({
                     {inscripcion.tipoDocumento} {inscripcion.numeroDocumento}
                   </td>
                   <td className="px-4 py-3">
-                    {inscripcion.categoria?.nombre ?? inscripcion.costo?.tipo ?? "—"}
+                    {inscripcion.categoria?.nombre ?? inscripcion.costo?.tipo ?? inscripcion.grupoTarifa?.nombre ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     {inscripcion.pruebasIds.join(", ") || "—"}
