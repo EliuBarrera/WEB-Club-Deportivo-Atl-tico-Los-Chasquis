@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { FormularioCargando } from "@/components/FormularioCargando";
 import { agruparPruebas } from "@/lib/admin/pruebas";
 import type { EventoCompleto, PruebaCatalogoAdmin } from "@/lib/admin/dal";
 
@@ -93,6 +94,7 @@ export function CategoriaModal({
         </div>
 
         <form action={guardarAction} className="flex flex-col gap-5">
+          <FormularioCargando mensaje="Guardando categoría…" />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_80px]">
             <label className="flex min-w-0 flex-col gap-1">
               <span className={labelClase}>Nombre</span>
@@ -236,7 +238,9 @@ export function CategoriaModal({
         el fondo de este ConfirmDialog también cerraría el modal completo. */}
     {eliminarAction && (
       <>
-        <form ref={formEliminarRef} action={eliminarAction} />
+        <form ref={formEliminarRef} action={eliminarAction}>
+          <FormularioCargando mensaje="Eliminando categoría…" />
+        </form>
         <ConfirmDialog
           abierto={confirmandoEliminar}
           titulo="Eliminar categoría"

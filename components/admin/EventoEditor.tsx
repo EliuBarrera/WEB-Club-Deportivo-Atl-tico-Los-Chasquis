@@ -7,6 +7,7 @@ import { CategoriaModal } from "@/components/admin/CategoriaModal";
 import { NoticiaModal } from "@/components/admin/NoticiaModal";
 import { ListaTextoEditable } from "@/components/admin/ListaTextoEditable";
 import { PreciosEditor } from "@/components/admin/PreciosEditor";
+import { FormularioCargando } from "@/components/FormularioCargando";
 
 const TABS = [
   { id: "informacion", label: "Información" },
@@ -121,6 +122,7 @@ export function EventoEditor({
             action={actualizarEventoAction}
             className={mostrarFormPrincipal ? "flex flex-col gap-5" : "hidden"}
           >
+            <FormularioCargando mensaje="Guardando evento…" />
             <div
               className={
                 tab === "informacion" ? "flex flex-col gap-5" : "hidden"
@@ -402,6 +404,7 @@ export function EventoEditor({
               action={publicarResultadosAction}
               className="flex flex-col gap-5"
             >
+              <FormularioCargando mensaje="Publicando resultados…" />
               <div className="flex items-center justify-between">
                 <span className="font-display text-lg font-extrabold uppercase">
                   Resultados
@@ -610,6 +613,7 @@ export function EventoEditor({
               action={guardarPremiosAction.bind(null, evento.id)}
               className="flex flex-col gap-5"
             >
+              <FormularioCargando mensaje="Guardando premios…" />
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <label className="flex flex-col gap-1.5">
                   <span className={labelClase}>Hora de ceremonia</span>
@@ -695,6 +699,7 @@ export function EventoEditor({
               action={guardarReglamentoAction.bind(null, evento.id)}
               className="flex flex-col gap-5"
             >
+              <FormularioCargando mensaje="Guardando reglamento…" />
               <ListaTextoEditable
                 nombreCampo="competencia"
                 etiqueta="Reglas de competencia"
@@ -733,6 +738,7 @@ export function EventoEditor({
               action={guardarLogisticaAction.bind(null, evento.id)}
               className="flex flex-col gap-5"
             >
+              <FormularioCargando mensaje="Guardando logística…" />
               <ListaTextoEditable
                 nombreCampo="servicios"
                 etiqueta="Servicios"

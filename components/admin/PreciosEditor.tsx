@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { EventoCompleto } from "@/lib/admin/dal";
 import { fechaCierreAInput, rondaVigente } from "@/lib/precios";
 import { formatPrecio } from "@/lib/format";
+import { FormularioCargando } from "@/components/FormularioCargando";
 
 const campoClase = "w-full min-w-0 rounded-lg bg-white px-3 py-2 text-base outline-none";
 const labelClase = "text-xs font-bold uppercase tracking-wide text-gris-oscuro";
@@ -153,6 +154,7 @@ export function PreciosEditor({
 
   return (
     <form action={guardarAction} className="flex flex-col gap-5">
+      <FormularioCargando mensaje="Guardando precios…" />
       <input type="hidden" name="precios" value={payload} />
 
       <p className="text-base text-gris-oscuro">
