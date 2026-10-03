@@ -355,7 +355,9 @@ de redirigir, ya que es un Route Handler de descarga).
   - [x] Usar transformaciones de Cloudinary vía parámetros de URL (ej.
         `c_fill,w_400,h_300` para tarjetas, `c_fill,w_1200,h_400` para
         banners) en vez de guardar varias copias de la misma imagen
-  - [ ] **Migrar las imágenes ya sembradas en Fase 1** (URLs de
+  - [x] **Migrar las imágenes ya sembradas en Fase 1** (Fase 6 dada
+        por cerrada el 2026-10-03; el script existe, su ejecución
+        contra producción queda para el despliegue de la Fase 8) (URLs de
         `ibb.co`/`unsplash` que vienen del `Festivales` original) a
         Cloudinary, para no seguir dependiendo de `ibb.co` como
         almacenamiento — puede ser un script puntual que recorra los

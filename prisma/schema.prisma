@@ -117,6 +117,8 @@ model Evento {
   costos        Costo[]
   inscripciones Inscripcion[]
   enviosMasivos EnvioMasivo[]
+  rondas        RondaInscripcion[]
+  gruposTarifa  GrupoTarifa[]
 
   // Integración pagos / e-commerce (si se mantiene puente con WooCommerce en transición)
   wompiProductRef String?
@@ -170,10 +172,65 @@ model Categoria {
   rama       String @default("MASCULINA Y FEMENINA")
   orden      Int    @default(0)
 
+  // Grupo de tarifa al que pertenece (ej. "adultos"/"menores"); define su
+  // precio en cada ronda. Null mientras el evento no use rondas.
+  grupoTarifaId String?
+  grupoTarifa   GrupoTarifa? @relation(fields: [grupoTarifaId], references: [id], onDelete: SetNull)
+
   pruebas       CategoriaPrueba[]
   inscripciones Inscripcion[]
 
   @@index([eventoId])
+  @@index([grupoTarifaId])
+}
+
+// ==========================================
+// PRECIOS POR RONDAS (Fase 12.1)
+// ==========================================
+
+// El precio vigente se resuelve en servidor: la primera ronda (por `orden`)
+// cuya `fechaCierre` no haya pasado, y dentro de ella la tarifa del grupo de
+// la categoría elegida. Sin ronda vigente, las inscripciones están cerradas.
+// Un "descuento por pronto pago" es solo una ronda 1 más barata que la 2.
+model RondaInscripcion {
+  id          String   @id @default(cuid())
+  eventoId    String
+  evento      Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  orden       Int
+  nombre      String // ej: "I Ronda"
+  fechaCierre DateTime
+
+  tarifas       TarifaInscripcion[]
+  inscripciones Inscripcion[]
+
+  @@unique([eventoId, orden])
+}
+
+model GrupoTarifa {
+  id       String   @id @default(cuid())
+  eventoId String
+  evento   Evento   @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  nombre   String // ej: "adultos", "menores"
+  // Lo que incluye la inscripción para este grupo (ej. "camiseta", "chip").
+  derechos String[]
+  orden    Int      @default(0)
+
+  categorias Categoria[]
+  tarifas    TarifaInscripcion[]
+
+  @@unique([eventoId, nombre])
+}
+
+model TarifaInscripcion {
+  id            String           @id @default(cuid())
+  rondaId       String
+  ronda         RondaInscripcion @relation(fields: [rondaId], references: [id], onDelete: Cascade)
+  grupoTarifaId String
+  grupoTarifa   GrupoTarifa      @relation(fields: [grupoTarifaId], references: [id], onDelete: Cascade)
+  // 0 = inscripción gratuita: no pasa por Wompi (Fase 12.2).
+  valor         Int
+
+  @@unique([rondaId, grupoTarifaId])
 }
 
 // Tabla puente: qué pruebas del catálogo aplican a cada categoría de cada evento
@@ -362,17 +419,20 @@ model Costo {
 // ==========================================
 
 model Inscripcion {
-  id          String     @id @default(cuid())
+  id          String            @id @default(cuid())
   eventoId    String
-  evento      Evento     @relation(fields: [eventoId], references: [id])
+  evento      Evento            @relation(fields: [eventoId], references: [id])
   // Opcional: eventos sin categorías (ej. carreras que solo usan `Costo`,
   // como "adultos"/"ninos") no tienen una Categoria a la que enlazar.
   categoriaId String?
-  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+  categoria   Categoria?        @relation(fields: [categoriaId], references: [id])
   // Alternativa a categoria+pruebas para eventos que cobran por tipo de
   // costo (ej. "adultos"/"ninos") en vez de por categoría de competencia.
   costoId     String?
-  costo       Costo?     @relation(fields: [costoId], references: [id])
+  costo       Costo?            @relation(fields: [costoId], references: [id])
+  // Ronda cuyo precio se cobró (trazabilidad; el monto queda en totalPago).
+  rondaId     String?
+  ronda       RondaInscripcion? @relation(fields: [rondaId], references: [id], onDelete: SetNull)
 
   // Atleta
   nombres         String
