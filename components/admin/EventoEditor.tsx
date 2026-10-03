@@ -6,10 +6,12 @@ import type { EventoCompleto, PruebaCatalogoAdmin } from "@/lib/admin/dal";
 import { CategoriaModal } from "@/components/admin/CategoriaModal";
 import { NoticiaModal } from "@/components/admin/NoticiaModal";
 import { ListaTextoEditable } from "@/components/admin/ListaTextoEditable";
+import { PreciosEditor } from "@/components/admin/PreciosEditor";
 
 const TABS = [
   { id: "informacion", label: "Información" },
   { id: "categorias", label: "Categorías" },
+  { id: "precios", label: "Precios" },
   { id: "recorrido", label: "Recorrido" },
   { id: "premios", label: "Premios" },
   { id: "reglamento", label: "Reglamento" },
@@ -38,6 +40,7 @@ export function EventoEditor({
   crearNoticiaAction,
   actualizarNoticiaAction,
   eliminarNoticiaAction,
+  guardarPreciosAction,
 }: {
   evento: EventoCompleto;
   pruebasCatalogo: PruebaCatalogoAdmin[];
@@ -69,6 +72,7 @@ export function EventoEditor({
     formData: FormData,
   ) => Promise<void>;
   eliminarNoticiaAction: (noticiaId: string, eventoId: string) => Promise<void>;
+  guardarPreciosAction: (formData: FormData) => Promise<void>;
 }) {
   const [tab, setTab] = useState<TabId>("informacion");
   const [modalCategoria, setModalCategoria] = useState<"nueva" | string | null>(
@@ -231,17 +235,16 @@ export function EventoEditor({
                     className={campoClase}
                   />
                 </label>
-                <label className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-1.5">
                   <span className={labelClase}>Precio</span>
-                  <input
-                    type="number"
-                    name="precio"
-                    min={0}
-                    required
-                    defaultValue={evento.precio}
-                    className={campoClase}
-                  />
-                </label>
+                  <button
+                    type="button"
+                    onClick={() => setTab("precios")}
+                    className="rounded-lg bg-casi-negro/[0.06] px-3 py-2 text-left text-base font-semibold text-casi-negro"
+                  >
+                    Se configura en la pestaña Precios →
+                  </button>
+                </div>
               </div>
 
               <fieldset className="flex flex-col gap-1.5">
@@ -442,6 +445,17 @@ export function EventoEditor({
             </form>
           )}
 
+          {tab === "precios" && (
+            <PreciosEditor
+              // Remonta con lo recién guardado: sin esto, las rondas y grupos
+              // nuevos conservarían su clave temporal sin id y un segundo
+              // guardado los duplicaría.
+              key={JSON.stringify([evento.rondas, evento.gruposTarifa])}
+              evento={evento}
+              guardarAction={guardarPreciosAction}
+            />
+          )}
+
           {tab === "categorias" && (
             <div className="flex flex-col gap-4">
               {evento.categorias.length === 0 ? (
@@ -459,6 +473,7 @@ export function EventoEditor({
                         <th className="px-4 py-3">Edad</th>
                         <th className="px-4 py-3">Nacimiento</th>
                         <th className="px-4 py-3">Pruebas</th>
+                        <th className="px-4 py-3">Grupo de tarifa</th>
                         <th className="px-4 py-3">Acciones</th>
                       </tr>
                     </thead>
@@ -475,6 +490,15 @@ export function EventoEditor({
                           <td className="px-4 py-3">{categoria.nacimiento}</td>
                           <td className="px-4 py-3">
                             {categoria.pruebas.length}
+                          </td>
+                          <td className="px-4 py-3">
+                            {evento.gruposTarifa.find(
+                              (g) => g.id === categoria.grupoTarifaId,
+                            )?.nombre ?? (
+                              <span className="font-semibold text-rojo">
+                                Sin grupo
+                              </span>
+                            )}
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex gap-2">
@@ -557,6 +581,7 @@ export function EventoEditor({
                     : undefined
                 }
                 pruebasCatalogo={pruebasCatalogo}
+                gruposTarifa={evento.gruposTarifa}
                 guardarAction={
                   modalCategoria && modalCategoria !== "nueva"
                     ? actualizarCategoriaAction.bind(

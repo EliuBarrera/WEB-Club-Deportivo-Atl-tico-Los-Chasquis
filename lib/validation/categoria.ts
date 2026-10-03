@@ -11,6 +11,8 @@ export const categoriaSchema = z.object({
   rama: z.string().trim().min(1).max(100),
   orden: z.coerce.number().int().nonnegative().default(0),
   pruebasIds: z.array(z.string().min(1)).default([]),
+  // Vacío = sin grupo de tarifa (Fase 12.1).
+  grupoTarifaId: z.string().optional(),
 });
 
 export type CategoriaInput = z.infer<typeof categoriaSchema>;

@@ -10,6 +10,7 @@ import { enviarResumenALista } from "@/lib/admin/difusion";
 import cloudinary from "@/lib/cloudinary";
 import {
   eventoSchema,
+  eventoEdicionSchema,
   resultadosSchema,
   IMAGEN_TIPOS_PERMITIDOS,
   IMAGEN_TAMANO_MAXIMO,
@@ -20,6 +21,8 @@ import {
 import { categoriaSchema } from "@/lib/validation/categoria";
 import { listaTextoSchema } from "@/lib/validation/listaTexto";
 import { noticiaSchema } from "@/lib/validation/noticia";
+import { preciosSchema } from "@/lib/validation/precios";
+import { guardarPreciosEvento } from "@/lib/admin/precios";
 
 // `maxDuration` no se puede exportar desde un archivo "use server" (Next.js
 // exige que todo export de un módulo de Server Actions sea una función
@@ -152,16 +155,14 @@ export async function crearEventoDesdeJson(formData: FormData) {
 export async function actualizarEvento(eventoId: string, formData: FormData) {
   await verifySession();
 
-  const datos = eventoSchema.parse({
+  // El precio ya no se edita aquí: sale de la pestaña Precios (Fase 12.1).
+  const datos = eventoEdicionSchema.parse({
     titulo: campoTexto(formData, "titulo"),
     subtitulo: campoOpcional(formData, "subtitulo"),
     fecha: campoTexto(formData, "fecha"),
     horario: campoOpcional(formData, "horario"),
     cierreInscripciones: campoOpcional(formData, "cierreInscripciones"),
     ubicacion: campoTexto(formData, "ubicacion"),
-    precio: campoTexto(formData, "precio"),
-    descuento: campoOpcional(formData, "descuento") ?? "0",
-    descuentoLabel: campoOpcional(formData, "descuentoLabel"),
     estado: campoTexto(formData, "estado"),
     descripcion: campoOpcional(formData, "descripcion"),
     distancia: campoOpcional(formData, "distancia"),
@@ -210,9 +211,6 @@ export async function actualizarEvento(eventoId: string, formData: FormData) {
         horario: datos.horario ?? null,
         cierreInscripciones: datos.cierreInscripciones ?? null,
         ubicacion: datos.ubicacion,
-        precio: datos.precio,
-        descuento: datos.descuento,
-        descuentoLabel: datos.descuentoLabel ?? null,
         estado: datos.estado,
         descripcion: datos.descripcion ?? null,
         organizador: datos.organizador ?? null,
@@ -292,17 +290,35 @@ function datosCategoria(formData: FormData) {
     rama: campoOpcional(formData, "rama") ?? "MASCULINA Y FEMENINA",
     orden: campoOpcional(formData, "orden") ?? "0",
     pruebasIds: formData.getAll("pruebasIds").map(String),
+    grupoTarifaId: campoOpcional(formData, "grupoTarifaId"),
   });
+}
+
+// El grupo de tarifa decide el precio de la categoría: tiene que ser de
+// este mismo evento, nunca de otro.
+async function grupoTarifaDelEvento(
+  eventoId: string,
+  grupoTarifaId: string | undefined,
+): Promise<string | null> {
+  if (!grupoTarifaId) return null;
+  const grupo = await prisma.grupoTarifa.findFirst({
+    where: { id: grupoTarifaId, eventoId },
+    select: { id: true },
+  });
+  if (!grupo) redirect(`/admin/eventos?eventoId=${eventoId}&error=grupo-invalido`);
+  return grupo.id;
 }
 
 export async function crearCategoria(eventoId: string, formData: FormData) {
   await verifySession();
 
   const datos = datosCategoria(formData);
+  const grupoTarifaId = await grupoTarifaDelEvento(eventoId, datos.grupoTarifaId);
 
   await prisma.categoria.create({
     data: {
       eventoId,
+      grupoTarifaId,
       nombre: datos.nombre,
       edad: datos.edad,
       nacimiento: datos.nacimiento,
@@ -328,11 +344,13 @@ export async function actualizarCategoria(
   await verifySession();
 
   const datos = datosCategoria(formData);
+  const grupoTarifaId = await grupoTarifaDelEvento(eventoId, datos.grupoTarifaId);
 
   await prisma.$transaction([
     prisma.categoria.update({
-      where: { id: categoriaId },
+      where: { id: categoriaId, eventoId },
       data: {
+        grupoTarifaId,
         nombre: datos.nombre,
         edad: datos.edad,
         nacimiento: datos.nacimiento,
@@ -507,6 +525,46 @@ export async function guardarReglamento(eventoId: string, formData: FormData) {
   redirect(
     `/admin/eventos?eventoId=${eventoId}&guardado=reglamento&t=${Date.now()}`,
   );
+}
+
+function redireccionPreciosInvalidos(eventoId: string, detalle: string): never {
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&error=precios-invalidos&detalle=${encodeURIComponent(
+      detalle.slice(0, 200),
+    )}&t=${Date.now()}`,
+  );
+}
+
+// Pestaña Precios (Fase 12.1): guarda rondas, grupos de tarifa y la tabla
+// de tarifas completa de una vez. No permite quitar una ronda o un grupo
+// que ya tenga inscripciones — su FK es SET NULL y se perdería con qué
+// ronda/grupo pagó cada quien. Quitar un grupo sí deja sin grupo a sus
+// categorías (la pestaña lo avisa).
+export async function guardarPrecios(eventoId: string, formData: FormData) {
+  await verifySession();
+
+  let crudo: unknown = null;
+  try {
+    crudo = JSON.parse(campoTexto(formData, "precios"));
+  } catch {
+    // queda null y lo rechaza el schema
+  }
+  const resultado = preciosSchema.safeParse(crudo);
+  if (!resultado.success) {
+    redireccionPreciosInvalidos(
+      eventoId,
+      resultado.error.issues[0]?.message ?? "Datos inválidos.",
+    );
+  }
+  const datos = resultado.data;
+
+  const resultadoGuardado = await guardarPreciosEvento(eventoId, datos);
+  if ("error" in resultadoGuardado) {
+    redireccionPreciosInvalidos(eventoId, resultadoGuardado.error);
+  }
+
+  revalidatePath("/admin/eventos");
+  redirect(`/admin/eventos?eventoId=${eventoId}&guardado=precios&t=${Date.now()}`);
 }
 
 export async function guardarLogistica(eventoId: string, formData: FormData) {

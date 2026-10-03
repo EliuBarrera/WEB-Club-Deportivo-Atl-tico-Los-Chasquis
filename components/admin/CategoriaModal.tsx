@@ -20,6 +20,7 @@ export function CategoriaModal({
   abierto,
   categoria,
   pruebasCatalogo,
+  gruposTarifa,
   guardarAction,
   eliminarAction,
   onCerrar,
@@ -27,6 +28,7 @@ export function CategoriaModal({
   abierto: boolean;
   categoria?: CategoriaExistente;
   pruebasCatalogo: PruebaCatalogoAdmin[];
+  gruposTarifa: EventoCompleto["gruposTarifa"];
   guardarAction: (formData: FormData) => Promise<void>;
   eliminarAction?: (formData: FormData) => Promise<void>;
   onCerrar: () => void;
@@ -143,6 +145,27 @@ export function CategoriaModal({
               />
             </label>
           </div>
+
+          <label className="flex max-w-sm flex-col gap-1">
+            <span className={labelClase}>Grupo de tarifa</span>
+            <select
+              name="grupoTarifaId"
+              defaultValue={categoria?.grupoTarifaId ?? ""}
+              className={campoClase}
+            >
+              <option value="">Sin grupo (no admite inscripciones)</option>
+              {gruposTarifa.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.nombre}
+                </option>
+              ))}
+            </select>
+            {gruposTarifa.length === 0 && (
+              <span className="text-sm text-gris-oscuro">
+                Crea los grupos primero en la pestaña Precios.
+              </span>
+            )}
+          </label>
 
           <div className="flex flex-col gap-3">
             <span className={labelClase}>Pruebas habilitadas</span>

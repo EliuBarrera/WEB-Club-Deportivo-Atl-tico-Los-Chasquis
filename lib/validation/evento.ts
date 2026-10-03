@@ -32,6 +32,14 @@ export const eventoSchema = z.object({
 
 export type EventoInput = z.infer<typeof eventoSchema>;
 
+// Edición desde el admin: el precio ya no se edita en Información, sale de
+// la pestaña Precios (rondas y tarifas, Fase 12.1).
+export const eventoEdicionSchema = eventoSchema.omit({
+  precio: true,
+  descuento: true,
+  descuentoLabel: true,
+});
+
 export const resultadosSchema = z.object({
   resultadosUrl: z.union([z.url(), z.literal("")]).optional(),
 });

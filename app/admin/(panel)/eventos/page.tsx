@@ -23,6 +23,7 @@ import {
   eliminarCategoria,
   eliminarEvento,
   eliminarNoticia,
+  guardarPrecios,
   enviarResumenEvento,
   guardarLogistica,
   guardarPremios,
@@ -48,6 +49,8 @@ const MENSAJES_ERROR: Record<string, string> = {
   "json-invalido":
     "El archivo no es un JSON válido o no tiene los campos esperados — revisa la plantilla de ejemplo.",
   "no-autorizado": "Solo un administrador puede enviar difusiones.",
+  "precios-invalidos": "No se guardaron los precios.",
+  "grupo-invalido": "El grupo de tarifa no pertenece a este evento.",
 };
 
 const MENSAJES_GUARDADO: Record<string, string> = {
@@ -62,6 +65,7 @@ const MENSAJES_GUARDADO: Record<string, string> = {
   logistica: "Logística guardada",
   noticia: "Noticia actualizada",
   "noticia-creada": "Noticia creada",
+  precios: "Precios guardados",
 };
 
 function primerValor(valor: string | string[] | undefined): string | undefined {
@@ -106,6 +110,7 @@ export default async function EventosPage({
 
   const eventoId = primerValor(params.eventoId) ?? eventos[0]?.id;
   const error = primerValor(params.error);
+  const detalleError = primerValor(params.detalle);
   const guardado = primerValor(params.guardado);
   const guardadoTs = primerValor(params.t);
   const erroresJson =
@@ -156,6 +161,7 @@ export default async function EventosPage({
       {error && MENSAJES_ERROR[error] && !erroresJson?.length && (
         <p className="rounded-lg bg-rojo/10 px-4 py-2 font-bold text-rojo">
           {MENSAJES_ERROR[error]}
+          {error === "precios-invalidos" && detalleError ? ` ${detalleError}` : ""}
         </p>
       )}
 
@@ -192,6 +198,7 @@ export default async function EventosPage({
             crearNoticiaAction={crearNoticia}
             actualizarNoticiaAction={actualizarNoticia}
             eliminarNoticiaAction={eliminarNoticia}
+            guardarPreciosAction={guardarPrecios.bind(null, evento.id)}
           />
         ) : (
           <div className="rounded-[20px] bg-white p-7 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">

@@ -80,3 +80,16 @@ export function preciosDelEvento(
       })),
   };
 }
+
+// Colombia no tiene horario de verano: siempre UTC-5. El admin escribe el
+// cierre de ronda en hora local (`<input type="datetime-local">`, sin zona).
+const OFFSET_BOGOTA_MS = 5 * 60 * 60 * 1000;
+
+// Incluye el minuto completo: "23:59" cierra a las 23:59:59.999.
+export function fechaCierreDesdeInput(valor: string): Date {
+  return new Date(`${valor}:59.999-05:00`);
+}
+
+export function fechaCierreAInput(fecha: Date): string {
+  return new Date(fecha.getTime() - OFFSET_BOGOTA_MS).toISOString().slice(0, 16);
+}

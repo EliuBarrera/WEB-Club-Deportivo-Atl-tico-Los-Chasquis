@@ -197,9 +197,6 @@ export async function getEventoCompleto(eventoId: string) {
       horario: true,
       cierreInscripciones: true,
       ubicacion: true,
-      precio: true,
-      descuento: true,
-      descuentoLabel: true,
       estado: true,
       descripcion: true,
       imagenUrl: true,
@@ -226,7 +223,28 @@ export async function getEventoCompleto(eventoId: string) {
           nacimiento: true,
           rama: true,
           orden: true,
+          grupoTarifaId: true,
           pruebas: { select: { pruebaId: true } },
+        },
+      },
+      rondas: {
+        orderBy: { orden: "asc" },
+        select: {
+          id: true,
+          orden: true,
+          nombre: true,
+          fechaCierre: true,
+          tarifas: { select: { grupoTarifaId: true, valor: true } },
+          _count: { select: { inscripciones: true } },
+        },
+      },
+      gruposTarifa: {
+        orderBy: { orden: "asc" },
+        select: {
+          id: true,
+          nombre: true,
+          derechos: true,
+          _count: { select: { inscripciones: true } },
         },
       },
       premios: {

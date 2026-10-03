@@ -1195,9 +1195,20 @@ corregir por cuenta propia — son decisiones del club:**
 Surgieron durante la implementación; se hacen al terminar las
 subsecciones de arriba, no antes:
 
-- [ ] **CRUD de rondas, grupos de tarifa y tarifas en el admin**
-      (`EventoEditor.tsx`): hoy solo se crean por script o a mano en la
-      base. Sin esto no se puede configurar el Aguinaldo
+- [x] **CRUD de rondas, grupos de tarifa y tarifas en el admin**
+      — pestaña **Precios** del editor (`components/admin/PreciosEditor.tsx`):
+      tabla grupos × rondas con cierre en hora de Colombia (el minuto
+      escrito es inclusivo), se guarda completa vía `guardarPrecios` →
+      `lib/admin/precios.ts` (`guardarPreciosEvento`), validada con
+      `lib/validation/precios.ts`. No deja quitar rondas/grupos con
+      inscripciones ni usar ids de otro evento. Avisa en la propia pestaña
+      si no hay ronda vigente o hay categorías sin grupo. El modal de
+      categoría tiene selector "Grupo de tarifa" (validado en servidor
+      contra el mismo evento) y la tabla de categorías muestra "Sin grupo".
+      El campo "Precio" de Información se reemplazó por un enlace a la
+      pestaña. Probado contra la rama (creación, re-guardado sin
+      duplicados, bloqueo de borrado, ids ajenos); **sin revisión visual en
+      navegador**
 - [ ] **Quitar `Evento.precio`, `descuento`, `descuentoLabel`,
       `fechaLimiteDescuento` y el modelo `Costo`** una vez exista ese CRUD
       (el editor de eventos todavía los usa). `Inscripcion.costoId` se
