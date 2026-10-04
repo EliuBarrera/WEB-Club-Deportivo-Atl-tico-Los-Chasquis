@@ -99,7 +99,7 @@ export function CategoriaModal({
 
         <form action={guardarAction} className="flex flex-col gap-5">
           <FormularioCargando mensaje="Guardando categoría…" />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)_80px]">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.5fr)]">
             <label className="flex min-w-0 flex-col gap-1">
               <span className={labelClase}>Nombre</span>
               <input
@@ -126,6 +126,8 @@ export function CategoriaModal({
                 type="text"
                 name="nacimiento"
                 required
+                placeholder="2014-2013"
+                title='Años de nacimiento, ej. "2014-2013" o "1976 o anterior". Las categorías se ordenan solas con este dato.'
                 defaultValue={categoria?.nacimiento ?? ""}
                 className={campoClase}
               />
@@ -137,16 +139,6 @@ export function CategoriaModal({
                 name="rama"
                 required
                 defaultValue={categoria?.rama ?? "MASCULINA Y FEMENINA"}
-                className={campoClase}
-              />
-            </label>
-            <label className="flex min-w-0 flex-col gap-1">
-              <span className={labelClase}>Orden</span>
-              <input
-                type="number"
-                name="orden"
-                min={0}
-                defaultValue={categoria?.orden ?? 0}
                 className={campoClase}
               />
             </label>

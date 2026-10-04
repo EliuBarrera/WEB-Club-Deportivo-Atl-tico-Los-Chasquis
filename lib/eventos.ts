@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ordenarCategorias } from "@/lib/categorias";
 import { preciosDelEvento } from "@/lib/precios";
 
 // Cierre automático de eventos vencidos: este proyecto no tiene cron ni
@@ -49,7 +50,6 @@ export async function getEventosPublicados() {
       aval: true,
       organizador: true,
       categorias: {
-        orderBy: { orden: "asc" },
         select: {
           id: true,
           nombre: true,
@@ -90,7 +90,7 @@ export async function getEventosPublicados() {
           id: true,
           nombre: true,
           mapaUrl: true,
-          categorias: { orderBy: { orden: "asc" }, select: { nombre: true } },
+          categorias: { select: { nombre: true, nacimiento: true } },
           distancia: true,
           desnivel: true,
           salida: true,
@@ -155,6 +155,11 @@ export async function getEventosPublicados() {
 
   return eventos.map(({ rondas, gruposTarifa, ...evento }) => ({
     ...evento,
+    categorias: ordenarCategorias(evento.categorias),
+    recorridos: evento.recorridos.map((r) => ({
+      ...r,
+      categorias: ordenarCategorias(r.categorias),
+    })),
     precios: preciosDelEvento({ rondas, gruposTarifa }),
   }));
 }

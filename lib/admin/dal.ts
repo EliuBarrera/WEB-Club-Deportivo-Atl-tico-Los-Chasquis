@@ -2,6 +2,7 @@ import "server-only";
 import { redirect } from "next/navigation";
 import type { EstadoPago } from "@prisma/client";
 import { auth } from "@/auth";
+import { ordenarCategorias } from "@/lib/categorias";
 import { prisma } from "@/lib/prisma";
 import { ESTADOS_PAGO_PURGABLES } from "@/lib/estadoPagoBadge";
 import { cerrarEventosVencidos } from "@/lib/eventos";
@@ -187,7 +188,7 @@ export type EventoAdmin = Awaited<
 // y no necesitan datos todavía).
 export async function getEventoCompleto(eventoId: string) {
   await verifySession();
-  return prisma.evento.findUnique({
+  const evento = await prisma.evento.findUnique({
     where: { id: eventoId },
     select: {
       id: true,
@@ -222,14 +223,12 @@ export async function getEventoCompleto(eventoId: string) {
         },
       },
       categorias: {
-        orderBy: { orden: "asc" },
         select: {
           id: true,
           nombre: true,
           edad: true,
           nacimiento: true,
           rama: true,
-          orden: true,
           grupoTarifaId: true,
           recorridoId: true,
           distancia: true,
@@ -318,6 +317,8 @@ export async function getEventoCompleto(eventoId: string) {
       },
     },
   });
+  if (!evento) return null;
+  return { ...evento, categorias: ordenarCategorias(evento.categorias) };
 }
 
 export type EventoCompleto = NonNullable<

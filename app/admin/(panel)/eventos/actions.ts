@@ -264,7 +264,6 @@ function datosCategoria(formData: FormData) {
     edad: campoTexto(formData, "edad"),
     nacimiento: campoTexto(formData, "nacimiento"),
     rama: campoOpcional(formData, "rama") ?? "MASCULINA Y FEMENINA",
-    orden: campoOpcional(formData, "orden") ?? "0",
     pruebasIds: formData.getAll("pruebasIds").map(String),
     grupoTarifaId: campoOpcional(formData, "grupoTarifaId"),
     recorridoId: campoOpcional(formData, "recorridoId"),
@@ -335,7 +334,6 @@ export async function crearCategoria(eventoId: string, formData: FormData) {
       edad: datos.edad,
       nacimiento: datos.nacimiento,
       rama: datos.rama,
-      orden: datos.orden,
       pruebas: {
         create: datos.pruebasIds.map((pruebaId) => ({ pruebaId })),
       },
@@ -369,7 +367,6 @@ export async function actualizarCategoria(
         edad: datos.edad,
         nacimiento: datos.nacimiento,
         rama: datos.rama,
-        orden: datos.orden,
       },
     }),
     prisma.categoriaPrueba.deleteMany({ where: { categoriaId } }),

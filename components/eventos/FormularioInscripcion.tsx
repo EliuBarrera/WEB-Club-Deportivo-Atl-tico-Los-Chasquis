@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
+import { rangoAnios } from "@/lib/categorias";
 import { formatPrecio } from "@/lib/format";
 import { DatosCarrera } from "./DatosCarrera";
 import { ModalTerminos } from "./ModalTerminos";
@@ -66,26 +67,11 @@ function calcularEdad(fechaNacimiento: string, fechaEvento: Date): number | null
   return edad;
 }
 
-// Parsea el campo de texto libre `categoria.nacimiento` (ej. "2014-2013",
-// "1976 o anterior") para poder sugerir la categoría a partir del año de
-// nacimiento. Solo se usa como ayuda de UX (preselecciona el select, que
-// sigue siendo editable) — el servidor no depende de este parseo porque
-// el formato varía entre eventos y no es confiable para bloquear el
-// envío (ver Fase 4 en el plan de desarrollo).
-function rangoAnios(nacimiento: string): { min: number; max: number } | null {
-  const rango = nacimiento.match(/^(\d{4})\s*-\s*(\d{4})$/);
-  if (rango) {
-    const a = Number(rango[1]);
-    const b = Number(rango[2]);
-    return { min: Math.min(a, b), max: Math.max(a, b) };
-  }
-  const anterior = nacimiento.match(/^(\d{4})\s+o\s+anterior$/i);
-  if (anterior) {
-    return { min: -Infinity, max: Number(anterior[1]) };
-  }
-  return null;
-}
-
+// Sugiere la categoría a partir del año de nacimiento. Solo se usa como
+// ayuda de UX (preselecciona el select, que sigue siendo editable) — el
+// servidor no depende de este parseo porque el formato varía entre
+// eventos y no es confiable para bloquear el envío (ver Fase 4 en el plan
+// de desarrollo).
 function sugerirCategoriaPorNacimiento(
   anioNacimiento: number,
   categorias: EventoPublicado["categorias"]

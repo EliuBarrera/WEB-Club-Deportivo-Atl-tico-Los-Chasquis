@@ -46,7 +46,7 @@ function capitalizarPalabras(texto: string): string {
 }
 
 // Rango de categorías para el badge gris de la tarjeta, ej. "Sub 8 - Veteranos C".
-// `categorias` debe venir ya ordenado por el campo `orden`.
+// `categorias` debe venir ya ordenado con ordenarCategorias (lib/categorias.ts).
 export function rangoCategorias(
   categorias: { nombre: string }[]
 ): string | null {
