@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import { useState, type ReactNode } from "react";
-import type { EventoPublicado } from "@/lib/eventos";
+import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
 import { DatosCarrera } from "@/components/eventos/DatosCarrera";
+import { ModalTerminos } from "@/components/eventos/ModalTerminos";
 import { formatFechaBadge, formatFechaCierre, formatPrecio } from "@/lib/format";
 
 const TABS = [
@@ -54,7 +55,13 @@ function ListaTextos({ items }: { items: { id: string; texto: string }[] }) {
 
 // Panel con tabs del detalle del evento (Fase 3): todo el contenido de
 // cada sección viene de la base de datos, nada hardcodeado.
-export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
+export function PanelDetalleTabs({
+  evento,
+  terminos,
+}: {
+  evento: EventoPublicado;
+  terminos: TerminosVigente;
+}) {
   const [tabActiva, setTabActiva] = useState<Tab>("Información");
 
   return (
@@ -83,7 +90,7 @@ export function PanelDetalleTabs({ evento }: { evento: EventoPublicado }) {
         {tabActiva === "Reglamento" ? <TabReglamento evento={evento} /> : null}
         {tabActiva === "Logística" ? <TabLogistica evento={evento} /> : null}
         {tabActiva === "Noticias" ? <TabNoticias evento={evento} /> : null}
-        {tabActiva === "Contacto" ? <TabContacto evento={evento} /> : null}
+        {tabActiva === "Contacto" ? <TabContacto evento={evento} terminos={terminos} /> : null}
       </div>
     </div>
   );
@@ -422,16 +429,18 @@ function TabPremios({ evento }: { evento: EventoPublicado }) {
       {premios.efectivoUrl ? (
         <div>
           <TituloSeccion>Premiación en efectivo</TituloSeccion>
-          <div className="relative aspect-[4/3] w-full max-w-md overflow-hidden rounded-xl shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
-            <Image
-              src={premios.efectivoUrl}
-              alt="Tabla de premiación en efectivo"
-              fill
-              sizes="(min-width: 640px) 400px, 90vw"
-              className="object-contain"
-              unoptimized
-            />
-          </div>
+          {/* Sin caja ni proporción fija: la tabla ocupa todo el ancho del
+              panel y conserva su alto natural. width/height solo dan la
+              proporción inicial; h-auto la corrige al cargar. */}
+          <Image
+            src={premios.efectivoUrl}
+            alt="Tabla de premiación en efectivo"
+            width={1200}
+            height={900}
+            sizes="(min-width: 1024px) 900px, 100vw"
+            className="h-auto w-full"
+            unoptimized
+          />
         </div>
       ) : null}
     </div>
@@ -535,7 +544,15 @@ function TabNoticias({ evento }: { evento: EventoPublicado }) {
   );
 }
 
-function TabContacto({ evento }: { evento: EventoPublicado }) {
+function TabContacto({
+  evento,
+  terminos,
+}: {
+  evento: EventoPublicado;
+  terminos: TerminosVigente;
+}) {
+  const [modalTerminosAbierto, setModalTerminosAbierto] = useState(false);
+
   return (
     <div className="flex flex-col gap-4">
       <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -563,16 +580,25 @@ function TabContacto({ evento }: { evento: EventoPublicado }) {
         ) : null}
       </dl>
 
-      {evento.terminosUrl ? (
-        <a
-          href={evento.terminosUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex w-fit items-center gap-2 rounded-full bg-casi-negro/5 px-5 py-2 font-display font-bold uppercase shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-crema"
-        >
-          Ver términos y condiciones
-        </a>
-      ) : null}
+      <button
+        type="button"
+        onClick={() => setModalTerminosAbierto(true)}
+        className="inline-flex w-fit items-center gap-2 rounded-full bg-casi-negro/5 px-5 py-2 font-display font-bold uppercase shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-crema"
+      >
+        Ver términos y condiciones
+      </button>
+
+      <ModalTerminos
+        abierto={modalTerminosAbierto}
+        onCerrar={() => setModalTerminosAbierto(false)}
+        contenido={terminos?.contenido ?? null}
+        version={terminos?.version ?? null}
+        evento={{
+          kit: evento.logistica?.kit ?? [],
+          premiosEfectivo: Boolean(evento.premios?.efectivoUrl),
+          documentoUrl: evento.terminosUrl,
+        }}
+      />
     </div>
   );
 }

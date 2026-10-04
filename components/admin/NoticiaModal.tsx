@@ -14,7 +14,7 @@ type NoticiaExistente = EventoCompleto["noticias"][number];
 // Modal de creación/edición de una noticia del evento (Fase 6) — mismo
 // patrón que CategoriaModal.tsx (overlay, Escape/backdrop, ConfirmDialog
 // anidado para borrar), con un formulario más simple: no hay checklist de
-// pruebas, solo título/fecha/contenido/orden.
+// pruebas, solo título/fecha/contenido (se ordenan por la fecha).
 export function NoticiaModal({
   abierto,
   noticia,
@@ -92,29 +92,18 @@ export function NoticiaModal({
             />
           </label>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[2fr_1fr]">
-            <label className="flex flex-col gap-1.5">
-              <span className={labelClase}>Fecha</span>
-              <input
-                type="text"
-                name="fecha"
-                required
-                placeholder="15 de enero, 2026"
-                defaultValue={noticia?.fecha ?? ""}
-                className={campoClase}
-              />
-            </label>
-            <label className="flex flex-col gap-1.5">
-              <span className={labelClase}>Orden</span>
-              <input
-                type="number"
-                name="orden"
-                min={0}
-                defaultValue={noticia?.orden ?? 0}
-                className={campoClase}
-              />
-            </label>
-          </div>
+          <label className="flex flex-col gap-1.5">
+            <span className={labelClase}>Fecha</span>
+            <input
+              type="text"
+              name="fecha"
+              required
+              placeholder="15 de enero, 2026"
+              title='Formato "15 de enero, 2026": las noticias se ordenan solas por esta fecha, de la más reciente a la más antigua.'
+              defaultValue={noticia?.fecha ?? ""}
+              className={campoClase}
+            />
+          </label>
 
           <label className="flex flex-col gap-1.5">
             <span className={labelClase}>Contenido</span>

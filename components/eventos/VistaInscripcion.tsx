@@ -65,7 +65,7 @@ export function VistaInscripcion({
             onCancelar={() => setMostrarFormulario(false)}
           />
         ) : (
-          <PanelDetalleTabs evento={evento} />
+          <PanelDetalleTabs evento={evento} terminos={terminos} />
         )}
       </div>
     </div>

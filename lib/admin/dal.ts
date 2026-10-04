@@ -4,6 +4,7 @@ import type { EstadoPago } from "@prisma/client";
 import { auth } from "@/auth";
 import { ordenarCategorias } from "@/lib/categorias";
 import { ordenarDistancias } from "@/lib/distancias";
+import { ordenarNoticias } from "@/lib/noticias";
 import { prisma } from "@/lib/prisma";
 import { ESTADOS_PAGO_PURGABLES } from "@/lib/estadoPagoBadge";
 import { cerrarEventosVencidos } from "@/lib/eventos";
@@ -314,13 +315,12 @@ export async function getEventoCompleto(eventoId: string) {
         },
       },
       noticias: {
-        orderBy: { orden: "asc" },
         select: {
           id: true,
           titulo: true,
           fecha: true,
           contenido: true,
-          orden: true,
+          createdAt: true,
         },
       },
     },
@@ -330,6 +330,7 @@ export async function getEventoCompleto(eventoId: string) {
     ...evento,
     categorias: ordenarCategorias(evento.categorias),
     distancias: ordenarDistancias(evento.distancias),
+    noticias: ordenarNoticias(evento.noticias),
   };
 }
 

@@ -775,7 +775,6 @@ function datosNoticia(formData: FormData) {
     titulo: campoTexto(formData, "titulo"),
     fecha: campoTexto(formData, "fecha"),
     contenido: campoTexto(formData, "contenido"),
-    orden: campoOpcional(formData, "orden") ?? "0",
   });
 }
 

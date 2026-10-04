@@ -986,6 +986,7 @@ export function FormularioInscripcion({
         evento={{
           kit: evento.logistica?.kit ?? [],
           premiosEfectivo: Boolean(evento.premios?.efectivoUrl),
+          documentoUrl: evento.terminosUrl,
         }}
       />
     </div>

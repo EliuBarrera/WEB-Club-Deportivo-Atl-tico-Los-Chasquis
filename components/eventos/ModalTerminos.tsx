@@ -21,6 +21,9 @@ export function ModalTerminos({
   evento?: {
     kit: { id: string; texto: string }[];
     premiosEfectivo: boolean;
+    // Enlace propio del evento (Evento.terminosUrl), ej. un PDF con sus
+    // términos completos; complementa el texto institucional.
+    documentoUrl?: string | null;
   };
 }) {
   useEffect(() => {
@@ -92,6 +95,22 @@ export function ModalTerminos({
               Este evento entrega premiación en efectivo según la tabla
               publicada en la pestaña &quot;Premios&quot; del evento.
             </p>
+          </div>
+        ) : null}
+
+        {evento?.documentoUrl ? (
+          <div className="flex flex-col gap-2 border-t border-casi-negro/10 pt-4">
+            <h3 className="font-display text-lg font-extrabold uppercase text-naranja">
+              Términos del evento
+            </h3>
+            <a
+              href={evento.documentoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-casi-negro/5 px-5 py-2 font-display font-bold uppercase shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-crema"
+            >
+              Ver documento completo
+            </a>
           </div>
         ) : null}
 
