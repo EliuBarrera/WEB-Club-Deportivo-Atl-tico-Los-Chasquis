@@ -513,10 +513,23 @@ plan de Neon usado tenga backups/point-in-time recovery activo.
 
 ### Fase 8 — Despliegue y QA
 - [ ] Variables de entorno en Vercel (`DATABASE_URL`, credenciales Wompi)
-- [ ] Prueba de flujo completo: ver evento → inscribirse → pagar → admin
-      ve la inscripción
-- [ ] Revisión responsive (móvil) — el sitio actual tiene mucho tráfico
-      desde celular
+      — `DATABASE_URL` ya apunta a la rama de producción de Neon, pero
+      **Wompi sigue con llaves de sandbox**: cambiarlas por las de
+      producción (llave pública, privada, secreto de integridad y de
+      eventos) antes de abrir inscripciones al público, y confirmar la URL
+      del webhook en el panel de Wompi de producción
+- [x] Prueba de flujo completo: ver evento → inscribirse → pagar → admin
+      ve la inscripción — **4 oct 2026, con Wompi en sandbox**, Aguinaldo /
+      Mayores / Ronda 1: $90.000 `APROBADO` por el webhook (~1 min), con transacción y
+      referencia de Wompi, ronda, grupo de tarifa y versión de T&C
+      guardadas. Esa inscripción es de prueba: borrarla antes del
+      lanzamiento para que no cuente en el dashboard de ingresos
+- [x] Revisión responsive (móvil) — el sitio actual tiene mucho tráfico
+      desde celular. Corregido (commit `ab4c640`): docks centrados sin
+      `translate` y el del admin solo con íconos en móvil, logo del dock
+      recortado, calendario a todo el ancho, y dos desbordes horizontales
+      que alejaban la página (panel "compartir" del widget de Elfsight y
+      el `<select>` de evento en Inscripciones)
 
 ### Fase 9 — Página de Inicio (Landing)
 
