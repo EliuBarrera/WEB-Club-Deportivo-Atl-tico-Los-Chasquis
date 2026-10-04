@@ -517,7 +517,9 @@ plan de Neon usado tenga backups/point-in-time recovery activo.
       **Wompi sigue con llaves de sandbox**: cambiarlas por las de
       producción (llave pública, privada, secreto de integridad y de
       eventos) antes de abrir inscripciones al público, y confirmar la URL
-      del webhook en el panel de Wompi de producción
+      del webhook en el panel de Wompi de producción. **Pendiente del
+      club:** la cuenta de Wompi de producción es del club, así que son
+      ellos quienes deben entregar esas llaves
 - [x] Prueba de flujo completo: ver evento → inscribirse → pagar → admin
       ve la inscripción — **4 oct 2026, con Wompi en sandbox**, Aguinaldo /
       Mayores / Ronda 1: $90.000 `APROBADO` por el webhook (~1 min), con transacción y
