@@ -10,6 +10,7 @@ import { ListaTextoEditable } from "@/components/admin/ListaTextoEditable";
 import { PreciosEditor } from "@/components/admin/PreciosEditor";
 import { RecorridoModal } from "@/components/admin/RecorridoModal";
 import { FormularioCargando } from "@/components/FormularioCargando";
+import { usePestanaEvento } from "@/components/admin/PestanaEventoContext";
 
 const TABS = [
   { id: "informacion", label: "Información" },
@@ -97,7 +98,7 @@ export function EventoEditor({
     eventoId: string,
   ) => Promise<void>;
 }) {
-  const [tab, setTab] = useState<TabId>("informacion");
+  const [tab, setTab] = usePestanaEvento<TabId>(evento.id, "informacion");
   const [modalCategoria, setModalCategoria] = useState<"nueva" | string | null>(
     null,
   );
