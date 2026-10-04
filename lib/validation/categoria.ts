@@ -12,9 +12,10 @@ export const categoriaSchema = z.object({
   pruebasIds: z.array(z.string().min(1)).default([]),
   // Vacío = sin grupo de tarifa (Fase 12.1).
   grupoTarifaId: z.string().optional(),
+  // Vacío = sin distancia; si viene, es una Distancia del mismo evento.
+  distanciaId: z.string().optional(),
   // Carreras de calle (Fase 12.3); vacíos en festivales de pista.
   recorridoId: z.string().optional(),
-  distancia: z.string().trim().max(50).optional(),
   vueltas: z.coerce.number().int().positive().max(100).optional(),
   horaSalida: z.string().trim().max(50).optional(),
   sitioSalida: z.string().trim().max(200).optional(),

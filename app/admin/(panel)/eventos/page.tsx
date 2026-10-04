@@ -27,6 +27,8 @@ import {
   crearRecorrido,
   actualizarRecorrido,
   eliminarRecorrido,
+  crearDistancia,
+  eliminarDistancia,
   enviarResumenEvento,
   guardarLogistica,
   guardarPremios,
@@ -55,6 +57,8 @@ const MENSAJES_ERROR: Record<string, string> = {
   "precios-invalidos": "No se guardaron los precios.",
   "grupo-invalido": "El grupo de tarifa no pertenece a este evento.",
   "recorrido-invalido": "El recorrido no pertenece a este evento.",
+  "distancia-invalida": "La distancia no es válida para este evento.",
+  "distancia-repetida": "Esa distancia ya existe en este evento.",
 };
 
 const MENSAJES_GUARDADO: Record<string, string> = {
@@ -72,6 +76,8 @@ const MENSAJES_GUARDADO: Record<string, string> = {
   precios: "Precios guardados",
   recorrido: "Recorrido actualizado",
   "recorrido-creado": "Recorrido creado",
+  "distancia-creada": "Distancia creada",
+  "distancia-eliminada": "Distancia eliminada",
 };
 
 function primerValor(valor: string | string[] | undefined): string | undefined {
@@ -208,6 +214,8 @@ export default async function EventosPage({
             crearRecorridoAction={crearRecorrido}
             actualizarRecorridoAction={actualizarRecorrido}
             eliminarRecorridoAction={eliminarRecorrido}
+            crearDistanciaAction={crearDistancia}
+            eliminarDistanciaAction={eliminarDistancia}
           />
         ) : (
           <div className="rounded-[20px] bg-white p-7 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">

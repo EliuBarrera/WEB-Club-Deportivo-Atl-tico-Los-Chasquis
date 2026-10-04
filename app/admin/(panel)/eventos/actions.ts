@@ -22,6 +22,7 @@ import { categoriaSchema } from "@/lib/validation/categoria";
 import { listaTextoSchema } from "@/lib/validation/listaTexto";
 import { noticiaSchema } from "@/lib/validation/noticia";
 import { recorridoSchema } from "@/lib/validation/recorrido";
+import { distanciaSchema } from "@/lib/validation/distancia";
 import { preciosSchema } from "@/lib/validation/precios";
 import { guardarPreciosEvento } from "@/lib/admin/precios";
 
@@ -266,8 +267,8 @@ function datosCategoria(formData: FormData) {
     rama: campoOpcional(formData, "rama") ?? "MASCULINA Y FEMENINA",
     pruebasIds: formData.getAll("pruebasIds").map(String),
     grupoTarifaId: campoOpcional(formData, "grupoTarifaId"),
+    distanciaId: campoOpcional(formData, "distanciaId"),
     recorridoId: campoOpcional(formData, "recorridoId"),
-    distancia: campoOpcional(formData, "distancia"),
     vueltas: campoOpcional(formData, "vueltas"),
     horaSalida: campoOpcional(formData, "horaSalida"),
     sitioSalida: campoOpcional(formData, "sitioSalida"),
@@ -288,14 +289,28 @@ async function recorridoDelEvento(
   return recorrido.id;
 }
 
-// Campos de carrera de calle de la categoría (Fase 12.3), ya validados.
+async function distanciaDelEvento(
+  eventoId: string,
+  distanciaId: string | undefined,
+): Promise<string | null> {
+  if (!distanciaId) return null;
+  const distancia = await prisma.distancia.findFirst({
+    where: { id: distanciaId, eventoId },
+    select: { id: true },
+  });
+  if (!distancia) redirect(`/admin/eventos?eventoId=${eventoId}&error=distancia-invalida`);
+  return distancia.id;
+}
+
+// Distancia y campos de carrera de calle de la categoría (Fase 12.3), ya
+// validados.
 async function datosCarreraCategoria(
   eventoId: string,
   datos: ReturnType<typeof datosCategoria>,
 ) {
   return {
+    distanciaId: await distanciaDelEvento(eventoId, datos.distanciaId),
     recorridoId: await recorridoDelEvento(eventoId, datos.recorridoId),
-    distancia: datos.distancia ?? null,
     vueltas: datos.vueltas ?? null,
     horaSalida: datos.horaSalida ?? null,
     sitioSalida: datos.sitioSalida ?? null,
@@ -399,6 +414,47 @@ export async function eliminarCategoria(categoriaId: string, eventoId: string) {
 
   revalidatePath("/admin/eventos");
   redirect(`/admin/eventos?eventoId=${eventoId}`);
+}
+
+// Distancias del evento: solo se crean y eliminan (renombrar = eliminar y
+// crear). Al eliminar una, sus categorías quedan sin distancia (SET NULL).
+export async function crearDistancia(eventoId: string, formData: FormData) {
+  await verifySession();
+
+  const resultado = distanciaSchema.safeParse({
+    nombre: campoTexto(formData, "nombre"),
+  });
+  if (!resultado.success) {
+    redirect(`/admin/eventos?eventoId=${eventoId}&error=distancia-invalida`);
+  }
+
+  const existente = await prisma.distancia.findUnique({
+    where: { eventoId_nombre: { eventoId, nombre: resultado.data.nombre } },
+    select: { id: true },
+  });
+  if (existente) {
+    redirect(`/admin/eventos?eventoId=${eventoId}&error=distancia-repetida`);
+  }
+
+  await prisma.distancia.create({
+    data: { eventoId, nombre: resultado.data.nombre },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=distancia-creada&t=${Date.now()}`,
+  );
+}
+
+export async function eliminarDistancia(distanciaId: string, eventoId: string) {
+  await verifySession();
+
+  await prisma.distancia.delete({ where: { id: distanciaId, eventoId } });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=distancia-eliminada&t=${Date.now()}`,
+  );
 }
 
 function datosRecorrido(formData: FormData) {

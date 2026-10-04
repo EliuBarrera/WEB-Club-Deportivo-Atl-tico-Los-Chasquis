@@ -58,7 +58,7 @@ export async function getEventosPublicados() {
           rama: true,
           grupoTarifaId: true,
           recorridoId: true,
-          distancia: true,
+          distancia: { select: { nombre: true } },
           vueltas: true,
           horaSalida: true,
           sitioSalida: true,

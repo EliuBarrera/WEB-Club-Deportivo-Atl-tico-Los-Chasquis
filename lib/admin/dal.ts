@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import type { EstadoPago } from "@prisma/client";
 import { auth } from "@/auth";
 import { ordenarCategorias } from "@/lib/categorias";
+import { ordenarDistancias } from "@/lib/distancias";
 import { prisma } from "@/lib/prisma";
 import { ESTADOS_PAGO_PURGABLES } from "@/lib/estadoPagoBadge";
 import { cerrarEventosVencidos } from "@/lib/eventos";
@@ -222,6 +223,13 @@ export async function getEventoCompleto(eventoId: string) {
           _count: { select: { categorias: true } },
         },
       },
+      distancias: {
+        select: {
+          id: true,
+          nombre: true,
+          _count: { select: { categorias: true } },
+        },
+      },
       categorias: {
         select: {
           id: true,
@@ -231,7 +239,7 @@ export async function getEventoCompleto(eventoId: string) {
           rama: true,
           grupoTarifaId: true,
           recorridoId: true,
-          distancia: true,
+          distanciaId: true,
           vueltas: true,
           horaSalida: true,
           sitioSalida: true,
@@ -318,7 +326,11 @@ export async function getEventoCompleto(eventoId: string) {
     },
   });
   if (!evento) return null;
-  return { ...evento, categorias: ordenarCategorias(evento.categorias) };
+  return {
+    ...evento,
+    categorias: ordenarCategorias(evento.categorias),
+    distancias: ordenarDistancias(evento.distancias),
+  };
 }
 
 export type EventoCompleto = NonNullable<

@@ -9,7 +9,7 @@ export function DatosCarrera({ categoria }: { categoria: CategoriaPublicada }) {
     [
       "Distancia",
       categoria.distancia
-        ? `${categoria.distancia}${categoria.vueltas && categoria.vueltas > 1 ? ` (${categoria.vueltas} vueltas)` : ""}`
+        ? `${categoria.distancia.nombre}${categoria.vueltas && categoria.vueltas > 1 ? ` (${categoria.vueltas} vueltas)` : ""}`
         : null,
     ],
     ["Salida", categoria.horaSalida],

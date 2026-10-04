@@ -24,6 +24,7 @@ export function CategoriaModal({
   gruposTarifa,
   tipoEvento,
   recorridos,
+  distancias,
   guardarAction,
   eliminarAction,
   onCerrar,
@@ -34,6 +35,7 @@ export function CategoriaModal({
   gruposTarifa: EventoCompleto["gruposTarifa"];
   tipoEvento: EventoCompleto["tipo"];
   recorridos: EventoCompleto["recorridos"];
+  distancias: EventoCompleto["distancias"];
   guardarAction: (formData: FormData) => Promise<void>;
   eliminarAction?: (formData: FormData) => Promise<void>;
   onCerrar: () => void;
@@ -144,31 +146,54 @@ export function CategoriaModal({
             </label>
           </div>
 
-          <label className="flex max-w-sm flex-col gap-1">
-            <span className={labelClase}>Grupo de tarifa</span>
-            <select
-              name="grupoTarifaId"
-              defaultValue={categoria?.grupoTarifaId ?? ""}
-              className={campoClase}
-            >
-              <option value="">Sin grupo (no admite inscripciones)</option>
-              {gruposTarifa.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.nombre}
-                </option>
-              ))}
-            </select>
-            {gruposTarifa.length === 0 && (
-              <span className="text-sm text-gris-oscuro">
-                Crea los grupos primero en la pestaña Precios.
-              </span>
-            )}
-          </label>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <label className="flex min-w-0 flex-col gap-1">
+              <span className={labelClase}>Grupo de tarifa</span>
+              <select
+                name="grupoTarifaId"
+                defaultValue={categoria?.grupoTarifaId ?? ""}
+                className={campoClase}
+              >
+                <option value="">Sin grupo (no admite inscripciones)</option>
+                {gruposTarifa.map((g) => (
+                  <option key={g.id} value={g.id}>
+                    {g.nombre}
+                  </option>
+                ))}
+              </select>
+              {gruposTarifa.length === 0 && (
+                <span className="text-sm text-gris-oscuro">
+                  Crea los grupos primero en la pestaña Precios.
+                </span>
+              )}
+            </label>
+
+            <label className="flex min-w-0 flex-col gap-1">
+              <span className={labelClase}>Distancia</span>
+              <select
+                name="distanciaId"
+                defaultValue={categoria?.distanciaId ?? ""}
+                className={campoClase}
+              >
+                <option value="">Sin distancia</option>
+                {distancias.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.nombre}
+                  </option>
+                ))}
+              </select>
+              {distancias.length === 0 && (
+                <span className="text-sm text-gris-oscuro">
+                  Crea las distancias arriba de la tabla de categorías.
+                </span>
+              )}
+            </label>
+          </div>
 
           {tipoEvento === "CALLE" ? (
             <div className="flex flex-col gap-3">
               <span className={labelClase}>Carrera</span>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_80px_minmax(0,1fr)]">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-[minmax(0,2fr)_80px_minmax(0,1fr)]">
                 <label className="flex min-w-0 flex-col gap-1">
                   <span className={labelClase}>Recorrido</span>
                   <select
@@ -183,16 +208,6 @@ export function CategoriaModal({
                       </option>
                     ))}
                   </select>
-                </label>
-                <label className="flex min-w-0 flex-col gap-1">
-                  <span className={labelClase}>Distancia</span>
-                  <input
-                    type="text"
-                    name="distancia"
-                    placeholder="ej. 10 km"
-                    defaultValue={categoria?.distancia ?? ""}
-                    className={campoClase}
-                  />
                 </label>
                 <label className="flex min-w-0 flex-col gap-1">
                   <span className={labelClase}>Vueltas</span>

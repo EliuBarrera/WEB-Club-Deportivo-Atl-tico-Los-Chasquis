@@ -119,6 +119,7 @@ model Evento {
 
   // Relaciones 1:N
   recorridos    Recorrido[]
+  distancias    Distancia[]
   categorias    Categoria[]
   noticias      Noticia[]
   objetivos     Objetivo[]
@@ -186,11 +187,15 @@ model Categoria {
   grupoTarifaId String?
   grupoTarifa   GrupoTarifa? @relation(fields: [grupoTarifaId], references: [id], onDelete: SetNull)
 
+  // Distancia que recorre la categoría, elegida de las del evento. Sirve
+  // en cualquier tipo de evento; null = sin distancia definida.
+  distanciaId String?
+  distancia   Distancia? @relation(fields: [distanciaId], references: [id], onDelete: SetNull)
+
   // Carreras de calle (Fase 12.3): qué recorrido corre la categoría y con
-  // qué distancia/hora/sitio. Null en festivales de pista.
+  // qué hora/sitio. Null en festivales de pista.
   recorridoId  String?
   recorrido    Recorrido? @relation(fields: [recorridoId], references: [id], onDelete: SetNull)
-  distancia    String? // ej: "10 km", "800 m"
   vueltas      Int?
   horaSalida   String? // ej: "8:00 a.m."
   sitioSalida  String?
@@ -201,6 +206,20 @@ model Categoria {
 
   @@index([eventoId])
   @@index([grupoTarifaId])
+  @@index([distanciaId])
+}
+
+// Distancias del evento (ej. "10 km", "800 m"), creadas en el admin y
+// asignadas a cada categoría. Se ordenan solas por metros (lib/distancias.ts).
+model Distancia {
+  id       String @id @default(cuid())
+  eventoId String
+  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
+  nombre   String
+
+  categorias Categoria[]
+
+  @@unique([eventoId, nombre])
 }
 
 // ==========================================

@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 import type { EventoCompleto, PruebaCatalogoAdmin } from "@/lib/admin/dal";
 import { CategoriaModal } from "@/components/admin/CategoriaModal";
+import { DistanciasEditor } from "@/components/admin/DistanciasEditor";
 import { NoticiaModal } from "@/components/admin/NoticiaModal";
 import { ListaTextoEditable } from "@/components/admin/ListaTextoEditable";
 import { PreciosEditor } from "@/components/admin/PreciosEditor";
@@ -46,6 +47,8 @@ export function EventoEditor({
   crearRecorridoAction,
   actualizarRecorridoAction,
   eliminarRecorridoAction,
+  crearDistanciaAction,
+  eliminarDistanciaAction,
 }: {
   evento: EventoCompleto;
   pruebasCatalogo: PruebaCatalogoAdmin[];
@@ -86,6 +89,11 @@ export function EventoEditor({
   ) => Promise<void>;
   eliminarRecorridoAction: (
     recorridoId: string,
+    eventoId: string,
+  ) => Promise<void>;
+  crearDistanciaAction: (eventoId: string, formData: FormData) => Promise<void>;
+  eliminarDistanciaAction: (
+    distanciaId: string,
     eventoId: string,
   ) => Promise<void>;
 }) {
@@ -542,6 +550,14 @@ export function EventoEditor({
 
           {tab === "categorias" && (
             <div className="flex flex-col gap-4">
+              <DistanciasEditor
+                distancias={evento.distancias}
+                crearAction={crearDistanciaAction.bind(null, evento.id)}
+                eliminarAction={(distanciaId) =>
+                  eliminarDistanciaAction(distanciaId, evento.id)
+                }
+              />
+
               {evento.categorias.length === 0 ? (
                 <p className="italic text-gris-oscuro">
                   Este evento aún no tiene categorías. Si maneja costos únicos
@@ -556,8 +572,9 @@ export function EventoEditor({
                         <th className="px-4 py-3">Nombre</th>
                         <th className="px-4 py-3">Edad</th>
                         <th className="px-4 py-3">Nacimiento</th>
+                        <th className="px-4 py-3">Distancia</th>
                         <th className="px-4 py-3">
-                          {evento.tipo === "CALLE" ? "Distancia / salida" : "Pruebas"}
+                          {evento.tipo === "CALLE" ? "Salida" : "Pruebas"}
                         </th>
                         <th className="px-4 py-3">Grupo de tarifa</th>
                         <th className="px-4 py-3">Acciones</th>
@@ -575,10 +592,13 @@ export function EventoEditor({
                           <td className="px-4 py-3">{categoria.edad}</td>
                           <td className="px-4 py-3">{categoria.nacimiento}</td>
                           <td className="px-4 py-3">
+                            {evento.distancias.find(
+                              (d) => d.id === categoria.distanciaId,
+                            )?.nombre ?? "—"}
+                          </td>
+                          <td className="px-4 py-3">
                             {evento.tipo === "CALLE"
-                              ? [categoria.distancia, categoria.horaSalida]
-                                  .filter(Boolean)
-                                  .join(" · ") || "—"
+                              ? categoria.horaSalida || "—"
                               : categoria.pruebas.length}
                           </td>
                           <td className="px-4 py-3">
@@ -674,6 +694,7 @@ export function EventoEditor({
                 gruposTarifa={evento.gruposTarifa}
                 tipoEvento={evento.tipo}
                 recorridos={evento.recorridos}
+                distancias={evento.distancias}
                 guardarAction={
                   modalCategoria && modalCategoria !== "nueva"
                     ? actualizarCategoriaAction.bind(

@@ -225,6 +225,17 @@ function TabInformacion({ evento }: { evento: EventoPublicado }) {
                     <span className="text-sm">{categoria.edad}</span>
                   </div>
 
+                  {evento.tipo !== "CALLE" && categoria.distancia ? (
+                    <div className="flex flex-col gap-0.5">
+                      <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+                        Distancia
+                      </span>
+                      <span className="text-sm font-bold text-naranja">
+                        {categoria.distancia.nombre}
+                      </span>
+                    </div>
+                  ) : null}
+
                   {evento.tipo === "CALLE" ? (
                     <DatosCarrera categoria={categoria} />
                   ) : (
