@@ -107,6 +107,9 @@ model Evento {
   aval                String?
   organizador         String?
   lemaInstitucional   String?
+  // Notas que aplican a las categorías (Fase 12.6), ej. "La Recreativa no
+  // tiene fines competitivos". Se muestran en el modal de T&C del evento.
+  notasCategorias     String[]     @default([])
 
   // Relaciones 1:1
   premios    Premios?

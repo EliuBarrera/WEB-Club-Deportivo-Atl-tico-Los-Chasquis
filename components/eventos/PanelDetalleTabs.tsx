@@ -595,6 +595,8 @@ function TabContacto({
         version={terminos?.version ?? null}
         evento={{
           kit: evento.logistica?.kit ?? [],
+          gruposTarifa: evento.precios.grupos,
+          notasCategorias: evento.notasCategorias,
           premiosEfectivo: Boolean(evento.premios?.efectivoUrl),
           documentoUrl: evento.terminosUrl,
         }}

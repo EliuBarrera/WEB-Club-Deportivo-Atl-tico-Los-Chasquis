@@ -41,6 +41,7 @@ export function EventoEditor({
   guardarPremiosAction,
   guardarReglamentoAction,
   guardarLogisticaAction,
+  guardarNotasCategoriasAction,
   crearNoticiaAction,
   actualizarNoticiaAction,
   eliminarNoticiaAction,
@@ -71,6 +72,10 @@ export function EventoEditor({
     formData: FormData,
   ) => Promise<void>;
   guardarLogisticaAction: (
+    eventoId: string,
+    formData: FormData,
+  ) => Promise<void>;
+  guardarNotasCategoriasAction: (
     eventoId: string,
     formData: FormData,
   ) => Promise<void>;
@@ -717,6 +722,33 @@ export function EventoEditor({
                 }
                 onCerrar={() => setModalCategoria(null)}
               />
+
+              {/* Fase 12.6: se muestran en el modal de T&C del evento */}
+              <form
+                action={guardarNotasCategoriasAction.bind(null, evento.id)}
+                className="mt-4 flex flex-col gap-5 border-t border-casi-negro/10 pt-6"
+              >
+                <FormularioCargando mensaje="Guardando notas…" />
+                <ListaTextoEditable
+                  nombreCampo="notasCategorias"
+                  etiqueta="Notas de categoría"
+                  valoresIniciales={evento.notasCategorias}
+                  placeholder="Ej. La categoría Recreativa no tiene fines competitivos"
+                />
+                <p className="-mt-3 text-sm text-gris-oscuro">
+                  Se muestran al atleta en los términos y condiciones del
+                  evento.
+                </p>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="submit"
+                    className="rounded-full bg-naranja px-6 py-2.5 font-display font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
+                  >
+                    Guardar notas
+                  </button>
+                </div>
+              </form>
             </div>
           )}
 

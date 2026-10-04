@@ -31,6 +31,7 @@ import {
   eliminarDistancia,
   enviarResumenEvento,
   guardarLogistica,
+  guardarNotasCategorias,
   guardarPremios,
   guardarReglamento,
   publicarResultados,
@@ -68,6 +69,7 @@ const MENSAJES_GUARDADO: Record<string, string> = {
     "Evento creado desde JSON — completa las demás pestañas",
   categoria: "Categoría actualizada",
   "categoria-creada": "Categoría creada",
+  "notas-categorias": "Notas de categoría guardadas",
   premios: "Premios guardados",
   reglamento: "Reglamento guardado",
   logistica: "Logística guardada",
@@ -207,6 +209,7 @@ export default async function EventosPage({
             guardarPremiosAction={guardarPremios}
             guardarReglamentoAction={guardarReglamento}
             guardarLogisticaAction={guardarLogistica}
+            guardarNotasCategoriasAction={guardarNotasCategorias}
             crearNoticiaAction={crearNoticia}
             actualizarNoticiaAction={actualizarNoticia}
             eliminarNoticiaAction={eliminarNoticia}

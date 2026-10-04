@@ -985,6 +985,9 @@ export function FormularioInscripcion({
         version={terminos?.version ?? null}
         evento={{
           kit: evento.logistica?.kit ?? [],
+          gruposTarifa: evento.precios.grupos,
+          grupoTarifaId: grupoPreviewId,
+          notasCategorias: evento.notasCategorias,
           premiosEfectivo: Boolean(evento.premios?.efectivoUrl),
           documentoUrl: evento.terminosUrl,
         }}

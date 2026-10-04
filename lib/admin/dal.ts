@@ -207,6 +207,7 @@ export async function getEventoCompleto(eventoId: string) {
       aval: true,
       terminosUrl: true,
       tipo: true,
+      notasCategorias: true,
       recorridos: {
         orderBy: { orden: "asc" },
         select: {

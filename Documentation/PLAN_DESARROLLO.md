@@ -1221,13 +1221,22 @@ corregir por cuenta propia — son decisiones del club:**
 
 #### 12.6 Efecto sobre el modal de Términos y Condiciones (Fase 4)
 
-- [ ] El bloque condicional de "Entrega de Kits" ahora depende del
+- [x] El bloque condicional de "Entrega de Kits" ahora depende del
       `grupoTarifa`, no del evento: en el mismo evento los adultos reciben
       tula/camiseta/chip/diploma y los menores sólo número y medalla
-- [ ] Añadir bloque condicional para las **Notas de categoría**
+      — `ModalTerminos` usa los `derechos` de cada `GrupoTarifa`: en el
+      formulario, solo los del grupo de la categoría elegida ("Tu
+      inscripción (Adultos) incluye…"); sin categoría elegida o desde la
+      pestaña Contacto, los de todos los grupos. `logistica.kit` queda de
+      respaldo para eventos sin derechos por grupo
+- [x] Añadir bloque condicional para las **Notas de categoría**
       (Recreativa sin fines competitivos, reubicación de federados,
       participantes de ediciones anteriores) — aplican a este evento y
-      probablemente a las demás carreras de calle
+      probablemente a las demás carreras de calle — campo
+      `Evento.notasCategorias String[]` (migración `notas_categorias`,
+      aplicada en producción el 4 oct 2026), editable en la pestaña
+      Categorías del admin; el modal muestra la sección solo si hay notas.
+      **El texto lo carga el club desde el admin** (aún vacío)
 
 #### 12.7 Pendientes para cerrar la Fase 12 (después de 12.1–12.6)
 

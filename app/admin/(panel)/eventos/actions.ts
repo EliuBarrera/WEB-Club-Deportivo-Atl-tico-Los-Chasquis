@@ -585,6 +585,27 @@ function datosListaTexto(formData: FormData, campo: string): string[] {
   );
 }
 
+// Notas de categoría (Fase 12.6): lista de texto plano del evento, se
+// muestran en el modal de T&C.
+export async function guardarNotasCategorias(
+  eventoId: string,
+  formData: FormData,
+) {
+  await verifySession();
+
+  const notasCategorias = datosListaTexto(formData, "notasCategorias");
+
+  await prisma.evento.update({
+    where: { id: eventoId },
+    data: { notasCategorias },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=notas-categorias&t=${Date.now()}`,
+  );
+}
+
 export async function guardarPremios(eventoId: string, formData: FormData) {
   await verifySession();
 

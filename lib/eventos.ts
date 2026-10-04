@@ -50,6 +50,7 @@ export async function getEventosPublicados() {
       cierreInscripciones: true,
       aval: true,
       organizador: true,
+      notasCategorias: true,
       categorias: {
         select: {
           id: true,
