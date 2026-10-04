@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EnlaceCargando } from "@/components/EnlaceCargando";
 
 // Fase 9, sección "CTA final": última invitación a inscribirse antes del
 // footer.
@@ -13,6 +14,7 @@ export function CtaFinal() {
         className="rounded-full bg-naranja px-10 py-4 font-display text-xl font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
       >
         Ver próximos eventos
+        <EnlaceCargando mensaje="Cargando eventos…" />
       </Link>
     </section>
   );

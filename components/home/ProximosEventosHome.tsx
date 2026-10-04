@@ -1,8 +1,12 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import type { EventoPublicado } from "@/lib/eventos";
 import { CarruselEventos } from "@/components/eventos/CarruselEventos";
+import {
+  LoaderTransicion,
+  useLoaderTransicion,
+} from "@/components/LoaderTransicion";
 
 // Reutiliza tal cual el carrusel de la Fase 2 (Fase 9, sección "Próximos
 // eventos" — no duplicar componente). La única diferencia con /eventos es
@@ -15,11 +19,19 @@ export function ProximosEventosHome({
   eventos: EventoPublicado[];
 }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const { navegando, irA } = useLoaderTransicion(pathname);
 
   return (
-    <CarruselEventos
-      eventos={eventos}
-      onInscribirte={(eventoId) => router.push(`/eventos?evento=${eventoId}`)}
-    />
+    <>
+      <LoaderTransicion activo={navegando} mensaje="Cargando evento…" />
+      <CarruselEventos
+        eventos={eventos}
+        onInscribirte={(eventoId) => {
+          irA("/eventos");
+          router.push(`/eventos?evento=${eventoId}`);
+        }}
+      />
+    </>
   );
 }

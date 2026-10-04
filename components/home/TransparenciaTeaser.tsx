@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { EnlaceCargando } from "@/components/EnlaceCargando";
 
 // Fase 9, sección "Documentos legales y transparencia": la sección completa
 // vive en /transparencia (Fase 9, decisión ya tomada — ver
@@ -21,6 +22,7 @@ export function TransparenciaTeaser() {
         className="mt-2 rounded-full bg-naranja px-8 py-3.5 font-display font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
       >
         Ver documentos
+        <EnlaceCargando mensaje="Cargando documentos…" />
       </Link>
     </section>
   );

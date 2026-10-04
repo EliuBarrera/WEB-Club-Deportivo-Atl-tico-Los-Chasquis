@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { EnlaceCargando } from "@/components/EnlaceCargando";
 
 // Fondo: la portada real del próximo evento ABIERTO (misma imagen que ya
 // se usa en su tarjeta) cuando existe, para no depender de una foto de
@@ -45,6 +46,7 @@ export function Hero({ imagenUrl }: { imagenUrl: string | null }) {
             className="rounded-full bg-naranja px-8 py-4 font-display text-lg font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
           >
             Ver próximos eventos
+            <EnlaceCargando mensaje="Cargando eventos…" />
           </Link>
           <a
             href="#respaldo"
