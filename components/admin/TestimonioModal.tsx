@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
+import { FormularioCargando } from "@/components/FormularioCargando";
 import type { TestimonioAdmin } from "@/lib/admin/dal";
 
 const campoClase = "rounded-lg bg-white px-3 py-2 text-lg outline-none";
@@ -77,6 +78,7 @@ export function TestimonioModal({
           </div>
 
           <form action={guardarAction} className="flex flex-col gap-5">
+            <FormularioCargando mensaje="Guardando testimonio…" />
             <label className="flex flex-col gap-1.5">
               <span className={labelClase}>Cita</span>
               <textarea
@@ -178,7 +180,9 @@ export function TestimonioModal({
 
       {eliminarAction && (
         <>
-          <form ref={formEliminarRef} action={eliminarAction} />
+          <form ref={formEliminarRef} action={eliminarAction}>
+            <FormularioCargando mensaje="Eliminando testimonio…" />
+          </form>
           <ConfirmDialog
             abierto={confirmandoEliminar}
             titulo="Eliminar testimonio"
