@@ -10,9 +10,6 @@ export const eventoSchema = z.object({
   horario: z.string().trim().max(100).optional(),
   cierreInscripciones: z.string().trim().max(100).optional(),
   ubicacion: z.string().trim().min(1).max(200),
-  precio: z.coerce.number().int().nonnegative(),
-  descuento: z.coerce.number().int().nonnegative().default(0),
-  descuentoLabel: z.string().trim().max(200).optional(),
   estado: z.enum(["BORRADOR", "ABIERTO", "CERRADO"]),
   tipo: z.enum(["PISTA", "CALLE"]).default("PISTA"),
   descripcion: z.string().trim().max(5000).optional(),
@@ -33,14 +30,11 @@ export const eventoSchema = z.object({
 
 export type EventoInput = z.infer<typeof eventoSchema>;
 
-// Edición desde el admin: el precio ya no se edita en Información, sale de
-// la pestaña Precios (rondas y tarifas, Fase 12.1).
-// Tampoco el recorrido: desde la Fase 12.3 un evento tiene varios y se
-// editan en su propia pestaña.
+// Edición desde el admin: el recorrido no se edita en Información — desde
+// la Fase 12.3 un evento tiene varios y se editan en su propia pestaña.
+// (El precio tampoco está en eventoSchema: sale de la pestaña Precios,
+// rondas y tarifas, Fase 12.1.)
 export const eventoEdicionSchema = eventoSchema.omit({
-  precio: true,
-  descuento: true,
-  descuentoLabel: true,
   distancia: true,
   desnivel: true,
   salida: true,
@@ -78,9 +72,6 @@ const ETIQUETAS_CAMPO: Record<string, string> = {
   horario: "Horario",
   cierreInscripciones: "Cierre de inscripciones",
   ubicacion: "Ubicación",
-  precio: "Precio",
-  descuento: "Descuento",
-  descuentoLabel: "Etiqueta de descuento",
   estado: "Estado",
   descripcion: "Descripción",
   distancia: "Distancia",
@@ -109,8 +100,8 @@ export function traducirErroresEventoJson(error: z.ZodError): ErrorEventoJson[] 
     switch (issue.code) {
       case "invalid_type":
         // Cubre tanto el campo ausente como uno con el tipo equivocado —
-        // con z.coerce de por medio (precio, descuento) Zod no siempre
-        // distingue "no vino" de "vino pero no se pudo convertir".
+        // con z.coerce de por medio Zod no siempre distingue "no vino" de
+        // "vino pero no se pudo convertir".
         mensaje = "Falta este campo o tiene un tipo de dato incorrecto.";
         break;
       case "too_small":

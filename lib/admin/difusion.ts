@@ -3,6 +3,7 @@ import type { AtletaUnico } from "@/lib/admin/atletas";
 import { enviarWhatsappTemplate } from "@/lib/brevoWhatsapp";
 import { enviarCorreo } from "@/lib/resend";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
+import type { PreciosEvento } from "@/lib/precios";
 
 export type EventoParaDifusion = {
   id: string;
@@ -10,7 +11,8 @@ export type EventoParaDifusion = {
   fecha: Date;
   ubicacion: string;
   horario: string | null;
-  precio: number;
+  // Ya formateado (ver textoPrecioDifusion); null = sin tarifas cargadas.
+  precio: string | null;
   cierreInscripciones: string | null;
 };
 
@@ -19,6 +21,20 @@ export type ResultadoEnvioDifusion = {
   ok: boolean;
   error?: string;
 };
+
+// Precio para el resumen, desde las rondas (Fase 12.1): "$60.000" si es
+// un solo valor, "Adultos: $90.000 · Menores: Gratis" si varía por grupo
+// de tarifa. Mismo "Gratis" que el detalle público del evento.
+export function textoPrecioDifusion(precios: PreciosEvento): string | null {
+  const grupos = precios.grupos.filter(
+    (g): g is typeof g & { valor: number } => g.valor !== null,
+  );
+  if (grupos.length === 0) return null;
+  const texto = (valor: number) => (valor === 0 ? "Gratis" : formatPrecio(valor));
+  return grupos.every((g) => g.valor === grupos[0].valor)
+    ? texto(grupos[0].valor)
+    : grupos.map((g) => `${g.nombre}: ${texto(g.valor)}`).join(" · ");
+}
 
 function urlEvento(eventoId: string): string {
   const base = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -38,7 +54,7 @@ function correoResumenHtml(
       <p><strong>Fecha:</strong> ${formatFechaBadge(evento.fecha)}</p>
       ${evento.horario ? `<p><strong>Horario:</strong> ${evento.horario}</p>` : ""}
       <p><strong>Ubicación:</strong> ${evento.ubicacion}</p>
-      <p><strong>Precio:</strong> ${formatPrecio(evento.precio)}</p>
+      ${evento.precio ? `<p><strong>Precio:</strong> ${evento.precio}</p>` : ""}
       ${
         evento.cierreInscripciones
           ? `<p><strong>Cierre de inscripciones:</strong> ${evento.cierreInscripciones}</p>`
@@ -65,7 +81,7 @@ function correoResumenTexto(
     `Fecha: ${formatFechaBadge(evento.fecha)}`,
     evento.horario ? `Horario: ${evento.horario}` : null,
     `Ubicación: ${evento.ubicacion}`,
-    `Precio: ${formatPrecio(evento.precio)}`,
+    evento.precio ? `Precio: ${evento.precio}` : null,
     evento.cierreInscripciones
       ? `Cierre de inscripciones: ${evento.cierreInscripciones}`
       : null,

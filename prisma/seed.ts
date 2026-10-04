@@ -88,8 +88,7 @@ type EventoSeed = {
   subtitle: string;
   lema: string;
   price: number;
-  descuento: string; // etiqueta del descuento, ej: "Pagando antes del 20 de febrero"
-  discount: number;
+  discount: number; // se resta de `price` al armar la ronda (ver crearRondaUnica)
   status: "open" | "closed";
   date: string; // texto en español, ej: "14 de marzo de 2026"
   location: string;
@@ -150,7 +149,6 @@ const festivales: EventoSeed[] = [
     subtitle: "Tunjano",
     lema: "Aquí comienza la historia de los campeones",
     price: 30000,
-    descuento: "Pagando antes del 20 de febrero",
     discount: 0,
     status: "closed",
     date: "14 de marzo de 2026",
@@ -276,7 +274,6 @@ const festivales: EventoSeed[] = [
     subtitle: "Club Atlético Los Chasquis",
     lema: "Semillero de campeones: el futuro del atletismo colombiano corre en Tunja",
     price: 40000,
-    descuento: "Inscripción ordinaria hasta el 10 de abril",
     discount: 10000,
     status: "closed",
     date: "25 de abril de 2026",
@@ -441,7 +438,6 @@ const festivales: EventoSeed[] = [
     subtitle: "Siral - Cruz Blanca - Tres Cruces",
     lema: "Superando límites, alcanzando cumbres",
     price: 50000,
-    descuento: "Inscripción ordinaria hasta el 30 de junio",
     discount: 0,
     status: "closed",
     // El objeto original tiene la clave de fecha "2026-07-12" pero el
@@ -592,7 +588,6 @@ const festivales: EventoSeed[] = [
     subtitle: "Carrera Atlética Recreativa",
     lema: "60 años protegiendo vidas",
     price: 90000,
-    descuento: "Preventa del 6 de abril al 15 de mayo",
     discount: 10000, // (implícito: niños pagan 80.000, ver costos)
     status: "open",
     date: "5 de julio de 2026",
@@ -671,7 +666,6 @@ const festivales: EventoSeed[] = [
     subtitle: "",
     lema: "",
     price: 30000,
-    descuento: "Primer plazo hasta el 25 de julio",
     discount: 0,
     status: "open",
     date: "9 de agosto de 2026",
@@ -797,7 +791,6 @@ const festivales: EventoSeed[] = [
     subtitle: "",
     lema: "Donde la historia corre hacia la gloria",
     price: 30000,
-    descuento: "Primer plazo hasta el 20 de agosto",
     discount: 0,
     status: "open",
     date: "6 de septiembre de 2026",
@@ -1162,6 +1155,46 @@ DECLARACIÓN DE ACEPTACIÓN
 Al formalizar su inscripción, el participante declara haber leído, entendido y aceptado en su totalidad el reglamento, las condiciones de participación y la exoneración de responsabilidad aquí establecidas. La participación se hace bajo absoluta responsabilidad del atleta. La aceptación de estas políticas es obligatoria para formalizar la inscripción.`;
 
 // ------------------------------------------
+// Precios (Fase 12.1)
+// ------------------------------------------
+
+// Los datos de arriba vienen del sitio viejo (precio + descuento, o
+// `costos` por tipo de atleta). Cada evento queda con UNA ronda que cierra
+// en la fecha del evento — mismo criterio con que se migraron los eventos
+// reales: el código viejo restaba el descuento siempre, así que el precio
+// real era `price - discount`. Las rondas reales se editan desde el admin.
+async function crearRondaUnica(
+  eventoId: string,
+  fecha: Date,
+  festival: EventoSeed,
+) {
+  const costos = Object.entries(festival.details.costos ?? {});
+  const grupos =
+    festival.details.categorias.length > 0 || costos.length === 0
+      ? [{ nombre: "General", valor: Math.max(0, festival.price - festival.discount) }]
+      : costos.map(([nombre, valor]) => ({ nombre, valor }));
+
+  const ronda = await prisma.rondaInscripcion.create({
+    data: { eventoId, orden: 1, nombre: "Inscripción", fechaCierre: fecha },
+  });
+
+  for (const [orden, g] of grupos.entries()) {
+    const grupo = await prisma.grupoTarifa.create({
+      data: { eventoId, nombre: g.nombre, orden },
+    });
+    await prisma.tarifaInscripcion.create({
+      data: { rondaId: ronda.id, grupoTarifaId: grupo.id, valor: g.valor },
+    });
+    if (g.nombre === "General") {
+      await prisma.categoria.updateMany({
+        where: { eventoId },
+        data: { grupoTarifaId: grupo.id },
+      });
+    }
+  }
+}
+
+// ------------------------------------------
 // Seed
 // ------------------------------------------
 
@@ -1182,14 +1215,11 @@ async function main() {
   for (const festival of festivales) {
     const d = festival.details;
 
-    await prisma.evento.create({
+    const evento = await prisma.evento.create({
       data: {
         titulo: festival.title,
         subtitulo: orNull(festival.subtitle),
         lema: orNull(festival.lema),
-        precio: festival.price,
-        descuento: festival.discount,
-        descuentoLabel: orNull(festival.descuento),
         estado: ESTADO_POR_STATUS[festival.status],
         fecha: parseFechaEs(festival.date),
         horario: orNull(festival.time),
@@ -1320,15 +1350,10 @@ async function main() {
             orden: index,
           })),
         },
-
-        costos: {
-          create: Object.entries(d.costos ?? {}).map(([tipo, valor]) => ({
-            tipo,
-            valor,
-          })),
-        },
       },
     });
+
+    await crearRondaUnica(evento.id, parseFechaEs(festival.date), festival);
 
     console.log(`  ✓ ${festival.title}`);
   }

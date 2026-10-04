@@ -1062,9 +1062,8 @@ deben convivir — no reemplazar uno por el otro.
 
 #### 12.1 Precios por rondas (reemplaza `discount`)
 
-- [ ] Eliminar del modelo `Evento` los campos `discount` y `descuento`
-      *(pendiente: el admin aún los edita; se quitan junto con el CRUD de
-      rondas)*
+- [x] Eliminar del modelo `Evento` los campos `discount` y `descuento`
+      *(hecho en 12.7, migración `quitar_modelo_precios_viejo`)*
       (texto libre), y eliminar el objeto `fechasLimiteDescuento` que hoy
       está **quemado en el JavaScript** — esa es la deuda técnica real
 - [x] Crear:
@@ -1231,22 +1230,42 @@ subsecciones de arriba, no antes:
       pestaña. Probado contra la rama (creación, re-guardado sin
       duplicados, bloqueo de borrado, ids ajenos); **sin revisión visual en
       navegador**
-- [ ] **Quitar `Evento.precio`, `descuento`, `descuentoLabel`,
-      `fechaLimiteDescuento` y el modelo `Costo`** una vez exista ese CRUD
-      (el editor de eventos todavía los usa). `Inscripcion.costoId` se
-      conserva o se migra a `grupoTarifaId` para no perder el histórico
+- [x] **Dejar de usar `Evento.precio`, `descuento`, `descuentoLabel`,
+      `fechaLimiteDescuento`, `Costo` e `Inscripcion.costoId` en el
+      código.** Quitados de `eventoSchema` (importación JSON y su
+      plantilla), de `crearEvento`/`crearEventoDesdeJson`, y las vistas de
+      inscripciones, CSV ("Grupo de tarifa"), portal del atleta y
+      certificado leen solo `grupoTarifa`. El resumen por correo de
+      difusión calcula el precio desde las rondas
+      (`textoPrecioDifusion` en `lib/admin/difusion.ts`). En el schema
+      quedan marcados `OBSOLETO` y `precio` pasó a `@default(0)`
+      (migración `evento_precio_obsoleto`)
+- [x] **Borrar esas columnas y el modelo `Costo`** — migración
+      `quitar_modelo_precios_viejo` (incluye `Inscripcion.costoId`). Se
+      borró `prisma/migrar-precios-rondas.ts` y `prisma/seed.ts` ahora crea
+      una ronda única por evento (`crearRondaUnica`) con el mismo criterio
+      que usaba el script. Se pudo hacer sin esperar a producción porque la
+      rama de desarrollo de Neon, donde el script ya había corrido, pasa a
+      ser la de producción (ver el punto de despliegue abajo)
 - [ ] **Configurar el Aguinaldo** (categorías, grupos, rondas, tarifas)
       con los datos confirmados en 12.5 — hoy está `ABIERTO` sin
       categorías ni costos, así que nadie puede inscribirse
-- [ ] **Despliegue a producción, en este orden:** (1) `npx prisma migrate
-      deploy` con las migraciones `fase12_*`; (2) `npx tsx
-      prisma/migrar-precios-rondas.ts` (simulación), revisar, y luego con
-      `--aplicar`; (3) desplegar el código. Si el código sube antes que
-      el script, los eventos sin rondas quedan sin inscripción
-- [ ] **Borrar la rama de Neon de desarrollo** (`ep-plain-dust-…`) al
-      terminar: tiene copia de inscripciones reales con datos de menores.
-      Volver `DATABASE_URL` de `.env` a producción (la URL quedó
-      comentada en el mismo archivo)
+- [ ] **Despliegue a producción usando la rama de desarrollo de Neon**
+      (`ep-plain-dust-…`) como base de producción, en vez de migrar la
+      rama vieja: al compararlas (4 oct 2026) la rama vieja no tenía
+      ningún cambio propio desde que se creó la de desarrollo (mismas 14
+      inscripciones, la última del 8 sep), y la de desarrollo ya tiene
+      todas las migraciones de la Fase 12, las rondas de todos los eventos
+      y la configuración del Aguinaldo. Las 3 inscripciones de prueba del
+      Aguinaldo ya se borraron. Falta: en Neon, revisar que esa rama no
+      tenga fecha de expiración y marcarla "Set as default"; en Vercel,
+      `DATABASE_URL` apuntando a ella con `sslmode=verify-full`. **Ya no
+      aplica** el orden "migraciones → script → código": las migraciones
+      nuevas borran las columnas viejas, así que nunca deben correr sobre
+      la rama vieja
+- [ ] **Conservar la rama vieja de Neon unas semanas como respaldo** y
+      luego borrarla (Neon no deja borrar una rama mientras tenga ramas
+      hijas). Quitar de `.env` la URL comentada de esa rama
 
 ## Fuera de alcance por ahora
 

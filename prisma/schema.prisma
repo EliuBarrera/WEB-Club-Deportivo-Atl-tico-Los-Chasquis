@@ -89,28 +89,24 @@ model PruebaCatalogo {
 // ==========================================
 
 model Evento {
-  id                   String       @id @default(cuid())
-  titulo               String
-  subtitulo            String?
-  lema                 String?
-  precio               Int
-  descuento            Int          @default(0)
-  descuentoLabel       String? // ej: "Pagando antes del 20 de febrero"
-  fechaLimiteDescuento DateTime?
-  estado               EstadoEvento @default(BORRADOR)
-  tipo                 TipoEvento   @default(PISTA)
-  fecha                DateTime
-  horario              String? // texto libre, ej: "7:00 AM - 5:00 PM"
-  ubicacion            String
-  mapUrl               String?
-  descripcion          String?      @db.Text
-  imagenUrl            String?
-  resultadosUrl        String?
-  terminosUrl          String?
-  cierreInscripciones  String? // texto libre, ej: "10 de abril de 2026"
-  aval                 String?
-  organizador          String?
-  lemaInstitucional    String?
+  id                  String       @id @default(cuid())
+  titulo              String
+  subtitulo           String?
+  lema                String?
+  estado              EstadoEvento @default(BORRADOR)
+  tipo                TipoEvento   @default(PISTA)
+  fecha               DateTime
+  horario             String? // texto libre, ej: "7:00 AM - 5:00 PM"
+  ubicacion           String
+  mapUrl              String?
+  descripcion         String?      @db.Text
+  imagenUrl           String?
+  resultadosUrl       String?
+  terminosUrl         String?
+  cierreInscripciones String? // texto libre, ej: "10 de abril de 2026"
+  aval                String?
+  organizador         String?
+  lemaInstitucional   String?
 
   // Relaciones 1:1
   premios    Premios?
@@ -124,7 +120,6 @@ model Evento {
   noticias      Noticia[]
   objetivos     Objetivo[]
   convocatoria  ConvocatoriaItem[]
-  costos        Costo[]
   inscripciones Inscripcion[]
   enviosMasivos EnvioMasivo[]
   rondas        RondaInscripcion[]
@@ -451,16 +446,6 @@ model ConvocatoriaItem {
   orden    Int    @default(0)
 }
 
-model Costo {
-  id       String @id @default(cuid())
-  eventoId String
-  evento   Evento @relation(fields: [eventoId], references: [id], onDelete: Cascade)
-  tipo     String // ej: "adultos", "ninos"
-  valor    Int
-
-  inscripciones Inscripcion[]
-}
-
 // ==========================================
 // INSCRIPCIONES (reemplaza WooCommerce + Google Sheets)
 // ==========================================
@@ -469,14 +454,11 @@ model Inscripcion {
   id            String            @id @default(cuid())
   eventoId      String
   evento        Evento            @relation(fields: [eventoId], references: [id])
-  // Opcional: eventos sin categorías (ej. carreras que solo usan `Costo`,
-  // como "adultos"/"ninos") no tienen una Categoria a la que enlazar.
+  // Opcional: eventos sin categorías (ej. carreras que solo cobran por
+  // grupo de tarifa, como "adultos"/"ninos") no tienen una Categoria a la
+  // que enlazar.
   categoriaId   String?
   categoria     Categoria?        @relation(fields: [categoriaId], references: [id])
-  // Alternativa a categoria+pruebas para eventos que cobran por tipo de
-  // costo (ej. "adultos"/"ninos") en vez de por categoría de competencia.
-  costoId       String?
-  costo         Costo?            @relation(fields: [costoId], references: [id])
   // Ronda cuyo precio se cobró (trazabilidad; el monto queda en totalPago).
   rondaId       String?
   ronda         RondaInscripcion? @relation(fields: [rondaId], references: [id], onDelete: SetNull)

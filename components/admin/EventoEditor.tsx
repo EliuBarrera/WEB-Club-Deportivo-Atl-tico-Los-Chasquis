@@ -561,9 +561,10 @@ export function EventoEditor({
 
               {evento.categorias.length === 0 ? (
                 <p className="italic text-gris-oscuro">
-                  Este evento aún no tiene categorías. Si maneja costos únicos
-                  en vez de categorías (ej. &quot;Individual&quot;,
-                  &quot;Pareja&quot;), no hace falta crear ninguna aquí.
+                  Este evento aún no tiene categorías. Si cobra por grupos de
+                  tarifa en vez de categorías (ej. &quot;Individual&quot;,
+                  &quot;Pareja&quot;), basta con crearlos en la pestaña
+                  Precios.
                 </p>
               ) : (
                 <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]">

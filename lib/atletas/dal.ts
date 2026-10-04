@@ -33,7 +33,6 @@ export async function getInscripcionesAtleta() {
       createdAt: true,
       evento: { select: { id: true, titulo: true, fecha: true, imagenUrl: true } },
       categoria: { select: { nombre: true } },
-      costo: { select: { tipo: true } },
       grupoTarifa: { select: { nombre: true } },
     },
   });

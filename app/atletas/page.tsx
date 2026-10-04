@@ -163,7 +163,6 @@ export default async function AtletasPage() {
                                   {formatFechaBadge(inscripcion.evento.fecha)}
                                   {" · "}
                                   {inscripcion.categoria?.nombre ??
-                                    inscripcion.costo?.tipo ??
                                     inscripcion.grupoTarifa?.nombre ??
                                     "—"}
                                   {inscripcion.pruebasIds.length > 0

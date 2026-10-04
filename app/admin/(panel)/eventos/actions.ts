@@ -6,7 +6,10 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { verifySession, verifySessionAdmin } from "@/lib/admin/dal";
 import { getAtletasUnicos } from "@/lib/admin/atletas";
-import { enviarResumenALista } from "@/lib/admin/difusion";
+import {
+  enviarResumenALista,
+  textoPrecioDifusion,
+} from "@/lib/admin/difusion";
 import cloudinary from "@/lib/cloudinary";
 import {
   eventoSchema,
@@ -25,6 +28,7 @@ import { recorridoSchema } from "@/lib/validation/recorrido";
 import { distanciaSchema } from "@/lib/validation/distancia";
 import { preciosSchema } from "@/lib/validation/precios";
 import { guardarPreciosEvento } from "@/lib/admin/precios";
+import { preciosDelEvento } from "@/lib/precios";
 
 // `maxDuration` no se puede exportar desde un archivo "use server" (Next.js
 // exige que todo export de un módulo de Server Actions sea una función
@@ -68,7 +72,6 @@ export async function crearEvento() {
       titulo: "Nuevo evento",
       fecha: new Date(),
       ubicacion: "",
-      precio: 0,
     },
   });
 
@@ -123,9 +126,6 @@ export async function crearEventoDesdeJson(formData: FormData) {
       horario: datos.horario ?? null,
       cierreInscripciones: datos.cierreInscripciones ?? null,
       ubicacion: datos.ubicacion,
-      precio: datos.precio,
-      descuento: datos.descuento,
-      descuentoLabel: datos.descuentoLabel ?? null,
       estado: datos.estado,
       tipo: datos.tipo,
       descripcion: datos.descripcion ?? null,
@@ -846,13 +846,27 @@ export async function enviarResumenEvento(
       fecha: true,
       ubicacion: true,
       horario: true,
-      precio: true,
       cierreInscripciones: true,
+      rondas: {
+        select: {
+          id: true,
+          orden: true,
+          nombre: true,
+          fechaCierre: true,
+          tarifas: { select: { grupoTarifaId: true, valor: true } },
+        },
+      },
+      gruposTarifa: {
+        select: { id: true, nombre: true, derechos: true, orden: true },
+      },
     },
   });
 
   const atletas = await getAtletasUnicos();
-  const resultados = await enviarResumenALista(atletas, canal, evento);
+  const resultados = await enviarResumenALista(atletas, canal, {
+    ...evento,
+    precio: textoPrecioDifusion(preciosDelEvento(evento)),
+  });
 
   const exitosos = resultados.filter((r) => r.ok).length;
   const fallidos = resultados.length - exitosos;

@@ -30,7 +30,6 @@ export async function GET(
       estadoPago: true,
       evento: { select: { titulo: true, fecha: true } },
       categoria: { select: { nombre: true } },
-      costo: { select: { tipo: true } },
       grupoTarifa: { select: { nombre: true } },
     },
   });
@@ -61,7 +60,7 @@ export async function GET(
     apellidos: inscripcion.apellidos,
     eventoTitulo: inscripcion.evento.titulo,
     eventoFecha: inscripcion.evento.fecha,
-    categoria: inscripcion.categoria?.nombre ?? inscripcion.costo?.tipo ?? inscripcion.grupoTarifa?.nombre ?? null,
+    categoria: inscripcion.categoria?.nombre ?? inscripcion.grupoTarifa?.nombre ?? null,
     inscripcionId: id,
   });
 

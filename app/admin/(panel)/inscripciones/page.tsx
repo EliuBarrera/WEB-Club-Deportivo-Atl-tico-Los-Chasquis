@@ -197,7 +197,7 @@ export default async function InscripcionesPage({
               <tr className="border-b border-casi-negro/10 text-sm font-bold uppercase tracking-wide text-gris-oscuro">
                 <th className="px-4 py-3">Nombre</th>
                 <th className="px-4 py-3">Documento</th>
-                <th className="px-4 py-3">Categoría / costo</th>
+                <th className="px-4 py-3">Categoría / tarifa</th>
                 <th className="px-4 py-3">Pruebas</th>
                 <th className="px-4 py-3">Contacto</th>
                 <th className="px-4 py-3">Estado</th>
@@ -217,7 +217,7 @@ export default async function InscripcionesPage({
                     {inscripcion.tipoDocumento} {inscripcion.numeroDocumento}
                   </td>
                   <td className="px-4 py-3">
-                    {inscripcion.categoria?.nombre ?? inscripcion.costo?.tipo ?? inscripcion.grupoTarifa?.nombre ?? "—"}
+                    {inscripcion.categoria?.nombre ?? inscripcion.grupoTarifa?.nombre ?? "—"}
                   </td>
                   <td className="px-4 py-3">
                     {inscripcion.pruebasIds.join(", ") || "—"}
