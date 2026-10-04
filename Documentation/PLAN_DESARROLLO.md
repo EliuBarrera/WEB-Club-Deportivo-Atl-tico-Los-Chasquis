@@ -1187,18 +1187,21 @@ sesión).
 Detectados al cruzar las diapositivas del Aguinaldo entre sí. **No
 corregir por cuenta propia — son decisiones del club:**
 
-- [ ] **Veteranos C**: figura 60-99 años → 1986-1927. Para 2026 debería
+- [x] **Veteranos C**: figura 60-99 años → 1986-1927. Para 2026 debería
       ser 1966-1927; tal como está se solapa con Veteranos A (1986-1977).
       Casi seguro error de digitación
-- [ ] **Sub 10**: la tabla de distancias dice 1 K, el croquis lo agrupa
+- [x] **Sub 10**: la tabla de distancias dice 1 K, el croquis lo agrupa
       en el recorrido de 1.5 KM
-- [ ] **Sub 8**: la tabla dice 800 mts, el croquis titula ese recorrido
+- [x] **Sub 8**: la tabla dice 800 mts, el croquis titula ese recorrido
       como 1 KM
-- [ ] **Mayores**: aquí es 17-39 años; en el documento de Políticas de
+- [x] **Mayores**: aquí es 17-39 años; en el documento de Políticas de
       Participación de otros eventos figura como 20-39
 - [ ] **Lugar de entrega de kits**: sigue "por definir" (fecha sí está:
       18 dic 2026, 8:00 a.m.)
-- [ ] Croquis de recorridos: las imágenes están sólo dentro del PDF, hay
+      — **Corregidos con el club (4 oct 2026)** Veteranos C (1966-1927),
+      Sub 10, Sub 8 y Mayores; los croquis ya están subidos en los 4
+      recorridos. Solo queda el lugar de entrega de kits
+- [x] Croquis de recorridos: las imágenes están sólo dentro del PDF, hay
       que exportarlas y subirlas a Cloudinary
 
 #### 12.6 Efecto sobre el modal de Términos y Condiciones (Fase 4)
@@ -1247,10 +1250,14 @@ subsecciones de arriba, no antes:
       que usaba el script. Se pudo hacer sin esperar a producción porque la
       rama de desarrollo de Neon, donde el script ya había corrido, pasa a
       ser la de producción (ver el punto de despliegue abajo)
-- [ ] **Configurar el Aguinaldo** (categorías, grupos, rondas, tarifas)
+- [x] **Configurar el Aguinaldo** (categorías, grupos, rondas, tarifas)
       con los datos confirmados en 12.5 — hoy está `ABIERTO` sin
       categorías ni costos, así que nadie puede inscribirse
-- [ ] **Despliegue a producción usando la rama de desarrollo de Neon**
+      — **Hecho:** 10 categorías con grupo y distancia, grupos Adultos
+      ($90.000 / $100.000) y menores ($0), Ronda 1 hasta el 20 nov y
+      Ronda 2 hasta el 10 dic. Probado en producción (4 oct 2026). Falta
+      solo la logística de entrega de kits (12.5)
+- [x] **Despliegue a producción usando la rama de desarrollo de Neon**
       (`ep-plain-dust-…`) como base de producción, en vez de migrar la
       rama vieja: al compararlas (4 oct 2026) la rama vieja no tenía
       ningún cambio propio desde que se creó la de desarrollo (mismas 14
@@ -1263,6 +1270,9 @@ subsecciones de arriba, no antes:
       aplica** el orden "migraciones → script → código": las migraciones
       nuevas borran las columnas viejas, así que nunca deben correr sobre
       la rama vieja
+      — **Hecho (4 oct 2026):** la rama de desarrollo quedó como
+      default en Neon y `DATABASE_URL` de Vercel apunta a ella; el sitio
+      en producción funciona contra esa rama
 - [ ] **Conservar la rama vieja de Neon unas semanas como respaldo** y
       luego borrarla (Neon no deja borrar una rama mientras tenga ramas
       hijas). Quitar de `.env` la URL comentada de esa rama
