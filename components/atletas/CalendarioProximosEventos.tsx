@@ -5,6 +5,16 @@ import type { EstadoPago } from "@prisma/client";
 import type { InscripcionAtleta } from "@/lib/atletas/dal";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
 import { ESTADO_PAGO_BADGE } from "@/lib/estadoPagoBadge";
+import { DatosCarrera } from "@/components/eventos/DatosCarrera";
+
+// Lo que incluye el kit de la inscripción: los derechos de su grupo de
+// tarifa (Fase 12.6) o, si el evento no los usa, el kit de Logística.
+function kitDeInscripcion(inscripcion: InscripcionAtleta): string[] {
+  const grupo =
+    inscripcion.grupoTarifa ?? inscripcion.categoria?.grupoTarifa ?? null;
+  if (grupo && grupo.derechos.length > 0) return grupo.derechos;
+  return inscripcion.evento.logistica?.kit.map((k) => k.texto) ?? [];
+}
 
 const DIAS_SEMANA = ["D", "L", "M", "M", "J", "V", "S"];
 const MESES = [
@@ -225,6 +235,74 @@ export function CalendarioProximosEventos({
           <p className="text-xs text-gris-oscuro/70">
             Inscrito el {formatFechaBadge(seleccionada.createdAt)}
           </p>
+
+          <RecordatorioLogistica inscripcion={seleccionada} />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// Recordatorio de logística (Fase 10): lo que el atleta necesita a mano
+// el día de la carrera, con datos que ya existen en el evento y en su
+// categoría. Cada bloque se omite si el club aún no lo ha cargado.
+function RecordatorioLogistica({
+  inscripcion,
+}: {
+  inscripcion: InscripcionAtleta;
+}) {
+  const { evento, categoria } = inscripcion;
+  const kit = kitDeInscripcion(inscripcion);
+  const tieneDatosCarrera = Boolean(
+    categoria &&
+      (categoria.distancia || categoria.horaSalida || categoria.sitioSalida),
+  );
+
+  if (!evento.horario && !evento.ubicacion && !tieneDatosCarrera && kit.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mt-1 flex flex-col gap-3 border-t border-casi-negro/10 pt-3">
+      <p className="font-display text-sm font-extrabold uppercase text-naranja">
+        Para el día de la carrera
+      </p>
+
+      {evento.horario || evento.ubicacion ? (
+        <dl className="flex flex-col gap-1">
+          {evento.horario ? (
+            <div className="flex flex-col">
+              <dt className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+                Horario
+              </dt>
+              <dd className="text-sm">{evento.horario}</dd>
+            </div>
+          ) : null}
+          {evento.ubicacion ? (
+            <div className="flex flex-col">
+              <dt className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+                Ubicación
+              </dt>
+              <dd className="text-sm">{evento.ubicacion}</dd>
+            </div>
+          ) : null}
+        </dl>
+      ) : null}
+
+      {categoria && tieneDatosCarrera ? (
+        <DatosCarrera categoria={categoria} />
+      ) : null}
+
+      {kit.length > 0 ? (
+        <div className="flex flex-col gap-1">
+          <p className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+            Tu kit incluye
+          </p>
+          <ul className="list-disc pl-5 text-sm">
+            {kit.map((item) => (
+              <li key={item}>{item}</li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </div>

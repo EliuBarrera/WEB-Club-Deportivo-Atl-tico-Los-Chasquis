@@ -31,9 +31,38 @@ export async function getInscripcionesAtleta() {
       totalPago: true,
       pruebasIds: true,
       createdAt: true,
-      evento: { select: { id: true, titulo: true, fecha: true, imagenUrl: true } },
-      categoria: { select: { nombre: true } },
-      grupoTarifa: { select: { nombre: true } },
+      terminosVersion: true,
+      terminosAceptadosEn: true,
+      evento: {
+        select: {
+          id: true,
+          titulo: true,
+          fecha: true,
+          imagenUrl: true,
+          horario: true,
+          ubicacion: true,
+          resultadosUrl: true,
+          // Respaldo del kit para eventos sin derechos por grupo de tarifa
+          // (mismo criterio que el modal de T&C, Fase 12.6).
+          logistica: {
+            select: {
+              kit: { orderBy: { orden: "asc" }, select: { texto: true } },
+            },
+          },
+        },
+      },
+      categoria: {
+        select: {
+          nombre: true,
+          distancia: { select: { nombre: true } },
+          vueltas: true,
+          horaSalida: true,
+          sitioSalida: true,
+          sitioLlegada: true,
+          grupoTarifa: { select: { nombre: true, derechos: true } },
+        },
+      },
+      grupoTarifa: { select: { nombre: true, derechos: true } },
     },
   });
 }

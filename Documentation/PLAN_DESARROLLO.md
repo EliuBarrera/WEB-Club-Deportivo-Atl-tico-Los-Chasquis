@@ -850,7 +850,10 @@ los 30 minutos. No se crea ningún modelo de cuentas/usuarios nuevo.
 - [x] Comprobante de pago descargable — `lib/atletas/certificado.ts`
       genera el PDF con `pdf-lib`, diseño "A" (dorsal de competencia)
       elegido por el club entre 3 mockups
-- [ ] Versión de los Términos y Condiciones que aceptó (Fase 4)
+- [x] Versión de los Términos y Condiciones que aceptó (Fase 4) — línea
+      "Aceptaste los términos y condiciones (versión N) el <fecha>" en
+      cada inscripción (las anteriores a la Fase 4 no la tienen y no la
+      muestran)
 **Modelo de datos:** no hizo falta ninguna tabla nueva para el listado
 en sí — sí se agregó `contexto` a `IntentoInscripcion` (rate limiting)
 para que el cupo de intentos de "buscar mis inscripciones" no se
@@ -901,7 +904,8 @@ terminado.
 
 **Fuera de alcance de esta primera versión (documentado, no un
 olvido):** comprobante de pago descargable, versión de Términos
-mostrada en el listado.
+mostrada en el listado. *(Ambos se hicieron después: certificado el
+2026-09-14 y versión de Términos el 2026-10-04.)*
 
 **Implementado (2026-09-14, del backlog de abajo):** reintentar pago
 `PENDIENTE`/`RECHAZADO`/`DECLINADO`/`ERROR` y certificado de inscripción
@@ -987,11 +991,26 @@ sobre una inscripción `PENDIENTE` propia, y 400 si ya está `APROBADO`.
 
 **Backlog de ideas adicionales — no bloquean esta fase, evaluar cuáles
 entran más adelante:**
-- [ ] Botón para reenviar el comprobante de pago al correo
-- [ ] Recordatorio de logística del evento (entrega de kit, hora de
-      salida), reutilizando los datos que ya existen en `Logistica`
-- [ ] Enlace a resultados/tiempos oficiales una vez el juez los publique
-- [ ] Historial acumulado: cuántos eventos del club ha corrido en total
+- [ ] Botón para reenviar el comprobante de pago al correo — **pendiente
+      del club:** depende de las credenciales de Resend (Fase 11). Mientras
+      tanto el atleta puede descargar el certificado desde `/atletas`
+- [x] Recordatorio de logística del evento (entrega de kit, hora de
+      salida), reutilizando los datos que ya existen en `Logistica` —
+      bloque "Para el día de la carrera" en el detalle de cada próximo
+      evento del calendario de `/atletas`: horario y ubicación del evento,
+      distancia/salida/lugar de su categoría (`DatosCarrera`, ahora con un
+      tipo estructural para servir a ambas vistas) y "Tu kit incluye" con
+      los derechos de su grupo de tarifa (respaldo: `logistica.kit`). Cada
+      dato se omite si el club no lo ha cargado. El lugar de entrega de
+      kits no existe como dato todavía (ver 12.5)
+- [x] Enlace a resultados/tiempos oficiales una vez el juez los publique —
+      botón "Ver resultados" (`Evento.resultadosUrl`) en las inscripciones
+      de eventos ya pasados
+- [x] Historial acumulado: cuántos eventos del club ha corrido en total —
+      franja arriba del listado: eventos distintos con pago aprobado, ya
+      realizados y próximos. Dice "eventos con el club", no "corridos":
+      el sistema no registra asistencia real (mismo criterio que el
+      certificado)
 - [x] Notificación automática por correo y por whatsapp cuando el pago
       se aprueba — implementado, ver Fase 11
 
@@ -1186,6 +1205,10 @@ tab Recorridos ni del admin (no hay navegador ni credenciales en la
 sesión).
 
 #### 12.4 Premiación estructurada (reemplaza la imagen)
+
+> **Descartada (4 oct 2026):** se decidió mantener la tabla de premiación
+> como imagen (`premios.efectivoUrl`), que ya funciona. Se deja la
+> propuesta abajo como referencia por si se retoma.
 
 - [ ] Hoy `premios.efectivo` es una URL de imagen (PNG). Sustituir por:
       `PremioCategoria { id, categoriaId, puesto, valor }`

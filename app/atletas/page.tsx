@@ -55,6 +55,20 @@ export default async function AtletasPage() {
     .filter((i) => i.evento.fecha >= inicioHoy)
     .sort((a, b) => a.evento.fecha.getTime() - b.evento.fecha.getTime());
 
+  // Historial (Fase 10): eventos distintos con pago aprobado. Se habla de
+  // "inscrito", no de "corrido": el sistema no registra asistencia real,
+  // mismo criterio que el certificado (lib/atletas/certificado.ts).
+  const eventosAprobados = new Map(
+    (inscripciones ?? [])
+      .filter((i) => i.estadoPago === "APROBADO")
+      .map((i) => [i.evento.id, i.evento.fecha]),
+  );
+  const historial = {
+    total: eventosAprobados.size,
+    realizados: [...eventosAprobados.values()].filter((f) => f < inicioHoy)
+      .length,
+  };
+
   return (
     <>
       <main
@@ -87,6 +101,27 @@ export default async function AtletasPage() {
             <h1 className="font-display text-3xl font-black uppercase tracking-tight sm:text-4xl">
               Mis inscripciones
             </h1>
+
+            {historial.total > 0 ? (
+              <dl className="grid grid-cols-3 gap-3 rounded-[20px] bg-casi-negro p-5 text-center text-crema shadow-[0_10px_30px_rgba(28,13,10,0.14)] sm:max-w-xl">
+                {[
+                  ["Eventos con el club", historial.total],
+                  ["Ya realizados", historial.realizados],
+                  ["Próximos", historial.total - historial.realizados],
+                ].map(([etiqueta, valor]) => (
+                  // dt antes que dd (HTML válido); flex-col-reverse pone
+                  // la cifra arriba.
+                  <div key={etiqueta} className="flex flex-col-reverse gap-1">
+                    <dt className="font-display text-xs font-bold uppercase leading-tight">
+                      {etiqueta}
+                    </dt>
+                    <dd className="font-mono text-3xl font-bold text-naranja">
+                      {valor}
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
 
             {inscripciones.length === 0 ? (
               <p className="text-gris-oscuro">
@@ -173,6 +208,26 @@ export default async function AtletasPage() {
                                   Inscrito el{" "}
                                   {formatFechaBadge(inscripcion.createdAt)}
                                 </p>
+                                {inscripcion.terminosVersion ? (
+                                  <p className="text-xs text-gris-oscuro/70">
+                                    Aceptaste los términos y condiciones
+                                    (versión {inscripcion.terminosVersion})
+                                    {inscripcion.terminosAceptadosEn
+                                      ? ` el ${formatFechaBadge(inscripcion.terminosAceptadosEn)}`
+                                      : ""}
+                                  </p>
+                                ) : null}
+                                {inscripcion.evento.resultadosUrl &&
+                                inscripcion.evento.fecha < inicioHoy ? (
+                                  <a
+                                    href={inscripcion.evento.resultadosUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1 w-fit rounded-full bg-casi-negro px-4 py-1.5 font-display text-xs font-bold uppercase text-crema"
+                                  >
+                                    Ver resultados
+                                  </a>
+                                ) : null}
                               </div>
 
                               <div className="flex flex-col items-start gap-2 sm:items-end">
