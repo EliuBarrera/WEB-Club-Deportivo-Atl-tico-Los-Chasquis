@@ -29,6 +29,31 @@ body {
   color: var(--color-casi-negro);
 }
 
+/* Tailwind v4 deja los botones con `cursor: default`; se restaura la
+   manito en todo lo clickeable. En @layer base para que las utilidades
+   (ej. disabled:cursor-not-allowed) sigan pudiendo sobrescribirlo. */
+@layer base {
+  button,
+  [role="button"],
+  select,
+  summary,
+  label:has(input[type="checkbox"], input[type="radio"]),
+  input[type="checkbox"],
+  input[type="radio"],
+  input[type="file"],
+  input[type="color"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+
+  :disabled,
+  label:has(input:disabled) {
+    cursor: not-allowed;
+  }
+}
+
 /* Loader de transición entre páginas (ver LoaderTransicion.tsx) */
 .pl,
 .pl__worm {
