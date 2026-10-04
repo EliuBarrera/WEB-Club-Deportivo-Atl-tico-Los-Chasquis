@@ -165,6 +165,14 @@ export function FormularioInscripcion({
   const [aceptaImagenes, setAceptaImagenes] = useState(false);
   const [modalTerminosAbierto, setModalTerminosAbierto] = useState(false);
 
+  // Paso previo: se piden documento y correo para buscar inscripciones
+  // anteriores del atleta y autorrellenar el resto del formulario.
+  const [paso, setPaso] = useState<"identificacion" | "formulario">(
+    "identificacion"
+  );
+  const [buscandoAtleta, setBuscandoAtleta] = useState(false);
+  const [avisoAtleta, setAvisoAtleta] = useState<string | null>(null);
+
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const widgetIdRef = useRef<string | undefined>(undefined);
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
@@ -202,6 +210,13 @@ export function FormularioInscripcion({
       );
     document.body.appendChild(script);
   }, [inscripcionId, totalPago]);
+
+  // El contenedor de Turnstile solo existe en el segundo paso, así que el
+  // `onReady` del <Script> no alcanza a renderizarlo si el script carga
+  // mientras el atleta sigue en la identificación.
+  useEffect(() => {
+    if (paso === "formulario") renderTurnstile();
+  }, [paso]);
 
   const categoriaSugerida = useMemo(() => {
     if (!fechaNacimiento) return undefined;
@@ -262,6 +277,71 @@ export function FormularioInscripcion({
   }
 
   const puedeInscribirse = (usaCategorias || usaGrupos) && rondaAbierta;
+
+  async function identificarAtleta(evt: React.FormEvent) {
+    evt.preventDefault();
+    setBuscandoAtleta(true);
+    setError(null);
+    setFieldErrors({});
+    setAvisoAtleta(null);
+
+    try {
+      const respuesta = await fetch("/api/atletas/prellenar", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ numeroDocumento, email, eventoId: evento.id }),
+      });
+      const datos = await respuesta.json();
+
+      if (!respuesta.ok) {
+        setError(datos.error ?? "No se pudo verificar tus datos");
+        setFieldErrors(datos.fieldErrors ?? {});
+        return;
+      }
+
+      if (datos.encontrado) {
+        const a = datos.atleta;
+        setNombres(a.nombres);
+        setApellidos(a.apellidos);
+        setTipoDocumento(a.tipoDocumento);
+        setFechaNacimiento(a.fechaNacimiento);
+        setGenero(a.genero);
+        setCelular(a.celular);
+        setCiudad(a.ciudad);
+        setDepartamento(a.departamento);
+        setClub(a.club ?? "");
+        setNombresAcudiente(a.nombresAcudiente ?? "");
+        setApellidosAcudiente(a.apellidosAcudiente ?? "");
+        setDocumentoAcudiente(a.documentoAcudiente ?? "");
+        setCelularAcudiente(a.celularAcudiente ?? "");
+        setCategoriaIdManual(null);
+        setPruebasIds([]);
+
+        const yaInscrito =
+          datos.yaInscritoEstado === "APROBADO"
+            ? " Ojo: ya tienes una inscripción pagada en este evento."
+            : datos.yaInscritoEstado
+              ? " Ojo: ya tienes una inscripción sin pagar en este evento; puedes completarla desde la sección Atletas."
+              : "";
+        setAvisoAtleta(
+          `¡Hola de nuevo, ${a.nombres}! Completamos tus datos con tu última inscripción; revísalos antes de enviar.${yaInscrito}`
+        );
+      }
+
+      setPaso("formulario");
+    } catch {
+      setError("No se pudo conectar con el servidor, intenta de nuevo.");
+    } finally {
+      setBuscandoAtleta(false);
+    }
+  }
+
+  function cambiarIdentificacion() {
+    setPaso("identificacion");
+    setAvisoAtleta(null);
+    setError(null);
+    setTurnstileToken(null);
+  }
 
   async function enviar(evt: React.FormEvent) {
     evt.preventDefault();
@@ -504,8 +584,82 @@ export function FormularioInscripcion({
             ? "Las inscripciones para este evento están cerradas."
             : "Este evento aún no tiene inscripciones configuradas."}
         </p>
+      ) : paso === "identificacion" ? (
+        <form onSubmit={identificarAtleta} className="flex flex-col gap-6">
+          <p className="text-lg leading-relaxed">
+            Ingresa tu número de documento y tu correo. Si ya te has inscrito
+            antes con el club, completamos tus datos automáticamente.
+          </p>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Campo
+              etiqueta="Número de documento"
+              error={fieldErrors.numeroDocumento?.[0]}
+            >
+              <input
+                required
+                autoFocus
+                inputMode="numeric"
+                value={numeroDocumento}
+                onChange={(e) => setNumeroDocumento(e.target.value)}
+                className={inputClase}
+              />
+            </Campo>
+            <Campo etiqueta="Correo electrónico" error={fieldErrors.email?.[0]}>
+              <input
+                required
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className={inputClase}
+              />
+            </Campo>
+          </div>
+
+          {error ? (
+            <p className="rounded-xl bg-naranja/10 p-3 text-lg font-semibold text-naranja">
+              {error}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={buscandoAtleta}
+            className="w-full rounded-full bg-naranja py-3 font-display text-xl font-bold uppercase tracking-wide text-crema disabled:cursor-not-allowed disabled:bg-gris-oscuro"
+          >
+            {buscandoAtleta ? "Buscando…" : "Continuar"}
+          </button>
+        </form>
       ) : (
         <form onSubmit={enviar} className="flex flex-col gap-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-crema p-4">
+            <div className="flex flex-col text-base">
+              <span>
+                Documento: <strong>{numeroDocumento}</strong>
+              </span>
+              <span>
+                Correo: <strong>{email}</strong>
+              </span>
+              {fieldErrors.numeroDocumento?.[0] || fieldErrors.email?.[0] ? (
+                <span className="text-sm text-naranja">
+                  {fieldErrors.numeroDocumento?.[0] ?? fieldErrors.email?.[0]}
+                </span>
+              ) : null}
+            </div>
+            <button
+              type="button"
+              onClick={cambiarIdentificacion}
+              className="rounded-full bg-white px-4 py-1.5 font-display text-sm font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)] transition-colors hover:bg-casi-negro hover:text-white"
+            >
+              Cambiar
+            </button>
+          </div>
+
+          {avisoAtleta ? (
+            <p className="rounded-xl bg-green-50 p-4 text-lg font-semibold text-green-800">
+              {avisoAtleta}
+            </p>
+          ) : null}
+
           <fieldset className="flex flex-col gap-4">
             <legend className="mb-1 font-display text-lg font-bold uppercase">
               Datos del atleta
@@ -539,17 +693,6 @@ export function FormularioInscripcion({
                     </option>
                   ))}
                 </select>
-              </Campo>
-              <Campo
-                etiqueta="Número de documento"
-                error={fieldErrors.numeroDocumento?.[0]}
-              >
-                <input
-                  required
-                  value={numeroDocumento}
-                  onChange={(e) => setNumeroDocumento(e.target.value)}
-                  className={inputClase}
-                />
               </Campo>
               <Campo
                 etiqueta="Fecha de nacimiento"
@@ -698,15 +841,6 @@ export function FormularioInscripcion({
                   required
                   value={celular}
                   onChange={(e) => setCelular(e.target.value)}
-                  className={inputClase}
-                />
-              </Campo>
-              <Campo etiqueta="Correo electrónico" error={fieldErrors.email?.[0]}>
-                <input
-                  required
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   className={inputClase}
                 />
               </Campo>
