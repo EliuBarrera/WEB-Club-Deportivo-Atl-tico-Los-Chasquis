@@ -53,7 +53,7 @@ export function MiniCalendario({
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl border-2 border-casi-negro bg-white p-5 sm:flex-row sm:items-center">
-      <table className="w-full max-w-[220px] table-fixed border-collapse text-center">
+      <table className="w-full table-fixed border-collapse text-center sm:max-w-[220px]">
         <thead>
           <tr>
             {DIAS_SEMANA.map((d, i) => (

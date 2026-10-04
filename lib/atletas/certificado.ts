@@ -157,7 +157,7 @@ export async function generarCertificadoPdf(datos: {
   // pensada de fábrica para fondos oscuros (mismo archivo que ya usa
   // public/admin-banner.jpg en el panel admin) y con fondo transparente,
   // así que va directo sobre el banner sin necesitar una placa blanca
-  // detrás (a diferencia de LogoClub.png, que trae fondo blanco sólido).
+  // detrás (a diferencia de LogoDock.png, que trae fondo blanco sólido).
   try {
     const logoBytes = await readFile(
       path.join(process.cwd(), "public", "cropped-cropped-Logo-png.png")

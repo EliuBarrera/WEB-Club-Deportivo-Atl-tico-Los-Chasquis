@@ -131,6 +131,11 @@ const NAV_ITEMS = [
 // superior. Es client component solo por `usePathname()` (resaltar la
 // sección activa); la acción de cerrar sesión sigue siendo una Server
 // Action que se recibe como prop desde app/admin/layout.tsx.
+//
+// Con 6 secciones a 116px el dock mide ~800px y en celular se salía por
+// los lados (solo se veían las del centro). Igual que
+// components/PublicDock.tsx: por debajo de `md:` los ítems son solo ícono
+// (44px, cabe en un viewport de 360px) y la etiqueta vuelve desde `md:`.
 export function Dock({
   cerrarSesionAction,
 }: {
@@ -144,7 +149,7 @@ export function Dock({
       <LoaderTransicion activo={navegando} />
       <nav
         aria-label="Navegación panel admin"
-        className="fixed bottom-7 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-white p-2 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)]"
+        className="fixed inset-x-0 bottom-5 z-50 mx-auto flex w-max items-center gap-0.5 rounded-full bg-white p-1.5 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)] md:bottom-7 md:gap-1.5 md:p-2"
       >
         {NAV_ITEMS.map((item) => {
           const activo = pathname.startsWith(item.href);
@@ -152,15 +157,16 @@ export function Dock({
             <Link
               key={item.href}
               href={item.href}
+              aria-label={item.etiqueta}
               onClick={() => irA(item.href)}
               className={
                 activo
-                  ? "flex h-16 w-[116px] flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
-                  : "flex h-16 w-[116px] flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro"
+                  ? "flex h-12 w-11 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] md:h-16 md:w-[104px] lg:w-[116px]"
+                  : "flex h-12 w-11 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro md:h-16 md:w-[104px] lg:w-[116px]"
               }
             >
               {item.icono}
-              <span className="font-display text-[11px] font-extrabold uppercase tracking-wide">
+              <span className="hidden font-display text-[11px] font-extrabold uppercase tracking-wide md:block">
                 {item.etiqueta}
               </span>
             </Link>
@@ -174,7 +180,7 @@ export function Dock({
           <button
             type="submit"
             aria-label="Cerrar sesión"
-            className="flex h-16 w-14 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro"
+            className="flex h-12 w-11 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro md:h-16 md:w-14"
           >
             <svg
               width="20"

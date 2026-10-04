@@ -118,25 +118,27 @@ export function PublicDock({
       <LoaderTransicion activo={navegando} />
       <nav
         aria-label="Navegación principal"
-        className="fixed bottom-5 left-1/2 z-50 flex -translate-x-1/2 items-center gap-1 rounded-full bg-white p-2 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)] sm:bottom-7 sm:gap-1.5"
+        className="fixed inset-x-0 bottom-5 z-50 mx-auto flex w-max items-center gap-0.5 rounded-full bg-white p-1.5 shadow-[0_10px_30px_rgba(28,13,10,0.18),0_4px_16px_rgba(241,88,8,0.25)] sm:bottom-7 sm:gap-1.5 sm:p-2"
       >
         <Link
           href="/"
           aria-label="Los Chasquis — Inicio"
           onClick={() => irA("/")}
-          className="flex h-14 items-center justify-center rounded-full px-2 sm:h-16 sm:px-3"
+          className="flex h-14 items-center justify-center rounded-full px-1 sm:h-16 sm:px-3"
         >
-          {/* LogoClub.png es el wordmark completo (726x194, fondo blanco —
+          {/* LogoDock.png es el wordmark completo (618x135, fondo blanco —
             se ve bien sobre el dock, que también es blanco), no un ícono
             cuadrado como el Logo.png anterior, así que el slot ya no
             tiene un ancho fijo: se deja auto-ancho según su relación de
-            aspecto. */}
+            aspecto. El PNG está recortado al contenido (margen parejo de
+            4px): con los márgenes blancos desiguales del original el logo
+            se veía pequeño y corrido hacia arriba. */}
           <Image
-            src="/LogoClub.png"
+            src="/LogoDock.png"
             alt=""
-            width={726}
-            height={194}
-            className="h-7 w-auto sm:h-11"
+            width={618}
+            height={135}
+            className="h-[22px] w-auto sm:h-9"
           />
         </Link>
 
@@ -155,8 +157,8 @@ export function PublicDock({
               onClick={() => irA(item.href)}
               className={
                 activo
-                  ? "flex h-14 w-12 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] sm:h-16 sm:w-[104px]"
-                  : "flex h-14 w-12 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro sm:h-16 sm:w-[104px]"
+                  ? "flex h-14 w-11 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] sm:h-16 sm:w-[104px]"
+                  : "flex h-14 w-11 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro sm:h-16 sm:w-[104px]"
               }
             >
               {item.icono}
@@ -176,7 +178,7 @@ export function PublicDock({
               <button
                 type="submit"
                 aria-label="Cerrar sesión"
-                className="flex h-14 w-12 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro sm:h-16 sm:w-14"
+                className="flex h-14 w-11 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro sm:h-16 sm:w-14"
               >
                 <svg
                   width="20"

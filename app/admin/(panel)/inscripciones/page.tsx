@@ -139,14 +139,17 @@ export default async function InscripcionesPage({
         </div>
 
         <form className="flex flex-wrap items-end gap-4 rounded-[20px] bg-white p-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
-          <label className="flex flex-col gap-1.5">
+          {/* Un <select> nativo toma como ancho mínimo el de su opción más
+            larga (título + fecha del evento): en celular desbordaba la
+            pantalla. Ocupa todo el ancho en móvil y se recorta el texto. */}
+          <label className="flex w-full min-w-0 flex-col gap-1.5 sm:w-auto sm:max-w-md">
             <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
               Evento
             </span>
             <select
               name="eventoId"
               defaultValue={eventoId}
-              className="rounded-lg bg-casi-negro/[0.045] px-3 py-2 text-lg outline-none"
+              className="w-full min-w-0 truncate rounded-lg bg-casi-negro/[0.045] px-3 py-2 text-lg outline-none"
             >
               {eventos.map((evento) => (
                 <option key={evento.id} value={evento.id}>
