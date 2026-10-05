@@ -463,9 +463,11 @@ que ya tiene su propio filtro por evento.
       tablas clave, cifra con AES-256 (`BACKUP_PASSPHRASE`) y guarda el
       artifact 90 días. Probado con restauración completa en un Postgres
       18 local (conteos iguales a producción) y primer run en verde. El
-      README de ese repo explica cómo restaurar. Opcional: rol de solo
-      lectura `respaldo` para su `DATABASE_URL`, y más adelante pasar
-      producción a una rama raíz para recuperar el PITR de 6 h
+      README de ese repo explica cómo restaurar. Su `DATABASE_URL` usa el
+      rol de solo lectura `respaldo` (`pg_read_all_data`; probado: puede
+      hacer el `pg_dump` completo, no puede modificar datos ni crear
+      tablas). Opcional más adelante: pasar producción a una rama raíz
+      para recuperar el PITR de 6 h
 
 **Implementado:**
 - `.env*` ya estaba en `.gitignore` y nunca se commiteó (`git ls-files |
