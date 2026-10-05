@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+
+# La plantilla de variables sí se versiona (todos sus valores van vacíos)
+!.env.example
