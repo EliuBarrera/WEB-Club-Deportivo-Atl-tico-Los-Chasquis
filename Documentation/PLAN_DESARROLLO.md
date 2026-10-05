@@ -452,8 +452,20 @@ que ya tiene su propio filtro por evento.
       como número de documento en logs de producción)
 - [x] **Dependencias**: correr `npm audit` antes del primer despliegue y
       periódicamente después; mantener Next.js y Prisma actualizados
-- [ ] **Backups**: confirmar que el plan de Neon usado tenga backups /
+- [x] **Backups**: confirmar que el plan de Neon usado tenga backups /
       point-in-time recovery activo para la base de datos de producción
+      — **No lo tiene (4 oct 2026):** el plan es Free (máximo 6 h de
+      historial) y la restauración instantánea solo funciona en ramas raíz;
+      producción es una rama hija. Se resolvió con un respaldo propio: un
+      repositorio **privado** aparte (`chasquis-backups`, separado porque
+      este repo puede quedar público como portafolio) con una GitHub
+      Action diaria (3:00 a. m. Colombia) que hace `pg_dump` 18, valida las
+      tablas clave, cifra con AES-256 (`BACKUP_PASSPHRASE`) y guarda el
+      artifact 90 días. Probado con restauración completa en un Postgres
+      18 local (conteos iguales a producción) y primer run en verde. El
+      README de ese repo explica cómo restaurar. Opcional: rol de solo
+      lectura `respaldo` para su `DATABASE_URL`, y más adelante pasar
+      producción a una rama raíz para recuperar el PITR de 6 h
 
 **Implementado:**
 - `.env*` ya estaba en `.gitignore` y nunca se commiteó (`git ls-files |
