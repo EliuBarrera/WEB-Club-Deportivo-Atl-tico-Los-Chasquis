@@ -6,7 +6,10 @@ import { Footer } from "@/components/Footer";
 import { FormularioBusqueda } from "@/components/atletas/FormularioBusqueda";
 import { AccionesInscripcion } from "@/components/atletas/AccionesInscripcion";
 import { CalendarioProximosEventos } from "@/components/atletas/CalendarioProximosEventos";
-import { getInscripcionesAtleta } from "@/lib/atletas/dal";
+import {
+  getInscripcionesAtleta,
+  type InscripcionAtleta,
+} from "@/lib/atletas/dal";
 import { cerrarSesionAtletaAction } from "./actions";
 import { getTerminosVigente } from "@/lib/eventos";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
@@ -51,11 +54,18 @@ export default async function AtletasPage() {
       new Date().getUTCDate(),
     ),
   );
-  const proximosEventos = (inscripciones ?? [])
+  // Vigentes: eventos de hoy en adelante, en todos los estados de pago,
+  // ordenados por fecha (no por createdAt) para que el mes inicial del
+  // calendario sea el del próximo evento. Lo de eventos ya realizados va
+  // aparte, en "Mostrar historial", del más reciente al más viejo.
+  const vigentes = (inscripciones ?? [])
     .filter((i) => i.evento.fecha >= inicioHoy)
     .sort((a, b) => a.evento.fecha.getTime() - b.evento.fecha.getTime());
+  const pasadas = (inscripciones ?? [])
+    .filter((i) => i.evento.fecha < inicioHoy)
+    .sort((a, b) => b.evento.fecha.getTime() - a.evento.fecha.getTime());
 
-  // Historial (Fase 10): eventos distintos con pago aprobado. Se habla de
+  // Resumen (Fase 10): eventos distintos con pago aprobado. Se habla de
   // "inscrito", no de "corrido": el sistema no registra asistencia real,
   // mismo criterio que el certificado (lib/atletas/certificado.ts).
   const eventosAprobados = new Map(
@@ -63,7 +73,7 @@ export default async function AtletasPage() {
       .filter((i) => i.estadoPago === "APROBADO")
       .map((i) => [i.evento.id, i.evento.fecha]),
   );
-  const historial = {
+  const resumen = {
     total: eventosAprobados.size,
     realizados: [...eventosAprobados.values()].filter((f) => f < inicioHoy)
       .length,
@@ -102,12 +112,12 @@ export default async function AtletasPage() {
               Mis inscripciones
             </h1>
 
-            {historial.total > 0 ? (
+            {resumen.total > 0 ? (
               <dl className="grid grid-cols-3 gap-3 rounded-[20px] bg-casi-negro p-5 text-center text-crema shadow-[0_10px_30px_rgba(28,13,10,0.14)] sm:max-w-xl">
                 {[
-                  ["Eventos con el club", historial.total],
-                  ["Ya realizados", historial.realizados],
-                  ["Próximos", historial.total - historial.realizados],
+                  ["Eventos con el club", resumen.total],
+                  ["Ya realizados", resumen.realizados],
+                  ["Próximos", resumen.total - resumen.realizados],
                 ].map(([etiqueta, valor]) => (
                   // dt antes que dd (HTML válido); flex-col-reverse pone
                   // la cifra arriba.
@@ -134,8 +144,15 @@ export default async function AtletasPage() {
               // debajo del listado (el grid colapsa a una columna).
               <div className="grid w-full grid-cols-1 items-start gap-6 lg:grid-cols-[1fr_320px]">
                 <div className="flex flex-col gap-4">
+                  {vigentes.length === 0 ? (
+                    <p className="rounded-[20px] bg-white p-5 italic text-gris-oscuro shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+                      No tienes inscripciones vigentes. Las de eventos ya
+                      realizados están en el historial.
+                    </p>
+                  ) : null}
+
                   {ORDEN_GRUPOS.map((estado) => {
-                    const grupo = inscripciones.filter(
+                    const grupo = vigentes.filter(
                       (i) => i.estadoPago === estado,
                     );
                     if (grupo.length === 0) return null;
@@ -158,97 +175,53 @@ export default async function AtletasPage() {
                               {grupo.length}
                             </span>
                           </span>
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2.5"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="shrink-0 text-casi-negro transition-transform group-open:rotate-180"
-                            aria-hidden
-                          >
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
+                          <IconoDesplegar />
                         </summary>
 
                         <ul className="flex flex-col gap-3 px-5 pb-5">
                           {grupo.map((inscripcion) => (
-                            <li
+                            <ItemInscripcion
                               key={inscripcion.id}
-                              className="flex flex-col gap-3 rounded-[16px] bg-crema p-4 sm:flex-row sm:items-center sm:gap-5"
-                            >
-                              {inscripcion.evento.imagenUrl ? (
-                                <Image
-                                  src={inscripcion.evento.imagenUrl}
-                                  alt=""
-                                  width={96}
-                                  height={96}
-                                  className="h-24 w-24 shrink-0 rounded-2xl object-cover"
-                                />
-                              ) : null}
-
-                              <div className="flex flex-1 flex-col gap-1">
-                                <p className="font-display text-lg font-extrabold uppercase">
-                                  {inscripcion.evento.titulo}
-                                </p>
-                                <p className="text-sm text-gris-oscuro">
-                                  {formatFechaBadge(inscripcion.evento.fecha)}
-                                  {" · "}
-                                  {inscripcion.categoria?.nombre ??
-                                    inscripcion.grupoTarifa?.nombre ??
-                                    "—"}
-                                  {inscripcion.pruebasIds.length > 0
-                                    ? ` · ${inscripcion.pruebasIds.join(", ")}`
-                                    : ""}
-                                </p>
-                                <p className="text-xs text-gris-oscuro/70">
-                                  Inscrito el{" "}
-                                  {formatFechaBadge(inscripcion.createdAt)}
-                                </p>
-                                {inscripcion.terminosVersion ? (
-                                  <p className="text-xs text-gris-oscuro/70">
-                                    Aceptaste los términos y condiciones
-                                    (versión {inscripcion.terminosVersion})
-                                    {inscripcion.terminosAceptadosEn
-                                      ? ` el ${formatFechaBadge(inscripcion.terminosAceptadosEn)}`
-                                      : ""}
-                                  </p>
-                                ) : null}
-                                {inscripcion.evento.resultadosUrl &&
-                                inscripcion.evento.fecha < inicioHoy ? (
-                                  <a
-                                    href={inscripcion.evento.resultadosUrl}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-1 w-fit rounded-full bg-casi-negro px-4 py-1.5 font-display text-xs font-bold uppercase text-crema"
-                                  >
-                                    Ver resultados
-                                  </a>
-                                ) : null}
-                              </div>
-
-                              <div className="flex flex-col items-start gap-2 sm:items-end">
-                                <span className="font-display text-lg font-extrabold">
-                                  {inscripcion.totalPago === 0 ? "Gratis" : formatPrecio(inscripcion.totalPago)}
-                                </span>
-                                <AccionesInscripcion
-                                  inscripcionId={inscripcion.id}
-                                  estadoPago={inscripcion.estadoPago}
-                                />
-                              </div>
-                            </li>
+                              inscripcion={inscripcion}
+                              pasado={false}
+                            />
                           ))}
                         </ul>
                       </details>
                     );
                   })}
+
+                  {/* Eventos ya realizados, en todos los estados: cerrado
+                      por defecto para que la vista principal muestre solo
+                      lo vigente. */}
+                  {pasadas.length > 0 ? (
+                    <details className="group rounded-[20px] bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3 p-5">
+                        <span className="inline-flex items-center gap-2 font-display text-lg font-extrabold uppercase">
+                          <span className="group-open:hidden">Mostrar historial</span>
+                          <span className="hidden group-open:inline">Ocultar historial</span>
+                          <span className="rounded-full bg-casi-negro/[0.06] px-2 text-xs">
+                            {pasadas.length}
+                          </span>
+                        </span>
+                        <IconoDesplegar />
+                      </summary>
+
+                      <ul className="flex flex-col gap-3 px-5 pb-5">
+                        {pasadas.map((inscripcion) => (
+                          <ItemInscripcion
+                            key={inscripcion.id}
+                            inscripcion={inscripcion}
+                            pasado
+                          />
+                        ))}
+                      </ul>
+                    </details>
+                  ) : null}
                 </div>
 
-                {proximosEventos.length > 0 ? (
-                  <CalendarioProximosEventos inscripciones={proximosEventos} />
+                {vigentes.length > 0 ? (
+                  <CalendarioProximosEventos inscripciones={vigentes} />
                 ) : (
                   <div className="flex flex-col gap-2 rounded-[20px] bg-white p-5 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
                     <h2 className="font-display text-lg font-extrabold uppercase">
@@ -271,5 +244,113 @@ export default async function AtletasPage() {
         }
       />
     </>
+  );
+}
+
+function IconoDesplegar() {
+  return (
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0 text-casi-negro transition-transform group-open:rotate-180"
+      aria-hidden
+    >
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+// Tarjeta de una inscripción, compartida entre las vigentes y el
+// historial. En el historial (`pasado`) cada tarjeta lleva su propio badge
+// de estado, porque ahí no se agrupan por estado, y solo se ofrece el
+// certificado: reintentar el pago de un evento que ya pasó no tiene
+// sentido.
+function ItemInscripcion({
+  inscripcion,
+  pasado,
+}: {
+  inscripcion: InscripcionAtleta;
+  pasado: boolean;
+}) {
+  return (
+    <li className="flex flex-col gap-3 rounded-[16px] bg-crema p-4 sm:flex-row sm:items-center sm:gap-5">
+      {inscripcion.evento.imagenUrl ? (
+        <Image
+          src={inscripcion.evento.imagenUrl}
+          alt=""
+          width={96}
+          height={96}
+          className="h-24 w-24 shrink-0 rounded-2xl object-cover"
+        />
+      ) : null}
+
+      <div className="flex flex-1 flex-col gap-1">
+        {pasado ? (
+          <span
+            className={
+              "w-fit rounded-full px-3 py-1 text-xs font-bold uppercase " +
+              ESTADO_PAGO_BADGE[inscripcion.estadoPago]
+            }
+          >
+            {inscripcion.estadoPago}
+          </span>
+        ) : null}
+        <p className="font-display text-lg font-extrabold uppercase">
+          {inscripcion.evento.titulo}
+        </p>
+        <p className="text-sm text-gris-oscuro">
+          {formatFechaBadge(inscripcion.evento.fecha)}
+          {" · "}
+          {inscripcion.categoria?.nombre ??
+            inscripcion.grupoTarifa?.nombre ??
+            "—"}
+          {inscripcion.pruebasIds.length > 0
+            ? ` · ${inscripcion.pruebasIds.join(", ")}`
+            : ""}
+        </p>
+        <p className="text-xs text-gris-oscuro/70">
+          Inscrito el {formatFechaBadge(inscripcion.createdAt)}
+        </p>
+        {inscripcion.terminosVersion ? (
+          <p className="text-xs text-gris-oscuro/70">
+            Aceptaste los términos y condiciones (versión{" "}
+            {inscripcion.terminosVersion})
+            {inscripcion.terminosAceptadosEn
+              ? ` el ${formatFechaBadge(inscripcion.terminosAceptadosEn)}`
+              : ""}
+          </p>
+        ) : null}
+        {pasado && inscripcion.evento.resultadosUrl ? (
+          <a
+            href={inscripcion.evento.resultadosUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1 w-fit rounded-full bg-casi-negro px-4 py-1.5 font-display text-xs font-bold uppercase text-crema"
+          >
+            Ver resultados
+          </a>
+        ) : null}
+      </div>
+
+      <div className="flex flex-col items-start gap-2 sm:items-end">
+        <span className="font-display text-lg font-extrabold">
+          {inscripcion.totalPago === 0
+            ? "Gratis"
+            : formatPrecio(inscripcion.totalPago)}
+        </span>
+        {!pasado || inscripcion.estadoPago === "APROBADO" ? (
+          <AccionesInscripcion
+            inscripcionId={inscripcion.id}
+            estadoPago={inscripcion.estadoPago}
+          />
+        ) : null}
+      </div>
+    </li>
   );
 }

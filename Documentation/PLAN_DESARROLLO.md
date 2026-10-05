@@ -1011,6 +1011,12 @@ entran más adelante:**
       realizados y próximos. Dice "eventos con el club", no "corridos":
       el sistema no registra asistencia real (mismo criterio que el
       certificado)
+- [x] **Vigentes e historial separados** (4 oct 2026, a pedido del club):
+      la vista principal de `/atletas` muestra solo las inscripciones de
+      eventos de hoy en adelante, agrupadas por estado; las de eventos ya
+      realizados (en cualquier estado) quedan en un desplegable "Mostrar
+      historial", cerrado por defecto, donde solo se ofrece el certificado
+      (no reintentar pago). No se borra ningún registro
 - [x] Notificación automática por correo y por whatsapp cuando el pago
       se aprueba — implementado, ver Fase 11
 
