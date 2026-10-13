@@ -1344,6 +1344,118 @@ subsecciones de arriba, no antes:
       luego borrarla (Neon no deja borrar una rama mientras tenga ramas
       hijas). Quitar de `.env` la URL comentada de esa rama
 
+### Fase 13 — Operación del evento: kits, resultados y crecimiento
+
+**Origen:** revisión del blog de Grupify (grupify.com/blog, oct 2026),
+una plataforma colombiana de eventos deportivos. Se tomaron solo las
+estrategias que aplican a la plataforma (no las operativas como permisos
+o hidratación) y se cruzaron con lo que ya existe: las rondas de la
+Fase 12 ya cubren el "early bird", la Fase 11 ya tiene difusión por
+WhatsApp/correo y la Fase 10 ya muestra estado de pago y comprobante.
+
+**Lo que falta hoy:** el kit es solo una lista de texto (`KitItem`) —
+no hay talla, ni dorsal, ni registro de quién ya lo recogió. La entrega
+de kits del Aguinaldo (18 dic 2026, ver 12.5) es el primer evento donde
+esto se va a notar.
+
+#### 13.1 Talla y dorsal en la inscripción (prioridad 1)
+
+- [ ] `Inscripcion.tallaCamiseta String?` — opciones configurables por
+      evento (o por `GrupoTarifa`, ya que los menores del Aguinaldo no
+      reciben camiseta). Solo se pide si el grupo incluye camiseta en sus
+      `derechos`
+- [ ] Política de cambios de talla en los T&C del evento — **texto a
+      definir por el club**
+- [ ] Reporte en el admin: conteo de camisetas por talla, para hacer el
+      pedido al proveedor antes del evento
+- [ ] `Inscripcion.dorsal Int?` con `@@unique([eventoId, dorsal])`,
+      asignado al quedar `APROBADO` (webhook de Wompi y camino gratuito
+      de 12.2), nunca recibido del cliente
+- [ ] Rangos de dorsal por categoría/distancia (ej. 10K: 1–499, 5K:
+      500+) para segmentar los puestos de entrega — **rangos a definir
+      por el club**
+- [ ] Mostrar dorsal y talla en el portal del atleta, el comprobante PDF
+      (`lib/atletas/certificado.ts`) y el CSV de inscripciones
+
+#### 13.2 QR y pantalla de entrega de kits (prioridad 1)
+
+- [ ] QR por inscripción con un token firmado (HMAC, mismo mecanismo de
+      la cookie del portal de la Fase 10) — no debe contener datos
+      personales, solo el id firmado
+- [ ] QR visible en "Mis inscripciones" y dentro del comprobante PDF
+- [ ] Envío automático del QR por WhatsApp/correo unos días antes del
+      evento (reutiliza `lib/admin/difusion.ts`)
+- [ ] Ruta `/admin/entrega-kits/[eventoId]` pensada para celular:
+      escáner con la cámara → muestra nombre, categoría, talla, dorsal y
+      `derechos` del grupo → botón "Entregar"
+- [ ] `Inscripcion.kitEntregadoEn DateTime?` y `kitEntregadoPor`
+      (usuario). Un segundo escaneo muestra alerta roja con la hora y
+      quién lo entregó; no se puede entregar dos veces
+- [ ] Búsqueda manual por documento para la "mesa de incidencias"
+      (atleta sin QR o con problema de pago)
+- [ ] Contador en vivo: entregados vs. pendientes, por categoría y talla
+- [ ] Rol nuevo `VOLUNTARIO` en `RolUsuario` que solo accede a esta
+      pantalla (sin ver datos médicos ni exportar CSV)
+
+#### 13.3 Comunicaciones segmentadas (depende de cerrar la Fase 11)
+
+- [ ] Filtros en la difusión masiva: por evento, estado de pago,
+      categoría/distancia y club
+- [ ] Recordatorio a inscripciones `PENDIENTE` con más de N horas, con
+      enlace para retomar el pago
+- [ ] Mensajes programados por evento: confirmación al aprobar pago,
+      guía del atleta (horarios, recorrido, parqueo) 3 días antes, QR del
+      kit, y encuesta corta post-evento (24–72 h)
+
+#### 13.4 Resultados y certificado con tiempo
+
+- [ ] Hoy `Evento.resultadosUrl` es solo un enlace. Importar un CSV
+      (dorsal, tiempo oficial, puesto) y cruzarlo con `Inscripcion` por
+      dorsal — formato del CSV **a confirmar con quien haga el
+      cronometraje**
+- [ ] Página pública de resultados con buscador por nombre/dorsal y
+      filtro por categoría
+- [ ] Tiempo, ritmo promedio y puesto (general y por categoría) en el
+      portal del atleta y en el certificado PDF
+- [ ] Envío de resultado individual por WhatsApp con enlace al
+      certificado
+- [ ] Imagen descargable en formato historia (1080×1920) para
+      compartir en Instagram
+
+#### 13.5 Más inscripciones
+
+- [ ] Inscripción grupal: un responsable de club inscribe a varios
+      atletas en un solo flujo y un solo pago. Descuento por volumen solo
+      si el club lo decide
+- [ ] Testimonios y video/galería de la edición anterior en el detalle
+      del evento y en la landing (Fase 9) — **material a entregar por el
+      club**
+- [ ] Beneficio para atletas recurrentes (usa `getAtletasUnicos()` de la
+      Fase 11 para saber quién ya corrió) — mecanismo y monto **a definir
+      por el club**
+- [ ] Revisar el formulario de inscripción en móvil y evaluar partirlo en
+      pasos si hay abandono
+
+#### 13.6 Datos para patrocinadores
+
+- [ ] Panel solo admin con demografía agregada por evento: edad, género,
+      ciudad/departamento, clubes, porcentaje de atletas recurrentes —
+      todo sale de `Inscripcion`, sin datos personales individuales
+- [ ] Exportar ese resumen como PDF para presentar a marcas
+- [ ] Espacio de patrocinador en el correo de confirmación y en la página
+      de inscripción
+
+#### 13.7 Traspaso de cupo y voluntarios (prioridad baja)
+
+- [ ] Traspaso de inscripción desde el portal dentro de una ventana
+      definida por el evento: anula el QR anterior, genera uno nuevo y
+      obliga al nuevo atleta a aceptar los T&C vigentes (nueva
+      `terminosVersion`) y registrar sus datos médicos/acudiente —
+      **¿el club permite traspasos? a confirmar**
+- [ ] Formulario de voluntarios (talla, disponibilidad, contacto de
+      emergencia), asignación por zona (kits, salida/meta, hidratación,
+      guardarropa) y recordatorio automático con zona y hora de llegada
+
 ## Fuera de alcance por ahora
 
 - No migrar contenido histórico de WordPress (noticias viejas, galerías
