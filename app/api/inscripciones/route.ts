@@ -6,6 +6,8 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 import { inscripcionSchema } from "@/lib/validation/inscripcion";
 import { enviarNotificacionPagoAprobado } from "@/lib/notificacionPago";
 import { generarFirmaIntegridad } from "@/lib/wompi";
+import { asignarDorsal } from "@/lib/dorsales";
+import { esDerechoCamiseta } from "@/lib/camiseta";
 
 // Endpoint de inscripción (Fase 4). El precio, la elegibilidad de
 // categoría/prueba/costo y el requisito de acudiente por edad se
@@ -76,12 +78,14 @@ export async function POST(request: NextRequest) {
         select: {
           id: true,
           grupoTarifaId: true,
+          grupoTarifa: { select: { derechos: true } },
           pruebas: {
             select: { prueba: { select: { key: true, genero: true } } },
           },
         },
       },
-      gruposTarifa: { select: { id: true } },
+      gruposTarifa: { select: { id: true, derechos: true } },
+      tallasCamiseta: true,
       rondas: {
         select: {
           id: true,
@@ -115,6 +119,9 @@ export async function POST(request: NextRequest) {
   let categoriaId: string | null = null;
   let grupoTarifaId: string | null = null;
   let pruebasIds: string[] = [];
+  // Derechos del grupo elegido: deciden si el atleta recibe camiseta (Fase
+  // 13.1) y por tanto si debe elegir talla.
+  let derechosGrupo: string[] = [];
 
   if (evento.categorias.length > 0) {
     const categoria = evento.categorias.find(
@@ -148,6 +155,7 @@ export async function POST(request: NextRequest) {
     categoriaId = categoria.id;
     pruebasIds = datos.pruebasIds;
     grupoTarifaId = categoria.grupoTarifaId;
+    derechosGrupo = categoria.grupoTarifa?.derechos ?? [];
   } else if (evento.gruposTarifa.length > 0) {
     const grupo = evento.gruposTarifa.find((g) => g.id === datos.grupoTarifaId);
     if (!grupo) {
@@ -157,6 +165,7 @@ export async function POST(request: NextRequest) {
       );
     }
     grupoTarifaId = grupo.id;
+    derechosGrupo = grupo.derechos;
   } else {
     return NextResponse.json(
       { error: "Este evento aún no tiene inscripciones configuradas" },
@@ -176,6 +185,25 @@ export async function POST(request: NextRequest) {
     );
   }
   const totalPago = tarifa.valor;
+
+  // Talla de camiseta (Fase 13.1): solo si el grupo incluye camiseta y el
+  // evento tiene tallas configuradas. Se valida contra la lista del evento,
+  // nunca se acepta un valor libre.
+  const llevaCamiseta = derechosGrupo.some((d) => esDerechoCamiseta(d));
+  const pideTalla = llevaCamiseta && evento.tallasCamiseta.length > 0;
+  if (pideTalla && !datos.tallaCamiseta) {
+    return NextResponse.json(
+      { error: "Debes elegir la talla de camiseta" },
+      { status: 400 }
+    );
+  }
+  if (pideTalla && !evento.tallasCamiseta.includes(datos.tallaCamiseta!)) {
+    return NextResponse.json(
+      { error: "La talla de camiseta no es válida para este evento" },
+      { status: 400 }
+    );
+  }
+  const tallaCamiseta = pideTalla ? datos.tallaCamiseta! : null;
   // Inscripción gratuita (Fase 12.2): no hay nada que cobrar, así que no
   // pasa por Wompi — queda APROBADO de una vez y sin wompiReference. El
   // monto sale de resolverTarifa, así que no se puede forzar desde el body.
@@ -217,6 +245,7 @@ export async function POST(request: NextRequest) {
         categoriaId,
         grupoTarifaId,
         rondaId: tarifa.rondaId,
+        tallaCamiseta,
         nombres: datos.nombres,
         apellidos: datos.apellidos,
         tipoDocumento: datos.tipoDocumento,
@@ -253,6 +282,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (gratuita) {
+      // Sin pago de por medio, la inscripción ya queda aprobada: se asigna
+      // el dorsal aquí. Si falla, la inscripción sigue válida (ya quedó
+      // guardada) y el error queda en el log.
+      try {
+        await asignarDorsal(inscripcion.id, evento.id);
+      } catch (error) {
+        console.error("No se pudo asignar dorsal (inscripción gratuita):", error);
+      }
       after(() => enviarNotificacionPagoAprobado(inscripcion));
       return NextResponse.json(
         { id: inscripcion.id, totalPago, estadoPago: "APROBADO" },

@@ -314,6 +314,15 @@ function ItemInscripcion({
             ? ` · ${inscripcion.pruebasIds.join(", ")}`
             : ""}
         </p>
+        {inscripcion.dorsal || inscripcion.tallaCamiseta ? (
+          <p className="text-sm font-semibold text-casi-negro">
+            {inscripcion.dorsal ? `Dorsal ${inscripcion.dorsal}` : null}
+            {inscripcion.dorsal && inscripcion.tallaCamiseta ? " · " : null}
+            {inscripcion.tallaCamiseta
+              ? `Camiseta talla ${inscripcion.tallaCamiseta}`
+              : null}
+          </p>
+        ) : null}
         <p className="text-xs text-gris-oscuro/70">
           Inscrito el {formatFechaBadge(inscripcion.createdAt)}
         </p>

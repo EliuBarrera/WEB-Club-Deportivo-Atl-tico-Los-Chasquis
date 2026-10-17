@@ -107,6 +107,9 @@ export async function generarCertificadoPdf(datos: {
   eventoFecha: Date;
   categoria: string | null;
   inscripcionId: string;
+  // Dorsal asignado al aprobarse la inscripción (Fase 13.1). Si existe,
+  // reemplaza el número derivado del id como número grande del certificado.
+  dorsal: number | null;
 }): Promise<Uint8Array> {
   const documento = await PDFDocument.create();
   const page = documento.addPage([ANCHO, ALTO]);
@@ -177,10 +180,19 @@ export async function generarCertificadoPdf(datos: {
 
   // Bloque central: "N.° de inscripción" + número grande + nombre.
   const centroY = 430;
-  centrarTexto(page, trackear("N.° DE INSCRIPCIÓN"), centroY, mono, 10, NARANJA);
   centrarTexto(
     page,
-    numeroDesdeId(datos.inscripcionId),
+    trackear(datos.dorsal ? "DORSAL" : "N.° DE INSCRIPCIÓN"),
+    centroY,
+    mono,
+    10,
+    NARANJA
+  );
+  centrarTexto(
+    page,
+    datos.dorsal
+      ? String(datos.dorsal).padStart(3, "0")
+      : numeroDesdeId(datos.inscripcionId),
     centroY - 78,
     bold,
     76,

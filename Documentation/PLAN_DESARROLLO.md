@@ -1360,21 +1360,20 @@ esto se va a notar.
 
 #### 13.1 Talla y dorsal en la inscripción (prioridad 1)
 
-- [ ] `Inscripcion.tallaCamiseta String?` — opciones configurables por
-      evento (o por `GrupoTarifa`, ya que los menores del Aguinaldo no
-      reciben camiseta). Solo se pide si el grupo incluye camiseta en sus
-      `derechos`
+- [x] `Inscripcion.tallaCamiseta String?` — opciones configurables por
+      evento (`Evento.tallasCamiseta`, editable en el admin). Solo se pide
+      si el grupo incluye camiseta en sus `derechos` (`lib/camiseta.ts`)
 - [ ] Política de cambios de talla en los T&C del evento — **texto a
       definir por el club**
-- [ ] Reporte en el admin: conteo de camisetas por talla, para hacer el
+- [x] Reporte en el admin: conteo de camisetas por talla, para hacer el
       pedido al proveedor antes del evento
-- [ ] `Inscripcion.dorsal Int?` con `@@unique([eventoId, dorsal])`,
+- [x] `Inscripcion.dorsal Int?` con `@@unique([eventoId, dorsal])`,
       asignado al quedar `APROBADO` (webhook de Wompi y camino gratuito
       de 12.2), nunca recibido del cliente
 - [ ] Rangos de dorsal por categoría/distancia (ej. 10K: 1–499, 5K:
       500+) para segmentar los puestos de entrega — **rangos a definir
       por el club**
-- [ ] Mostrar dorsal y talla en el portal del atleta, el comprobante PDF
+- [x] Mostrar dorsal y talla en el portal del atleta, el comprobante PDF
       (`lib/atletas/certificado.ts`) y el CSV de inscripciones
 
 #### 13.2 QR y pantalla de entrega de kits (prioridad 1)

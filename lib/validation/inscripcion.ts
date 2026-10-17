@@ -23,6 +23,11 @@ export const inscripcionSchema = z
     pruebasIds: z.array(z.string().min(1)).max(2).default([]),
     grupoTarifaId: z.string().min(1).optional(),
 
+    // Talla de camiseta (Fase 13.1): solo se exige si el grupo incluye
+    // camiseta y el evento tiene tallas; la pertenencia a la lista se
+    // verifica en el route handler.
+    tallaCamiseta: z.string().trim().min(1).max(20).optional(),
+
     // Contacto
     celular: z.string().trim().min(7).max(20),
     email: z.email(),

@@ -1,5 +1,6 @@
 import {
   getConteoInscripcionesPurgables,
+  getConteoTallasCamiseta,
   getDashboardIngresos,
   getEventosParaFiltro,
   getInscripcionesPorEvento,
@@ -45,6 +46,7 @@ export default async function InscripcionesPage({
   const inscripciones = eventoId
     ? await getInscripcionesPorEvento({ eventoId, estadoPago })
     : [];
+  const conteoTallas = eventoId ? await getConteoTallasCamiseta(eventoId) : [];
 
   const queryExport = new URLSearchParams();
   if (eventoId) queryExport.set("eventoId", eventoId);
@@ -193,6 +195,22 @@ export default async function InscripcionesPage({
             </a>
           )}
         </form>
+
+        {conteoTallas.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 rounded-[20px] bg-white px-5 py-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+            <span className="mr-2 text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+              Camisetas aprobadas
+            </span>
+            {conteoTallas.map((fila) => (
+              <span
+                key={fila.talla}
+                className="rounded-full bg-casi-negro/[0.06] px-3 py-1 font-display font-bold text-casi-negro"
+              >
+                {fila.talla}: {fila.total}
+              </span>
+            ))}
+          </div>
+        )}
 
         <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
           <table className="w-full min-w-[900px] table-auto text-left">

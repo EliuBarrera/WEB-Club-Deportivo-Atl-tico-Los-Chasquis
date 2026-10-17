@@ -31,6 +31,7 @@ export async function GET(
       evento: { select: { titulo: true, fecha: true } },
       categoria: { select: { nombre: true } },
       grupoTarifa: { select: { nombre: true } },
+      dorsal: true,
     },
   });
 
@@ -62,6 +63,7 @@ export async function GET(
     eventoFecha: inscripcion.evento.fecha,
     categoria: inscripcion.categoria?.nombre ?? inscripcion.grupoTarifa?.nombre ?? null,
     inscripcionId: id,
+    dorsal: inscripcion.dorsal,
   });
 
   return new NextResponse(Buffer.from(pdfBytes), {

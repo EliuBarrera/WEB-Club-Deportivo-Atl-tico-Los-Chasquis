@@ -110,6 +110,10 @@ model Evento {
   // Notas que aplican a las categorías (Fase 12.6), ej. "La Recreativa no
   // tiene fines competitivos". Se muestran en el modal de T&C del evento.
   notasCategorias     String[]     @default([])
+  // Tallas de camiseta ofrecidas en la inscripción (Fase 13.1), ej. "S",
+  // "M", "L". Solo se piden a los grupos de tarifa que incluyen "camiseta"
+  // en sus `derechos`. Vacío = el evento no pide talla.
+  tallasCamiseta      String[]     @default([])
 
   // Relaciones 1:1
   premios    Premios?
@@ -489,6 +493,12 @@ model Inscripcion {
   departamento String
   club         String?
 
+  // Kit (Fase 13.1). `tallaCamiseta` se recibe del cliente pero se valida
+  // en servidor contra Evento.tallasCamiseta. `dorsal` nunca se recibe del
+  // cliente: se asigna al quedar APROBADO (lib/dorsales.ts).
+  tallaCamiseta String?
+  dorsal        Int?
+
   // Adicional
   condicionesMedicas String?
 
@@ -520,6 +530,9 @@ model Inscripcion {
   @@index([eventoId])
   @@index([numeroDocumento])
   @@index([estadoPago])
+  // Null no cuenta como duplicado en PostgreSQL: las inscripciones sin
+  // dorsal (pendientes) no chocan entre sí.
+  @@unique([eventoId, dorsal])
 }
 
 // ==========================================

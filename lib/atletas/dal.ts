@@ -33,6 +33,8 @@ export async function getInscripcionesAtleta() {
       createdAt: true,
       terminosVersion: true,
       terminosAceptadosEn: true,
+      dorsal: true,
+      tallaCamiseta: true,
       evento: {
         select: {
           id: true,

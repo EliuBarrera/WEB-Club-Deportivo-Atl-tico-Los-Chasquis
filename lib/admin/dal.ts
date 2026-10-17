@@ -97,6 +97,35 @@ export type InscripcionAdmin = Awaited<
   ReturnType<typeof getInscripcionesPorEvento>
 >[number];
 
+// Camisetas por talla para pedir al proveedor (Fase 13.1). Cuenta solo
+// inscripciones APROBADAS: una pendiente todavía puede no pagar. Devuelve
+// cada talla configurada en el evento, en su mismo orden, aunque tenga 0.
+export async function getConteoTallasCamiseta(eventoId: string) {
+  await verifySession();
+  const [evento, porTalla] = await Promise.all([
+    prisma.evento.findUnique({
+      where: { id: eventoId },
+      select: { tallasCamiseta: true },
+    }),
+    prisma.inscripcion.groupBy({
+      by: ["tallaCamiseta"],
+      where: {
+        eventoId,
+        estadoPago: "APROBADO",
+        tallaCamiseta: { not: null },
+      },
+      _count: { _all: true },
+    }),
+  ]);
+  const conteos = new Map(
+    porTalla.map((fila) => [fila.tallaCamiseta, fila._count._all]),
+  );
+  return (evento?.tallasCamiseta ?? []).map((talla) => ({
+    talla,
+    total: conteos.get(talla) ?? 0,
+  }));
+}
+
 // Dashboard de ingresos (Fase 6): todo se calcula desde la base local,
 // nunca contra la API de Wompi — el webhook de la Fase 5 ya mantiene
 // `estadoPago` sincronizado. Solo cuenta inscripciones APROBADO: nunca
@@ -208,6 +237,7 @@ export async function getEventoCompleto(eventoId: string) {
       terminosUrl: true,
       tipo: true,
       notasCategorias: true,
+      tallasCamiseta: true,
       recorridos: {
         orderBy: { orden: "asc" },
         select: {
@@ -461,6 +491,8 @@ export async function getInscripcionesParaExport(
       categoria: { select: { nombre: true } },
       grupoTarifa: { select: { nombre: true } },
       pruebasIds: true,
+      tallaCamiseta: true,
+      dorsal: true,
       celular: true,
       email: true,
       ciudad: true,

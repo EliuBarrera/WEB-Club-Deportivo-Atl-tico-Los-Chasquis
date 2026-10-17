@@ -7,6 +7,7 @@ import {
   type WompiEventPayload,
 } from "@/lib/wompi";
 import { enviarNotificacionPagoAprobado } from "@/lib/notificacionPago";
+import { asignarDorsal } from "@/lib/dorsales";
 
 // Webhook de confirmación de Wompi (Fase 5). Se verifica la firma/checksum
 // del evento con WOMPI_EVENTS_SECRET antes de procesar cualquier cambio de
@@ -53,6 +54,7 @@ export async function POST(request: NextRequest) {
         wompiReference: transaction.reference,
       },
       select: {
+        eventoId: true,
         nombres: true,
         celular: true,
         email: true,
@@ -60,6 +62,12 @@ export async function POST(request: NextRequest) {
         evento: { select: { titulo: true, fecha: true, ubicacion: true } },
       },
     });
+
+    // Dorsal al quedar aprobada (Fase 13.1). Es idempotente: un reenvío de
+    // Wompi no le cambia el número a quien ya lo tiene.
+    if (nuevoEstado === "APROBADO") {
+      await asignarDorsal(transaction.reference, inscripcion.eventoId);
+    }
 
     if (nuevoEstado === "APROBADO" && anterior?.estadoPago !== "APROBADO") {
       // after() difiere el envío hasta después de responder — el webhook
