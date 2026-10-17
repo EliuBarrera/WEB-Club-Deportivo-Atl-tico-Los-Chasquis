@@ -12,6 +12,7 @@ import {
 } from "@/lib/atletas/dal";
 import { cerrarSesionAtletaAction } from "./actions";
 import { getTerminosVigente } from "@/lib/eventos";
+import { qrKitDataUrl } from "@/lib/kits/token";
 import { formatFechaBadge, formatPrecio } from "@/lib/format";
 import { ESTADO_PAGO_BADGE } from "@/lib/estadoPagoBadge";
 
@@ -64,6 +65,17 @@ export default async function AtletasPage() {
   const pasadas = (inscripciones ?? [])
     .filter((i) => i.evento.fecha < inicioHoy)
     .sort((a, b) => b.evento.fecha.getTime() - a.evento.fecha.getTime());
+
+  // QR de entrega de kit (Fase 13.2): solo para inscripciones aprobadas de
+  // eventos que todavía no pasan — en el historial ya no hay kit que
+  // recoger. Se generan en servidor (el token va firmado con AUTH_SECRET).
+  const qrsKit = new Map(
+    await Promise.all(
+      vigentes
+        .filter((i) => i.estadoPago === "APROBADO")
+        .map(async (i) => [i.id, await qrKitDataUrl(i.id)] as const),
+    ),
+  );
 
   // Resumen (Fase 10): eventos distintos con pago aprobado. Se habla de
   // "inscrito", no de "corrido": el sistema no registra asistencia real,
@@ -184,6 +196,7 @@ export default async function AtletasPage() {
                               key={inscripcion.id}
                               inscripcion={inscripcion}
                               pasado={false}
+                              qrKit={qrsKit.get(inscripcion.id)}
                             />
                           ))}
                         </ul>
@@ -274,9 +287,11 @@ function IconoDesplegar() {
 function ItemInscripcion({
   inscripcion,
   pasado,
+  qrKit,
 }: {
   inscripcion: InscripcionAtleta;
   pasado: boolean;
+  qrKit?: string;
 }) {
   return (
     <li className="flex flex-col gap-3 rounded-[16px] bg-crema p-4 sm:flex-row sm:items-center sm:gap-5">
@@ -334,6 +349,29 @@ function ItemInscripcion({
               ? ` el ${formatFechaBadge(inscripcion.terminosAceptadosEn)}`
               : ""}
           </p>
+        ) : null}
+        {qrKit ? (
+          <details className="mt-1 w-fit">
+            <summary className="cursor-pointer font-display text-xs font-bold uppercase text-naranja">
+              Ver QR para recoger el kit
+            </summary>
+            <div className="mt-2 flex flex-col gap-1">
+              {/* data: URL generada en servidor; next/image no aporta nada
+                  acá (no hay nada que optimizar ni cachear). */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={qrKit}
+                alt={`QR de entrega de kit para ${inscripcion.evento.titulo}`}
+                width={180}
+                height={180}
+                className="rounded-xl bg-white"
+              />
+              <p className="max-w-[180px] text-xs text-gris-oscuro">
+                Muéstralo en la entrega de kits. También va en tu
+                certificado PDF.
+              </p>
+            </div>
+          </details>
         ) : null}
         {pasado && inscripcion.evento.resultadosUrl ? (
           <a

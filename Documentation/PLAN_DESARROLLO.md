@@ -1378,23 +1378,57 @@ esto se va a notar.
 
 #### 13.2 QR y pantalla de entrega de kits (prioridad 1)
 
-- [ ] QR por inscripción con un token firmado (HMAC, mismo mecanismo de
+- [x] QR por inscripción con un token firmado (HMAC, mismo mecanismo de
       la cookie del portal de la Fase 10) — no debe contener datos
-      personales, solo el id firmado
-- [ ] QR visible en "Mis inscripciones" y dentro del comprobante PDF
+      personales, solo el id firmado (`lib/kits/token.ts`, con prefijo
+      `kit:` dentro del HMAC para que no se confunda con la cookie)
+- [x] QR visible en "Mis inscripciones" (solo aprobadas y vigentes) y
+      dentro del comprobante PDF
 - [ ] Envío automático del QR por WhatsApp/correo unos días antes del
-      evento (reutiliza `lib/admin/difusion.ts`)
-- [ ] Ruta `/admin/entrega-kits/[eventoId]` pensada para celular:
-      escáner con la cámara → muestra nombre, categoría, talla, dorsal y
-      `derechos` del grupo → botón "Entregar"
-- [ ] `Inscripcion.kitEntregadoEn DateTime?` y `kitEntregadoPor`
-      (usuario). Un segundo escaneo muestra alerta roja con la hora y
-      quién lo entregó; no se puede entregar dos veces
-- [ ] Búsqueda manual por documento para la "mesa de incidencias"
-      (atleta sin QR o con problema de pago)
-- [ ] Contador en vivo: entregados vs. pendientes, por categoría y talla
-- [ ] Rol nuevo `VOLUNTARIO` en `RolUsuario` que solo accede a esta
-      pantalla (sin ver datos médicos ni exportar CSV)
+      evento (reutiliza `lib/admin/difusion.ts`) — **pendiente: el
+      proyecto no tiene cron/cola**; decidir entre Vercel Cron o un botón
+      manual en el admin
+- [x] Ruta `/admin/entrega-kits/[eventoId]` pensada para celular:
+      escáner con la cámara (jsQR, funciona en Safari de iPhone) →
+      muestra nombre, categoría, talla, dorsal y `derechos` del grupo →
+      botón "Entregar"
+- [x] `Inscripcion.kitEntregadoEn DateTime?` y `kitEntregadoPor String?`
+      (nombre que escribió el voluntario). Un segundo escaneo muestra
+      alerta roja con la hora y quién lo entregó; el servidor aplica cada
+      entrega con `updateMany` condicionado a `kitEntregadoEn: null`
+- [x] Búsqueda manual por documento para la "mesa de incidencias"
+      (atleta sin QR o con problema de pago): primero en el servidor (ve
+      también pagos no aprobados); sin respuesta en 3 s, en la lista local
+- [x] Contador: entregados vs. pendientes, por categoría y talla
+- [x] ~~Rol `VOLUNTARIO`~~ → **reemplazado por un enlace por evento**
+      (`Evento.tokenEntregaKits`, 192 bits, vence al terminar el día
+      siguiente al evento, revocable). Lo genera el panel y se comparte
+      por WhatsApp; abre `/kits/[token]` sin cuenta. Cada celular pide el
+      nombre del voluntario una sola vez (localStorage). Motivo: crear
+      cuentas para voluntarios de un día era demasiada fricción
+- [x] **Funciona con mala señal**: al abrir se descarga la lista de
+      aprobados (sin datos médicos, celular ni email; del documento solo
+      los últimos 4 dígitos + hash SHA-256 con el eventoId como sal).
+      Escanear, buscar y entregar van contra esa copia; las entregas
+      quedan en cola y se suben al instante si hay señal (si ya hay un
+      envío en curso, se hace otra vuelta apenas termina), cada 15 s y al
+      volver la señal. Al escanear o buscar por documento con señal se
+      consulta el estado en vivo
+      en el servidor (la lista local puede tener hasta 15 s de atraso); si
+      no responde en 3 s se usa la lista local. Si dos
+      celulares sin señal entregan el mismo kit, gana el primero en
+      sincronizar y el otro ve la alerta "para revisar en la mesa"
+- [x] Guía para voluntarios (`components/admin/GuiaEntregaKits.tsx`):
+      desplegable dentro de `/kits/[token]` (se lee aunque se caiga la
+      señal) y página propia `/kits/guia`, que va en el mensaje de
+      WhatsApp junto con el enlace
+- [x] Seguimiento en el admin: columna "Kit" (entregado con hora y
+      quién, o pendiente) y filtro "Pendientes de recoger" / "Entregados"
+      en `/admin/inscripciones`; columnas "Kit entregado" y "Entregado
+      por" en el CSV (respeta el filtro)
+- [ ] Abrir la pantalla sin señal (service worker / PWA): hoy hay que
+      abrirla con señal al menos una vez; si se recarga sin señal no
+      carga, aunque la lista y la cola guardadas no se pierden
 
 #### 13.3 Comunicaciones segmentadas (depende de cerrar la Fase 11)
 

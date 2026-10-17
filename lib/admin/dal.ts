@@ -1,6 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import type { EstadoPago } from "@prisma/client";
+import type { EstadoPago, Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { ordenarCategorias } from "@/lib/categorias";
 import { ordenarDistancias } from "@/lib/distancias";
@@ -57,11 +57,34 @@ export async function getEventosParaFiltro() {
   });
 }
 
+export const FILTROS_KIT = ["PENDIENTE", "ENTREGADO"] as const;
+export type FiltroKit = (typeof FILTROS_KIT)[number];
+
 type FiltrosInscripciones = {
   eventoId: string;
   estadoPago?: EstadoPago;
   categoriaId?: string;
+  kit?: FiltroKit;
 };
+
+// Mismo `where` para la tabla y el CSV. Kit PENDIENTE = aprobada y sin
+// entregar (las no aprobadas no tienen kit que recoger, Fase 13.2). Va en
+// un AND aparte para no pisar el filtro de estadoPago si viene también.
+function whereInscripciones(
+  filtros: FiltrosInscripciones,
+): Prisma.InscripcionWhereInput {
+  return {
+    eventoId: filtros.eventoId,
+    estadoPago: filtros.estadoPago,
+    categoriaId: filtros.categoriaId,
+    AND:
+      filtros.kit === "PENDIENTE"
+        ? [{ estadoPago: "APROBADO", kitEntregadoEn: null }]
+        : filtros.kit === "ENTREGADO"
+          ? [{ kitEntregadoEn: { not: null } }]
+          : [],
+  };
+}
 
 // Campos suficientes para la tabla en pantalla. El CSV (que sí necesita
 // también los datos de acudiente/condiciones médicas) usa
@@ -69,11 +92,7 @@ type FiltrosInscripciones = {
 export async function getInscripcionesPorEvento(filtros: FiltrosInscripciones) {
   await verifySession();
   return prisma.inscripcion.findMany({
-    where: {
-      eventoId: filtros.eventoId,
-      estadoPago: filtros.estadoPago,
-      categoriaId: filtros.categoriaId,
-    },
+    where: whereInscripciones(filtros),
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -89,6 +108,8 @@ export async function getInscripcionesPorEvento(filtros: FiltrosInscripciones) {
       celular: true,
       email: true,
       createdAt: true,
+      kitEntregadoEn: true,
+      kitEntregadoPor: true,
     },
   });
 }
@@ -473,11 +494,7 @@ export async function getInscripcionesParaExport(
   filtros: FiltrosInscripciones,
 ) {
   return prisma.inscripcion.findMany({
-    where: {
-      eventoId: filtros.eventoId,
-      estadoPago: filtros.estadoPago,
-      categoriaId: filtros.categoriaId,
-    },
+    where: whereInscripciones(filtros),
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -506,6 +523,8 @@ export async function getInscripcionesParaExport(
       estadoPago: true,
       totalPago: true,
       createdAt: true,
+      kitEntregadoEn: true,
+      kitEntregadoPor: true,
     },
   });
 }
