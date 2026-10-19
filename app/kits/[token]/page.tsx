@@ -34,9 +34,11 @@ export default async function EntregaKitsVoluntarioPage({
         <Image
           src="/cropped-cropped-Logo-png.png"
           alt="Club Los Chasquis"
-          width={140}
-          height={40}
-          className="mb-2 h-10 w-auto"
+          width={405}
+          height={105}
+          // self-start: dentro del flex-col el <img> se estiraría a todo el
+          // ancho con la altura fija, y el logo saldría aplastado.
+          className="mb-2 h-14 w-auto self-start"
         />
         <h1 className="font-display text-3xl font-extrabold uppercase text-crema">
           {acceso.titulo}
