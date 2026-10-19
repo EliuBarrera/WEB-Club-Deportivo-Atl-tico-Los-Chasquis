@@ -174,6 +174,11 @@ noticias no vacíos para los eventos migrados en la Fase 1.
 - [x] CAPTCHA (ej. Cloudflare Turnstile) antes de enviar el formulario,
       para evitar inscripciones automatizadas/spam
 - [x] Rate limiting por IP en el endpoint de inscripción
+      — **Ajuste (19 oct 2026):** el límite único de 5 intentos/10 min
+      bloqueaba usos normales (familias o entrenadores inscribiendo a
+      varios atletas, IP compartida). Ahora cada flujo tiene el suyo en
+      `lib/rate-limit.ts`: inscripción 20, autorrelleno 20, "Mis
+      inscripciones" 10, login del admin 5
 - [x] Al enviar, crear registro `Inscripcion` en estado `PENDIENTE`
 
 **Implementado:** `POST /api/inscripciones` orquesta, en orden: rate
