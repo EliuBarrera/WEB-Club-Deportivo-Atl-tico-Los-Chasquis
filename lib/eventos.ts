@@ -51,6 +51,7 @@ export async function getEventosPublicados() {
       aval: true,
       organizador: true,
       notasCategorias: true,
+      tallasCamiseta: true,
       categorias: {
         select: {
           id: true,

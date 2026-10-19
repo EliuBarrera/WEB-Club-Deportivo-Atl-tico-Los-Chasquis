@@ -606,6 +606,27 @@ export async function guardarNotasCategorias(
   );
 }
 
+// Tallas de camiseta (Fase 13.1): lista de texto plano del evento, se
+// ofrecen en el formulario solo a los grupos que incluyen camiseta.
+export async function guardarTallasCamiseta(
+  eventoId: string,
+  formData: FormData,
+) {
+  await verifySession();
+
+  const tallasCamiseta = datosListaTexto(formData, "tallasCamiseta");
+
+  await prisma.evento.update({
+    where: { id: eventoId },
+    data: { tallasCamiseta },
+  });
+
+  revalidatePath("/admin/eventos");
+  redirect(
+    `/admin/eventos?eventoId=${eventoId}&guardado=tallas-camiseta&t=${Date.now()}`,
+  );
+}
+
 export async function guardarPremios(eventoId: string, formData: FormData) {
   await verifySession();
 

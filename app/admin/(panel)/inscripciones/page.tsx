@@ -1,5 +1,8 @@
 import {
+  FILTROS_KIT,
+  type FiltroKit,
   getConteoInscripcionesPurgables,
+  getConteoTallasCamiseta,
   getDashboardIngresos,
   getEventosParaFiltro,
   getInscripcionesPorEvento,
@@ -12,6 +15,15 @@ import { PurgarInscripcionesButton } from "@/components/admin/PurgarInscripcione
 import { purgarInscripcionesFallidas } from "./actions";
 
 const WOMPI_LOGIN_URL = "https://comercios.wompi.co";
+
+// Hora de entrega del kit (Fase 13.2): un instante real, en hora de Colombia.
+const formateadorEntregaKit = new Intl.DateTimeFormat("es-CO", {
+  timeZone: "America/Bogota",
+  day: "numeric",
+  month: "short",
+  hour: "numeric",
+  minute: "2-digit",
+});
 
 function primerValor(valor: string | string[] | undefined): string | undefined {
   return Array.isArray(valor) ? valor[0] : valor;
@@ -42,13 +54,22 @@ export default async function InscripcionesPage({
     ? (estadoPagoParam as (typeof ESTADOS_PAGO)[number])
     : undefined;
 
+  // Filtro de kit (Fase 13.2): "PENDIENTE" = aprobadas que aún no
+  // recogen su kit. Cualquier otro valor se ignora.
+  const kitParam = primerValor(params.kit);
+  const kit = FILTROS_KIT.includes(kitParam as FiltroKit)
+    ? (kitParam as FiltroKit)
+    : undefined;
+
   const inscripciones = eventoId
-    ? await getInscripcionesPorEvento({ eventoId, estadoPago })
+    ? await getInscripcionesPorEvento({ eventoId, estadoPago, kit })
     : [];
+  const conteoTallas = eventoId ? await getConteoTallasCamiseta(eventoId) : [];
 
   const queryExport = new URLSearchParams();
   if (eventoId) queryExport.set("eventoId", eventoId);
   if (estadoPago) queryExport.set("estadoPago", estadoPago);
+  if (kit) queryExport.set("kit", kit);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
@@ -177,6 +198,21 @@ export default async function InscripcionesPage({
             </select>
           </label>
 
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+              Kit
+            </span>
+            <select
+              name="kit"
+              defaultValue={kit ?? ""}
+              className="rounded-lg bg-casi-negro/[0.045] px-3 py-2 text-lg outline-none"
+            >
+              <option value="">Todos</option>
+              <option value="PENDIENTE">Pendientes de recoger</option>
+              <option value="ENTREGADO">Entregados</option>
+            </select>
+          </label>
+
           <button
             type="submit"
             className="rounded-full bg-white px-5 py-2 font-display font-bold uppercase text-casi-negro shadow-[0_4px_12px_rgba(28,13,10,0.14)]"
@@ -194,8 +230,24 @@ export default async function InscripcionesPage({
           )}
         </form>
 
+        {conteoTallas.length > 0 && (
+          <div className="flex flex-wrap items-center gap-3 rounded-[20px] bg-white px-5 py-4 shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
+            <span className="mr-2 text-sm font-bold uppercase tracking-wide text-gris-oscuro">
+              Camisetas aprobadas
+            </span>
+            {conteoTallas.map((fila) => (
+              <span
+                key={fila.talla}
+                className="rounded-full bg-casi-negro/[0.06] px-3 py-1 font-display font-bold text-casi-negro"
+              >
+                {fila.talla}: {fila.total}
+              </span>
+            ))}
+          </div>
+        )}
+
         <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_10px_30px_rgba(28,13,10,0.10)]">
-          <table className="w-full min-w-[900px] table-auto text-left">
+          <table className="w-full min-w-[1000px] table-auto text-left">
             <thead>
               <tr className="border-b border-casi-negro/10 text-sm font-bold uppercase tracking-wide text-gris-oscuro">
                 <th className="px-4 py-3">Nombre</th>
@@ -205,6 +257,7 @@ export default async function InscripcionesPage({
                 <th className="px-4 py-3">Contacto</th>
                 <th className="px-4 py-3">Estado</th>
                 <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Kit</th>
               </tr>
             </thead>
             <tbody>
@@ -241,12 +294,33 @@ export default async function InscripcionesPage({
                     </span>
                   </td>
                   <td className="px-4 py-3">{inscripcion.totalPago === 0 ? "Gratis" : formatPrecio(inscripcion.totalPago)}</td>
+                  <td className="px-4 py-3">
+                    {inscripcion.kitEntregadoEn ? (
+                      <>
+                        <span className="rounded-full bg-verde px-3 py-1 text-xs font-bold uppercase text-white">
+                          Entregado
+                        </span>
+                        <span className="mt-1 block text-xs text-gris-oscuro">
+                          {formateadorEntregaKit.format(inscripcion.kitEntregadoEn)}
+                          {inscripcion.kitEntregadoPor
+                            ? ` · ${inscripcion.kitEntregadoPor}`
+                            : ""}
+                        </span>
+                      </>
+                    ) : inscripcion.estadoPago === "APROBADO" ? (
+                      <span className="rounded-full bg-casi-negro/[0.06] px-3 py-1 text-xs font-bold uppercase text-casi-negro">
+                        Pendiente
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                 </tr>
               ))}
 
               {inscripciones.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="px-4 py-6 text-center italic text-gris-oscuro">
+                  <td colSpan={8} className="px-4 py-6 text-center italic text-gris-oscuro">
                     No hay inscripciones para este filtro.
                   </td>
                 </tr>

@@ -107,6 +107,12 @@ export async function generarCertificadoPdf(datos: {
   eventoFecha: Date;
   categoria: string | null;
   inscripcionId: string;
+  // Dorsal asignado al aprobarse la inscripción (Fase 13.1). Si existe,
+  // reemplaza el número derivado del id como número grande del certificado.
+  dorsal: number | null;
+  // QR de entrega de kit (Fase 13.2, lib/kits/token.ts), en PNG. Opcional
+  // para que el PDF se pueda generar aunque falle el QR.
+  qrKitPng?: Uint8Array | null;
 }): Promise<Uint8Array> {
   const documento = await PDFDocument.create();
   const page = documento.addPage([ANCHO, ALTO]);
@@ -177,10 +183,19 @@ export async function generarCertificadoPdf(datos: {
 
   // Bloque central: "N.° de inscripción" + número grande + nombre.
   const centroY = 430;
-  centrarTexto(page, trackear("N.° DE INSCRIPCIÓN"), centroY, mono, 10, NARANJA);
   centrarTexto(
     page,
-    numeroDesdeId(datos.inscripcionId),
+    trackear(datos.dorsal ? "DORSAL" : "N.° DE INSCRIPCIÓN"),
+    centroY,
+    mono,
+    10,
+    NARANJA
+  );
+  centrarTexto(
+    page,
+    datos.dorsal
+      ? String(datos.dorsal).padStart(3, "0")
+      : numeroDesdeId(datos.inscripcionId),
     centroY - 78,
     bold,
     76,
@@ -255,6 +270,22 @@ export async function generarCertificadoPdf(datos: {
     });
   } catch (error) {
     console.error("No se pudo incrustar el sello en el certificado:", error);
+  }
+
+  // QR de entrega de kit, abajo a la izquierda sobre la referencia. Ya
+  // trae su propio margen blanco (quiet zone), así que se lee bien sobre
+  // el fondo oscuro sin placa adicional.
+  if (datos.qrKitPng) {
+    const qrImg = await documento.embedPng(datos.qrKitPng);
+    const qrLado = 84;
+    page.drawText(trackear("ENTREGA DE KIT"), {
+      x: MARGEN,
+      y: 64 + qrLado + 6,
+      size: 8,
+      font: mono,
+      color: NARANJA,
+    });
+    page.drawImage(qrImg, { x: MARGEN, y: 64, width: qrLado, height: qrLado });
   }
 
   // Referencia completa + fecha de generación, abajo a la izquierda —

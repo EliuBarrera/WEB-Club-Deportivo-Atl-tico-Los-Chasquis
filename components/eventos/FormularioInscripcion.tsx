@@ -3,6 +3,7 @@
 import Script from "next/script";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { EventoPublicado, TerminosVigente } from "@/lib/eventos";
+import { esDerechoCamiseta } from "@/lib/camiseta";
 import { rangoAnios } from "@/lib/categorias";
 import { formatPrecio } from "@/lib/format";
 import { DatosCarrera } from "./DatosCarrera";
@@ -134,6 +135,7 @@ export function FormularioInscripcion({
   );
   const [pruebasIds, setPruebasIds] = useState<string[]>([]);
   const [grupoTarifaId, setGrupoTarifaId] = useState("");
+  const [tallaCamiseta, setTallaCamiseta] = useState("");
 
   const [celular, setCelular] = useState("");
   const [email, setEmail] = useState("");
@@ -235,8 +237,16 @@ export function FormularioInscripcion({
   const grupoPreviewId = usaCategorias
     ? categoriaSeleccionada?.grupoTarifaId
     : grupoTarifaId;
-  const precioPreview =
-    evento.precios.grupos.find((g) => g.id === grupoPreviewId)?.valor ?? null;
+  const grupoPreview = evento.precios.grupos.find(
+    (g) => g.id === grupoPreviewId
+  );
+  const precioPreview = grupoPreview?.valor ?? null;
+
+  // Talla de camiseta (Fase 13.1): solo si el grupo elegido incluye
+  // camiseta y el evento tiene tallas. El servidor vuelve a validarlo.
+  const pideTalla =
+    evento.tallasCamiseta.length > 0 &&
+    (grupoPreview?.derechos ?? []).some((d) => esDerechoCamiseta(d));
 
   function alternarPrueba(key: string) {
     setPruebasIds((actual) => {
@@ -356,6 +366,7 @@ export function FormularioInscripcion({
           categoriaId: usaCategorias ? categoriaId : undefined,
           pruebasIds: usaCategorias ? pruebasIds : [],
           grupoTarifaId: usaGrupos ? grupoTarifaId : undefined,
+          tallaCamiseta: pideTalla ? tallaCamiseta : undefined,
           celular,
           email,
           ciudad,
@@ -814,6 +825,32 @@ export function FormularioInscripcion({
                   </label>
                 )
               )}
+            </fieldset>
+          ) : null}
+
+          {pideTalla ? (
+            <fieldset className="flex flex-col gap-4">
+              <legend className="mb-1 font-display text-lg font-bold uppercase">
+                Kit
+              </legend>
+              <Campo
+                etiqueta="Talla de camiseta"
+                error={fieldErrors.tallaCamiseta?.[0]}
+              >
+                <select
+                  required
+                  value={tallaCamiseta}
+                  onChange={(e) => setTallaCamiseta(e.target.value)}
+                  className={inputClase}
+                >
+                  <option value="">Elige una talla</option>
+                  {evento.tallasCamiseta.map((talla) => (
+                    <option key={talla} value={talla}>
+                      {talla}
+                    </option>
+                  ))}
+                </select>
+              </Campo>
             </fieldset>
           ) : null}
 

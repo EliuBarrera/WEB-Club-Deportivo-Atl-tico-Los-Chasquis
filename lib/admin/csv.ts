@@ -16,6 +16,8 @@ const ENCABEZADOS = [
   "Categoría",
   "Grupo de tarifa",
   "Pruebas",
+  "Talla camiseta",
+  "Dorsal",
   "Celular",
   "Email",
   "Ciudad",
@@ -29,6 +31,8 @@ const ENCABEZADOS = [
   "Estado de pago",
   "Total pago",
   "Fecha de inscripción",
+  "Kit entregado",
+  "Entregado por",
 ] as const;
 
 // Escapa un valor para una celda CSV (RFC 4180): si contiene coma, comilla
@@ -54,6 +58,8 @@ function filaDe(inscripcion: InscripcionExport): string {
     inscripcion.categoria?.nombre ?? "",
     inscripcion.grupoTarifa?.nombre ?? "",
     inscripcion.pruebasIds.join(" / "),
+    inscripcion.tallaCamiseta ?? "",
+    inscripcion.dorsal ? String(inscripcion.dorsal) : "",
     inscripcion.celular,
     inscripcion.email,
     inscripcion.ciudad,
@@ -67,6 +73,8 @@ function filaDe(inscripcion: InscripcionExport): string {
     inscripcion.estadoPago,
     String(inscripcion.totalPago),
     inscripcion.createdAt.toISOString(),
+    inscripcion.kitEntregadoEn?.toISOString() ?? "",
+    inscripcion.kitEntregadoPor ?? "",
   ];
   return valores.map(escaparCelda).join(",");
 }

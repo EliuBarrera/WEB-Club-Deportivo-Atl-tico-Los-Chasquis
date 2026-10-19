@@ -1,6 +1,6 @@
 import "server-only";
 import { redirect } from "next/navigation";
-import type { EstadoPago } from "@prisma/client";
+import type { EstadoPago, Prisma } from "@prisma/client";
 import { auth } from "@/auth";
 import { ordenarCategorias } from "@/lib/categorias";
 import { ordenarDistancias } from "@/lib/distancias";
@@ -57,11 +57,34 @@ export async function getEventosParaFiltro() {
   });
 }
 
+export const FILTROS_KIT = ["PENDIENTE", "ENTREGADO"] as const;
+export type FiltroKit = (typeof FILTROS_KIT)[number];
+
 type FiltrosInscripciones = {
   eventoId: string;
   estadoPago?: EstadoPago;
   categoriaId?: string;
+  kit?: FiltroKit;
 };
+
+// Mismo `where` para la tabla y el CSV. Kit PENDIENTE = aprobada y sin
+// entregar (las no aprobadas no tienen kit que recoger, Fase 13.2). Va en
+// un AND aparte para no pisar el filtro de estadoPago si viene también.
+function whereInscripciones(
+  filtros: FiltrosInscripciones,
+): Prisma.InscripcionWhereInput {
+  return {
+    eventoId: filtros.eventoId,
+    estadoPago: filtros.estadoPago,
+    categoriaId: filtros.categoriaId,
+    AND:
+      filtros.kit === "PENDIENTE"
+        ? [{ estadoPago: "APROBADO", kitEntregadoEn: null }]
+        : filtros.kit === "ENTREGADO"
+          ? [{ kitEntregadoEn: { not: null } }]
+          : [],
+  };
+}
 
 // Campos suficientes para la tabla en pantalla. El CSV (que sí necesita
 // también los datos de acudiente/condiciones médicas) usa
@@ -69,11 +92,7 @@ type FiltrosInscripciones = {
 export async function getInscripcionesPorEvento(filtros: FiltrosInscripciones) {
   await verifySession();
   return prisma.inscripcion.findMany({
-    where: {
-      eventoId: filtros.eventoId,
-      estadoPago: filtros.estadoPago,
-      categoriaId: filtros.categoriaId,
-    },
+    where: whereInscripciones(filtros),
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -89,6 +108,8 @@ export async function getInscripcionesPorEvento(filtros: FiltrosInscripciones) {
       celular: true,
       email: true,
       createdAt: true,
+      kitEntregadoEn: true,
+      kitEntregadoPor: true,
     },
   });
 }
@@ -96,6 +117,35 @@ export async function getInscripcionesPorEvento(filtros: FiltrosInscripciones) {
 export type InscripcionAdmin = Awaited<
   ReturnType<typeof getInscripcionesPorEvento>
 >[number];
+
+// Camisetas por talla para pedir al proveedor (Fase 13.1). Cuenta solo
+// inscripciones APROBADAS: una pendiente todavía puede no pagar. Devuelve
+// cada talla configurada en el evento, en su mismo orden, aunque tenga 0.
+export async function getConteoTallasCamiseta(eventoId: string) {
+  await verifySession();
+  const [evento, porTalla] = await Promise.all([
+    prisma.evento.findUnique({
+      where: { id: eventoId },
+      select: { tallasCamiseta: true },
+    }),
+    prisma.inscripcion.groupBy({
+      by: ["tallaCamiseta"],
+      where: {
+        eventoId,
+        estadoPago: "APROBADO",
+        tallaCamiseta: { not: null },
+      },
+      _count: { _all: true },
+    }),
+  ]);
+  const conteos = new Map(
+    porTalla.map((fila) => [fila.tallaCamiseta, fila._count._all]),
+  );
+  return (evento?.tallasCamiseta ?? []).map((talla) => ({
+    talla,
+    total: conteos.get(talla) ?? 0,
+  }));
+}
 
 // Dashboard de ingresos (Fase 6): todo se calcula desde la base local,
 // nunca contra la API de Wompi — el webhook de la Fase 5 ya mantiene
@@ -208,6 +258,7 @@ export async function getEventoCompleto(eventoId: string) {
       terminosUrl: true,
       tipo: true,
       notasCategorias: true,
+      tallasCamiseta: true,
       recorridos: {
         orderBy: { orden: "asc" },
         select: {
@@ -443,11 +494,7 @@ export async function getInscripcionesParaExport(
   filtros: FiltrosInscripciones,
 ) {
   return prisma.inscripcion.findMany({
-    where: {
-      eventoId: filtros.eventoId,
-      estadoPago: filtros.estadoPago,
-      categoriaId: filtros.categoriaId,
-    },
+    where: whereInscripciones(filtros),
     orderBy: { createdAt: "desc" },
     select: {
       id: true,
@@ -461,6 +508,8 @@ export async function getInscripcionesParaExport(
       categoria: { select: { nombre: true } },
       grupoTarifa: { select: { nombre: true } },
       pruebasIds: true,
+      tallaCamiseta: true,
+      dorsal: true,
       celular: true,
       email: true,
       ciudad: true,
@@ -474,6 +523,8 @@ export async function getInscripcionesParaExport(
       estadoPago: true,
       totalPago: true,
       createdAt: true,
+      kitEntregadoEn: true,
+      kitEntregadoPor: true,
     },
   });
 }

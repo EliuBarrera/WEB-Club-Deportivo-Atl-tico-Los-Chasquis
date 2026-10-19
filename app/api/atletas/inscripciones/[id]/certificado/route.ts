@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getSesionAtleta } from "@/lib/atletas/dal";
 import { generarCertificadoPdf } from "@/lib/atletas/certificado";
+import { qrKitPng } from "@/lib/kits/token";
 
 // Descarga del certificado de inscripción (Fase 10, backlog). Debe ser un
 // Route Handler (no un Server Component) porque devuelve un archivo con
@@ -31,6 +32,7 @@ export async function GET(
       evento: { select: { titulo: true, fecha: true } },
       categoria: { select: { nombre: true } },
       grupoTarifa: { select: { nombre: true } },
+      dorsal: true,
     },
   });
 
@@ -55,6 +57,13 @@ export async function GET(
     );
   }
 
+  // Si el QR falla, el certificado sale igual (sin QR): el atleta sigue
+  // teniendo el QR en /atletas y la mesa de incidencias busca por documento.
+  const qr = await qrKitPng(id).catch((error) => {
+    console.error("No se pudo generar el QR del kit:", error);
+    return null;
+  });
+
   const pdfBytes = await generarCertificadoPdf({
     nombres: inscripcion.nombres,
     apellidos: inscripcion.apellidos,
@@ -62,6 +71,8 @@ export async function GET(
     eventoFecha: inscripcion.evento.fecha,
     categoria: inscripcion.categoria?.nombre ?? inscripcion.grupoTarifa?.nombre ?? null,
     inscripcionId: id,
+    dorsal: inscripcion.dorsal,
+    qrKitPng: qr,
   });
 
   return new NextResponse(Buffer.from(pdfBytes), {

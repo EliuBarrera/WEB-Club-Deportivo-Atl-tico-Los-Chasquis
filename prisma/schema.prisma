@@ -89,27 +89,35 @@ model PruebaCatalogo {
 // ==========================================
 
 model Evento {
-  id                  String       @id @default(cuid())
-  titulo              String
-  subtitulo           String?
-  lema                String?
-  estado              EstadoEvento @default(BORRADOR)
-  tipo                TipoEvento   @default(PISTA)
-  fecha               DateTime
-  horario             String? // texto libre, ej: "7:00 AM - 5:00 PM"
-  ubicacion           String
-  mapUrl              String?
-  descripcion         String?      @db.Text
-  imagenUrl           String?
-  resultadosUrl       String?
-  terminosUrl         String?
-  cierreInscripciones String? // texto libre, ej: "10 de abril de 2026"
-  aval                String?
-  organizador         String?
-  lemaInstitucional   String?
+  id                     String       @id @default(cuid())
+  titulo                 String
+  subtitulo              String?
+  lema                   String?
+  estado                 EstadoEvento @default(BORRADOR)
+  tipo                   TipoEvento   @default(PISTA)
+  fecha                  DateTime
+  horario                String? // texto libre, ej: "7:00 AM - 5:00 PM"
+  ubicacion              String
+  mapUrl                 String?
+  descripcion            String?      @db.Text
+  imagenUrl              String?
+  resultadosUrl          String?
+  terminosUrl            String?
+  cierreInscripciones    String? // texto libre, ej: "10 de abril de 2026"
+  aval                   String?
+  organizador            String?
+  lemaInstitucional      String?
   // Notas que aplican a las categorías (Fase 12.6), ej. "La Recreativa no
   // tiene fines competitivos". Se muestran en el modal de T&C del evento.
-  notasCategorias     String[]     @default([])
+  notasCategorias        String[]     @default([])
+  // Tallas de camiseta ofrecidas en la inscripción (Fase 13.1), ej. "S",
+  // "M", "L". Solo se piden a los grupos de tarifa que incluyen "camiseta"
+  // en sus `derechos`. Vacío = el evento no pide talla.
+  tallasCamiseta         String[]     @default([])
+  // Enlace de entrega de kits para voluntarios (Fase 13.2): da acceso a
+  // /kits/[token] sin cuenta. Lo genera/revoca un usuario del panel.
+  tokenEntregaKits       String?      @unique
+  tokenEntregaKitsExpira DateTime?
 
   // Relaciones 1:1
   premios    Premios?
@@ -489,6 +497,19 @@ model Inscripcion {
   departamento String
   club         String?
 
+  // Kit (Fase 13.1). `tallaCamiseta` se recibe del cliente pero se valida
+  // en servidor contra Evento.tallasCamiseta. `dorsal` nunca se recibe del
+  // cliente: se asigna al quedar APROBADO (lib/dorsales.ts).
+  tallaCamiseta String?
+  dorsal        Int?
+
+  // Entrega del kit (Fase 13.2). Se marca una sola vez; un segundo
+  // escaneo muestra quién y cuándo. `kitEntregadoPor` es el nombre que
+  // escribió el voluntario (no hay cuentas de voluntario) y
+  // `kitEntregadoEn` la hora del celular, que puede sincronizar más tarde.
+  kitEntregadoEn  DateTime?
+  kitEntregadoPor String?
+
   // Adicional
   condicionesMedicas String?
 
@@ -517,6 +538,9 @@ model Inscripcion {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Null no cuenta como duplicado en PostgreSQL: las inscripciones sin
+  // dorsal (pendientes) no chocan entre sí.
+  @@unique([eventoId, dorsal])
   @@index([eventoId])
   @@index([numeroDocumento])
   @@index([estadoPago])

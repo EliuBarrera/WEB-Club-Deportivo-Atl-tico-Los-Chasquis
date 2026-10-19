@@ -42,6 +42,7 @@ export function EventoEditor({
   guardarReglamentoAction,
   guardarLogisticaAction,
   guardarNotasCategoriasAction,
+  guardarTallasCamisetaAction,
   crearNoticiaAction,
   actualizarNoticiaAction,
   eliminarNoticiaAction,
@@ -76,6 +77,10 @@ export function EventoEditor({
     formData: FormData,
   ) => Promise<void>;
   guardarNotasCategoriasAction: (
+    eventoId: string,
+    formData: FormData,
+  ) => Promise<void>;
+  guardarTallasCamisetaAction: (
     eventoId: string,
     formData: FormData,
   ) => Promise<void>;
@@ -746,6 +751,33 @@ export function EventoEditor({
                     className="rounded-full bg-naranja px-6 py-2.5 font-display font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
                   >
                     Guardar notas
+                  </button>
+                </div>
+              </form>
+
+              {/* Fase 13.1: tallas que el atleta puede elegir si su grupo incluye camiseta */}
+              <form
+                action={guardarTallasCamisetaAction.bind(null, evento.id)}
+                className="mt-4 flex flex-col gap-5 border-t border-casi-negro/10 pt-6"
+              >
+                <FormularioCargando mensaje="Guardando tallas…" />
+                <ListaTextoEditable
+                  nombreCampo="tallasCamiseta"
+                  etiqueta="Tallas de camiseta"
+                  valoresIniciales={evento.tallasCamiseta}
+                  placeholder="Ej. S"
+                />
+                <p className="-mt-3 text-sm text-gris-oscuro">
+                  Solo se piden a los grupos de tarifa cuyos derechos incluyen
+                  &quot;camiseta&quot;. Si la lista está vacía, no se pide talla.
+                </p>
+
+                <div className="flex justify-end gap-3">
+                  <button
+                    type="submit"
+                    className="rounded-full bg-naranja px-6 py-2.5 font-display font-bold uppercase text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)]"
+                  >
+                    Guardar tallas
                   </button>
                 </div>
               </form>

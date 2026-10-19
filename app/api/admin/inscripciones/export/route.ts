@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import {
+  FILTROS_KIT,
   NoAutorizadoError,
   getInscripcionesParaExport,
   requireAdmin,
@@ -18,6 +19,7 @@ const querySchema = z.object({
     .enum(["PENDIENTE", "APROBADO", "RECHAZADO", "DECLINADO", "ERROR"])
     .optional(),
   categoriaId: z.string().min(1).optional(),
+  kit: z.enum(FILTROS_KIT).optional(),
 });
 
 export async function GET(request: NextRequest) {

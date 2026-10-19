@@ -105,6 +105,27 @@ const NAV_ITEMS = [
     ),
   },
   {
+    href: "/admin/entrega-kits",
+    etiqueta: "Kits",
+    icono: (
+      <svg
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 20h4v-3" />
+      </svg>
+    ),
+  },
+  {
     href: "/admin/socios",
     etiqueta: "Socios",
     icono: (
@@ -134,8 +155,10 @@ const NAV_ITEMS = [
 //
 // Con 6 secciones a 116px el dock mide ~800px y en celular se salía por
 // los lados (solo se veían las del centro). Igual que
-// components/PublicDock.tsx: por debajo de `md:` los ítems son solo ícono
-// (44px, cabe en un viewport de 360px) y la etiqueta vuelve desde `md:`.
+// components/PublicDock.tsx: por debajo de `lg:` los ítems son solo ícono
+// (40px desde que son 7 secciones, Fase 13.2: cabe en un viewport de
+// 360px) y la etiqueta vuelve desde `lg:` — a `md:` (768px) 7 etiquetas
+// de 104px ya no caben.
 export function Dock({
   cerrarSesionAction,
 }: {
@@ -161,12 +184,12 @@ export function Dock({
               onClick={() => irA(item.href)}
               className={
                 activo
-                  ? "flex h-12 w-11 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] md:h-16 md:w-[104px] lg:w-[116px]"
-                  : "flex h-12 w-11 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro md:h-16 md:w-[104px] lg:w-[116px]"
+                  ? "flex h-12 w-10 flex-col items-center justify-center gap-1 rounded-full bg-naranja text-white shadow-[0_6px_16px_rgba(241,88,8,0.35)] md:h-14 md:w-12 lg:h-16 lg:w-[116px]"
+                  : "flex h-12 w-10 flex-col items-center justify-center gap-1 rounded-full bg-white text-casi-negro md:h-14 md:w-12 lg:h-16 lg:w-[116px]"
               }
             >
               {item.icono}
-              <span className="hidden font-display text-[11px] font-extrabold uppercase tracking-wide md:block">
+              <span className="hidden font-display text-[11px] font-extrabold uppercase tracking-wide lg:block">
                 {item.etiqueta}
               </span>
             </Link>
@@ -180,7 +203,7 @@ export function Dock({
           <button
             type="submit"
             aria-label="Cerrar sesión"
-            className="flex h-12 w-11 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro md:h-16 md:w-14"
+            className="flex h-12 w-10 items-center justify-center rounded-full bg-casi-negro/5 text-casi-negro md:h-14 md:w-12 lg:h-16 lg:w-14"
           >
             <svg
               width="20"
